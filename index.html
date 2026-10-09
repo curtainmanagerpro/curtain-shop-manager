@@ -160,7 +160,7 @@ th{background:#f8faff;color:#68748c}
 /* Supabase settings will be added in the next setup step.
    Never put a service-role or secret key in this file. */
 const SUPABASE_URL = "PASTE_YOUR_SUPABASE_PROJECT_URL_HERE";
-const SUPABASE_ANON_KEY = "PASTE_YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY_HERE";
+const SUPABASE_ANON_KEY = "sb_publishable_B0SUM02iSibnEyDTpnVBdw_21pxeAtW";
 let sb = null, currentUser = null;
 if(window.supabase && SUPABASE_URL.startsWith("https://") && !SUPABASE_ANON_KEY.includes("PASTE_")){
   sb = window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
