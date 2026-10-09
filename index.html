@@ -543,7 +543,12 @@ async function saveAuthorizedUser(){
  if(email===authUser.email&&$("adminActive").value!=="true")return alert("You cannot disable your own active administrator account here.");
  const record={email,is_active:$("adminActive").value==="true",is_paid:$("adminPaid").value==="true",plan_name:$("adminPlan").value};
  const {error}=await sb.from("authorized_users").upsert(record,{onConflict:"email"});
- if(error){$("adminMessage").textContent="Save failed. Check table columns and RLS permissions.";return;}
+ if(error){
+  $("adminMessage").textContent =
+    "Save failed: " + error.message +
+    " (Code: " + (error.code || "unknown") + ")";
+  return;
+}
  $("adminMessage").textContent="User saved successfully.";await loadAuthorizedUsers();
 }
 async function disableAuthorizedUser(email){
