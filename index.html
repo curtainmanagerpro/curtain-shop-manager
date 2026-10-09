@@ -2,419 +2,563 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Curtain Shop Manager Pro</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-:root{--navy:#14263e;--teal:#17b8a3;--blue:#5684f5;--bg:#f3f6fb;--ink:#203148;--muted:#75849a;--line:#e5ebf3}
-*{box-sizing:border-box}body{margin:0;font:15px Arial,sans-serif;background:var(--bg);color:var(--ink)}
-button,input,select,textarea{font:inherit}button{border:0;border-radius:9px;padding:10px 14px;font-weight:600;cursor:pointer}
-.primary{background:var(--teal);color:white}.secondary{background:#edf3fa;color:var(--navy)}.danger{background:#fff0f0;color:#c33e50}
-input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:white;color:var(--ink)}
-.hidden{display:none!important}.muted,.sub{color:var(--muted)}.small{font-size:12px}
-#login{min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(135deg,#e2fbf5,#f3f6ff)}
-.login-card{width:min(460px,100%);background:white;border-radius:20px;padding:30px;box-shadow:0 15px 50px #14263e15}
-.login-card h1{margin:10px 0}.login-card button{width:100%;margin-top:14px}
-#app{display:flex;min-height:100vh}.sidebar{width:225px;flex-shrink:0;background:var(--navy);color:white;padding:18px 12px}
-.brand{font-size:19px;font-weight:bold;padding:8px 8px 22px}.brand small{display:block;color:#8ee6d8;font-size:10px;letter-spacing:2px;margin-top:5px}
-.navlabel{font-size:10px;letter-spacing:1.5px;color:#8da4bd;padding:13px 10px}
-.navbtn{display:block;width:100%;text-align:left;background:transparent;color:#c6d4e4;margin:3px 0}
-.navbtn.active,.navbtn:hover{background:#ffffff18;color:white}
-.sidebar-foot{margin-top:30px;padding:12px 8px;border-top:1px solid #ffffff22;font-size:12px;overflow-wrap:anywhere}
-.main{flex:1;min-width:0}.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;background:white;padding:16px 22px;border-bottom:1px solid var(--line)}
-.topbar h2{margin:0;font-size:20px}.topbar p{margin:5px 0 0;color:var(--muted);font-size:12px}
-.userpill{display:flex;align-items:center;gap:10px;font-size:12px}.content{max-width:1400px;margin:auto;padding:22px}
-.pagehead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
-.pagehead h3{margin:0 0 5px;font-size:22px}.pagehead p{margin:0;color:var(--muted);font-size:13px}
-.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
-.panel,.stat{background:white;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:15px}
-.stat span{color:var(--muted);font-size:12px}.stat strong{display:block;font-size:28px;margin-top:12px}
-.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:12px;font-weight:bold;color:#53657a}
-.full{grid-column:1/-1}.actions,.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}.toolbar{margin:0 0 14px}
-.toolbar input{flex:1;min-width:180px}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:9px}
-table{width:100%;border-collapse:collapse;min-width:650px}th,td{text-align:left;padding:11px;border-bottom:1px solid var(--line);font-size:12px}
-th{background:#f7f9fc;color:#718197}tr:last-child td{border-bottom:0}.empty{text-align:center;padding:25px;color:var(--muted)}
-.totalbox{max-width:370px;margin:16px 0 0 auto;background:#f7fafc;padding:15px;border-radius:10px}
-.totalrow{display:flex;justify-content:space-between;padding:7px 0}.grand{font-size:18px;font-weight:bold;border-top:1px solid var(--line);padding-top:12px}
-.notice{background:#eefbf8;border:1px solid #d5f5ee;color:#216f67;padding:12px;border-radius:9px;font-size:12px;line-height:1.6}
-@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:650px){#app{display:block}.sidebar{width:100%;padding:10px}.brand{padding-bottom:10px}.navlabel,.sidebar-foot{display:none}.navlist{display:flex;overflow:auto}.navbtn{width:auto;white-space:nowrap}.topbar{padding:12px}.content{padding:12px}.formgrid{grid-template-columns:1fr}.full{grid-column:auto}.grid{gap:8px}.stat,.panel{padding:12px}}
-@media print{.sidebar,.topbar,.no-print{display:none!important}#app{display:block}.content{padding:0}.panel{border:0}body{background:white}}
+:root{--primary:#24445c;--accent:#0e9b91;--bg:#f1f5f8;--line:#dce5eb;--text:#203040}
+*{box-sizing:border-box}
+body{margin:0;font:15px Arial,sans-serif;background:var(--bg);color:var(--text)}
+.app{max-width:1100px;margin:auto;padding:12px}
+header{background:var(--primary);color:white;padding:20px;border-radius:16px;margin-bottom:12px}
+header h1{margin:0;font-size:24px}header p{margin:6px 0 0;opacity:.85}
+.nav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:4px 0 12px}
+.nav button{width:100%;margin:0;background:#e2eaf0;color:var(--primary);padding:12px 5px;font-weight:bold}
+.nav button.active{background:var(--primary);color:white}
+button{border:0;border-radius:9px;padding:11px 14px;margin:4px;font-size:14px;font-weight:bold;cursor:pointer}
+.btn-dark{background:var(--primary);color:white}.btn-blue{background:#3277d5;color:white}
+.btn-green{background:var(--accent);color:white}.btn-red{background:#c94343;color:white}
+.btn-light{background:#e6edf2;color:var(--text)}
+.page{display:none}.page.active{display:block}
+.card,.customer-card,.quote-card{background:white;border-radius:15px;padding:17px;margin-bottom:13px;box-shadow:0 3px 12px #172b3b0b}
+h2{margin-top:0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.field label{display:block;font-weight:bold;margin-bottom:5px;font-size:13px}
+input,select,textarea{width:100%;padding:11px;border:1px solid #ccd7df;border-radius:9px;font-size:15px;background:white;color:var(--text)}
+textarea{min-height:70px}.home-buttons{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.home-buttons button{min-height:72px;font-size:16px}
+.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:760px}
+th{background:var(--primary);color:white;padding:9px}td{padding:7px;text-align:center;border-bottom:1px solid var(--line)}
+td input,td select{min-width:80px;padding:8px}
+.summary{background:#edf7f8;border-radius:12px;padding:14px;margin-top:12px}
+.summary-row{display:flex;justify-content:space-between;gap:10px;padding:5px 0}
+.grand{font-size:20px;font-weight:bold;border-top:1px solid #cbdadd;padding-top:10px}
+.item-card{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.small{font-size:12px;color:#718092}.empty{text-align:center;padding:25px;color:#718092}
+.preview{background:white;padding:24px;max-width:850px;margin:auto}
+.quote-header{text-align:center;border-bottom:2px solid var(--primary);padding-bottom:14px;margin-bottom:18px}
+.quote-header h1{margin:8px 0}.quote-info{display:flex;justify-content:space-between;gap:15px;margin-bottom:18px}
+.quote-table{width:100%;min-width:0}.quote-table th,.quote-table td{border:1px solid #ccd4db;padding:8px}
+.quote-total{width:300px;max-width:100%;margin:15px 0 0 auto}
+.logo{max-width:120px;max-height:70px;object-fit:contain}
+.login-wrap{min-height:95vh;display:grid;place-items:center}
+.login-card{width:min(440px,100%);background:white;border-radius:16px;padding:25px;box-shadow:0 4px 20px #1232}
+.login-card button{width:100%;margin:12px 0}
+.hidden{display:none!important}.notice{padding:12px;background:#eef7f8;border-radius:9px;font-size:13px;line-height:1.5}
+@media(max-width:700px){.app{padding:8px}.grid,.home-buttons{grid-template-columns:1fr}header h1{font-size:20px}.nav button{font-size:12px;padding:10px 3px}.quote-info{flex-direction:column}.preview{padding:12px}.quote-total{width:100%}}
+@media print{body{background:white}.no-print,header,.nav{display:none!important}.app{padding:0;max-width:none}body *{visibility:hidden}#previewContent,#previewContent *{visibility:visible}#previewContent{position:absolute;left:0;top:0;width:100%}.preview{box-shadow:none;padding:0}}
 </style>
 </head>
 <body>
 
-<section id="login">
-  <div class="login-card">
-    <h1>Curtain Shop Manager Pro</h1>
-    <p>Manage customers, measurements and professional quotations in one place.</p>
-    <div class="notice">Sign in with an authorized Google account to continue.</div>
-    <button class="primary" id="googleBtn">Continue with Google</button>
-    <p id="loginMsg" class="small muted">Secure sign-in required.</p>
-  </div>
+<section id="loginScreen" class="app login-wrap">
+ <div class="login-card">
+  <h1>🪟 Curtain Shop Manager Pro</h1>
+  <p>Measurements, customers and quotations.</p>
+  <div class="notice">Sign in with an authorized Google account.</div>
+  <button class="btn-dark" id="loginBtn">Continue with Google</button>
+  <p id="loginMessage" class="small">Secure sign-in required.</p>
+ </div>
 </section>
 
-<section id="app" class="hidden">
-  <aside class="sidebar">
-    <div class="brand">CURTAIN MANAGER<small>PRO WORKSPACE</small></div>
-    <div class="navlabel">WORKSPACE</div>
-    <div class="navlist">
-      <button class="navbtn active" data-page="dashboard">Dashboard</button>
-      <button class="navbtn" data-page="customers">Customers</button>
-      <button class="navbtn" data-page="measurements">Measurements</button>
-      <button class="navbtn" data-page="quotation">Create Quotation</button>
-      <button class="navbtn" data-page="saved">Saved Quotes</button>
-    </div>
-    <div class="navlabel">PREFERENCES</div>
-    <button class="navbtn" data-page="settings">Shop Settings</button>
-    <div class="sidebar-foot" id="sideEmail"></div>
-  </aside>
-  <main class="main">
-    <header class="topbar">
-      <div><h2 id="topTitle">Dashboard</h2><p id="topSub">Your shop at a glance</p></div>
-      <div class="userpill"><span id="userEmail"></span><button class="secondary" id="logoutBtn">Sign Out</button></div>
-    </header>
-    <div class="content" id="content"></div>
-  </main>
+<div id="mainApp" class="app hidden">
+<header>
+ <h1>🪟 Curtain Shop Manager</h1>
+ <p>Measurement • Quotation • Customers</p>
+ <div class="small" style="color:white;margin-top:8px" id="accountInfo"></div>
+</header>
+
+<div class="nav no-print">
+ <button id="navHome" class="active" onclick="showPage('home')">Home</button>
+ <button id="navMeasurement" onclick="showPage('measurement')">Measurement</button>
+ <button id="navCustomers" onclick="showPage('customers')">Customers</button>
+ <button id="navQuotation" onclick="showPage('quotation')">Quotation</button>
+ <button id="navSavedQuotes" onclick="showPage('savedQuotes')">Saved Quotes</button>
+ <button id="navSettings" onclick="showPage('settings')">Settings</button>
+ <button id="navAdmin" class="hidden" onclick="showPage('admin')">Admin Panel</button>
+</div>
+
+<section id="home" class="page active">
+ <div class="card">
+  <h2>Welcome</h2>
+  <p>Manage measurements separately and create quotations only for selected items.</p>
+  <div class="home-buttons">
+   <button class="btn-dark" onclick="newMeasurement()">＋ New Measurement</button>
+   <button class="btn-blue" onclick="newQuotation()">＋ New Quotation</button>
+   <button class="btn-light" onclick="showPage('customers')">Customers</button>
+   <button class="btn-light" onclick="showPage('savedQuotes')">Saved Quotations</button>
+   <button class="btn-light" onclick="showPage('savedMeasurements')">Saved Measurements</button>
+  </div>
+ </div>
+ <div class="card">
+  <h3>Quick Summary</h3>
+  <div class="grid">
+   <div class="notice">Saved Measurements: <b id="homeMeasurementCount">0</b></div>
+   <div class="notice">Saved Quotations: <b id="homeQuoteCount">0</b></div>
+  </div>
+ </div>
 </section>
+
+<section id="measurement" class="page">
+ <div class="card">
+  <h2>📏 Measurement Sheet</h2>
+  <div class="grid">
+   <div class="field"><label>Customer Name *</label><input id="mCustomer" placeholder="Customer name"></div>
+   <div class="field"><label>Phone / WhatsApp</label><input id="mPhone" type="tel"></div>
+   <div class="field"><label>Address</label><textarea id="mAddress"></textarea></div>
+   <div class="field"><label>Date</label><input id="mDate" type="date"></div>
+   <div class="field"><label>Measurement Unit</label><select id="mUnit" onchange="recalculateMeasurements()"><option value="cm">Centimeter</option><option value="inch">Inch</option></select></div>
+  </div>
+ </div>
+ <div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>Measurements</h2><button class="btn-blue" onclick="addMeasurementRow()">＋ Add Row</button></div>
+  <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Type</th><th>Height</th><th>Width</th><th>Unit</th><th>Qty</th><th>Area</th><th>Rate</th><th>Amount</th><th></th></tr></thead><tbody id="measurementBody"></tbody></table></div>
+  <div class="summary">
+   <div class="summary-row"><span>Total Sq.Ft</span><strong id="measurementSqft">0.00</strong></div>
+   <div class="summary-row"><span>Total RFT</span><strong id="measurementRft">0.00</strong></div>
+   <div class="summary-row"><span>Total Amount</span><strong>₹<span id="measurementAmount">0.00</span></strong></div>
+  </div>
+  <button class="btn-green" onclick="saveMeasurement()">Save Measurement</button>
+  <button class="btn-blue" onclick="measurementToQuotation()">Create Quotation</button>
+  <button class="btn-light" onclick="clearMeasurement()">Clear</button>
+  <button class="btn-light" onclick="showPage('savedMeasurements')">View Saved Measurements</button>
+ </div>
+</section>
+
+<section id="savedMeasurements" class="page">
+ <div class="card"><h2>Saved Measurements</h2><input id="measurementSearch" placeholder="Search customer..." oninput="renderMeasurements()"></div>
+ <div id="measurementList"></div>
+</section>
+
+<section id="customers" class="page">
+ <div class="card"><h2>Customers</h2><input id="customerSearch" placeholder="Search customer..." oninput="renderCustomers()"></div>
+ <div id="customerList"></div>
+</section>
+
+<section id="quotation" class="page">
+ <div class="card"><h2>Quotation</h2>
+  <div class="grid">
+   <div class="field"><label>Customer Name *</label><input id="qCustomer"></div>
+   <div class="field"><label>Phone</label><input id="qPhone"></div>
+   <div class="field"><label>Address</label><textarea id="qAddress"></textarea></div>
+   <div class="field"><label>Quotation No.</label><input id="qNumber"></div>
+   <div class="field"><label>Date</label><input id="qDate" type="date"></div>
+  </div>
+ </div>
+ <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Quotation Items</h2><button class="btn-blue" onclick="addQuotationItem()">＋ Add Item</button></div><div id="quotationItems"></div></div>
+ <div class="card"><h2>Calculation</h2>
+  <div class="grid">
+   <div class="field"><label>Discount Type</label><select id="discountType" onchange="calculateQuotation()"><option value="percent">Percentage %</option><option value="fixed">Fixed Amount ₹</option></select></div>
+   <div class="field"><label>Discount</label><input id="discountValue" type="number" value="0" oninput="calculateQuotation()"></div>
+   <div class="field"><label>GST %</label><input id="gstValue" type="number" value="0" oninput="calculateQuotation()"></div>
+  </div>
+  <div class="summary">
+   <div class="summary-row"><span>Subtotal</span><b>₹<span id="qSubtotal">0.00</span></b></div>
+   <div class="summary-row"><span>Discount</span><b>₹<span id="qDiscount">0.00</span></b></div>
+   <div class="summary-row"><span>GST</span><b>₹<span id="qGST">0.00</span></b></div>
+   <div class="summary-row grand"><span>Grand Total</span><b>₹<span id="qGrandTotal">0.00</span></b></div>
+  </div>
+  <div class="field" style="margin-top:12px"><label>Terms & Conditions</label><textarea id="qTerms"></textarea></div>
+  <button class="btn-green" onclick="saveQuotation()">Save Quotation</button>
+  <button class="btn-blue" onclick="previewQuotation()">Preview</button>
+ </div>
+</section>
+
+<section id="savedQuotes" class="page"><div class="card"><h2>Saved Quotations</h2><div id="savedQuoteList"></div></div></section>
+
+<section id="quotePreview" class="page">
+ <div class="no-print"><button class="btn-light" onclick="showPage('savedQuotes')">← Back</button><button class="btn-blue" onclick="window.print()">Print / Save PDF</button></div>
+ <div id="previewContent"></div>
+</section>
+
+<section id="settings" class="page">
+ <div class="card"><h2>Business Settings</h2>
+  <div class="grid">
+   <div class="field"><label>Business Name</label><input id="sName" placeholder="Homestyle Curtains"></div>
+   <div class="field"><label>Phone</label><input id="sPhone"></div>
+   <div class="field"><label>WhatsApp</label><input id="sWhatsapp"></div>
+   <div class="field"><label>Email</label><input id="sEmail"></div>
+   <div class="field"><label>GST Number</label><input id="sGST"></div>
+   <div class="field"><label>Quotation Validity</label><input id="sValidity" value="15 Days"></div>
+  </div>
+  <div class="field" style="margin-top:12px"><label>Business Address</label><textarea id="sAddress"></textarea></div>
+  <div class="field" style="margin-top:12px"><label>Business Logo</label><input id="sLogo" type="file" accept="image/*" onchange="loadLogo(event)"><img id="logoPreview" class="logo"></div>
+  <button class="btn-green" onclick="saveSettings()">Save Settings</button>
+  <button class="btn-light" onclick="downloadBackup()">Download Backup</button>
+  <button class="btn-light" onclick="document.getElementById('restoreFile').click()">Restore Backup</button>
+  <input id="restoreFile" class="hidden" type="file" accept="application/json" onchange="restoreBackup(event)">
+  <button class="btn-dark" onclick="signOut()">Sign Out</button>
+ </div>
+</section>
+
+<section id="admin" class="page">
+ <div class="card"><h2>Admin Panel — Authorized Users</h2>
+  <p class="notice">Add the Google email address that is allowed to sign in. Only an administrator should manage this list.</p>
+  <div class="grid">
+   <div class="field"><label>Authorized Gmail</label><input id="adminEmail" type="email" placeholder="customer@gmail.com"></div>
+   <div class="field"><label>Plan</label><select id="adminPlan"><option value="customer">Customer</option><option value="admin">Admin</option></select></div>
+   <div class="field"><label>Paid Access</label><select id="adminPaid"><option value="false">Not Paid</option><option value="true">Paid</option></select></div>
+   <div class="field"><label>Account Status</label><select id="adminActive"><option value="true">Active</option><option value="false">Disabled</option></select></div>
+  </div>
+  <button class="btn-green" onclick="saveAuthorizedUser()">Add / Update User</button>
+  <button class="btn-blue" onclick="loadAuthorizedUsers()">Refresh User List</button>
+  <div id="adminMessage" class="small"></div>
+  <div id="authorizedUserList"></div>
+ </div>
+</section>
+</div>
 
 <script>
+"use strict";
+
 /* SUPABASE CONFIGURATION */
-const SUPABASE_URL = "https://bhlttsdmlzrqerhwdozm.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_B0SUM02iSibnEyDTpnVBdw_21pxeAtW";
+const SUPABASE_URL="https://bhlttsdmlzrqerhwdozm.supabase.co";
+const SUPABASE_PUBLIC_KEY="sb_publishable_B0SUM02iSibnEyDTpnVBdw_21pxeAtW";
 
-/* Do not use a service_role key in browser code. */
-const $ = s => document.querySelector(s);
-const money = n => new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:2}).format(Number(n)||0);
-const esc = v => String(v ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const uid = () => Date.now() + Math.floor(Math.random()*10000);
-let sb=null,currentUser=null,access=null,page="dashboard";
+let sb=null,authUser=null,authRecord=null;
+let measurements=[],quotations=[],settings={};
+let currentMeasurementId=null,currentQuotationId=null,quotationItems=[];
+const DATA_KEY="curtain_manager_data_v4";
+const SETTINGS_KEY="curtain_manager_settings_v4";
+const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Blackout Curtain","Zebra Blind","Roman Blind","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Other"];
+const rftTypes=["Cloth Curtain","Eyelet Curtain","Ripple Curtain"];
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+const money=n=>Number(n||0).toFixed(2);
+const newId=()=>Date.now()+Math.floor(Math.random()*1000);
+function today(){return new Date().toLocaleDateString("en-CA");}
 
-function read(k, fallback) {
-  try { return JSON.parse(localStorage.getItem("csm_"+k) || JSON.stringify(fallback)); }
-  catch { return fallback; }
+function initSupabase(){
+ if(!window.supabase||SUPABASE_PUBLIC_KEY.includes("PASTE_"))return false;
+ sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLIC_KEY);
+ return true;
 }
-function write(k,v) { localStorage.setItem("csm_"+k,JSON.stringify(v)); }
-
-let customers=read("customers",[]);
-let measurements=read("measurements",[]);
-let quotes=read("quotes",[]);
-let settings=read("settings",{shopName:"Homestyle Curtains",phone:"",address:"",gst:"",logo:""});
-
-function setupSupabase(){
-  if(!window.supabase || SUPABASE_ANON_KEY.includes("PASTE_")) return false;
-  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-  return true;
-}
-
-$("#googleBtn").onclick=async()=>{
-  if(!setupSupabase()){
-    $("#loginMsg").textContent="Setup required: add your Supabase public key to the code.";
-    return;
-  }
-  $("#googleBtn").disabled=true;
-  $("#loginMsg").textContent="Opening Google sign-in...";
-  const {error}=await sb.auth.signInWithOAuth({
-    provider:"google",
-    options:{redirectTo:location.href}
-  });
-  if(error){
-    $("#loginMsg").textContent="Sign-in failed: "+error.message;
-    $("#googleBtn").disabled=false;
-  }
+$("loginBtn").onclick=async()=>{
+ if(!initSupabase()){ $("loginMessage").textContent="Setup required: add your Supabase public key in the code.";return; }
+ $("loginMessage").textContent="Opening Google sign-in...";
+ const {error}=await sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:location.href}});
+ if(error)$("loginMessage").textContent="Login failed: "+error.message;
 };
 
-async function checkAccess(user){
-  currentUser=user;
-  $("#loginMsg").textContent="Checking account authorization...";
-  const {data,error}=await sb.from("authorized_users")
-    .select("email,is_active,is_paid,plan_name,trial_ends_at")
-    .eq("email",user.email).maybeSingle();
-
-  if(error){
-    $("#loginMsg").textContent="Could not verify access. Check authorized_users table permissions and try again.";
-    return;
-  }
-  if(!data || data.is_active!==true){
-    $("#loginMsg").textContent="This Google account is not authorized. Contact the administrator.";
-    await sb.auth.signOut();
-    return;
-  }
-
-  const isAdmin=String(data.plan_name||"").toLowerCase()==="admin";
-  const trialValid=!!data.trial_ends_at && new Date(data.trial_ends_at)>=new Date();
-  if(!isAdmin && data.is_paid!==true && !trialValid){
-    $("#loginMsg").textContent="Your access is not active. Contact the administrator.";
-    await sb.auth.signOut();
-    return;
-  }
-
-  access=data;
-  $("#login").classList.add("hidden");
-  $("#app").classList.remove("hidden");
-  $("#userEmail").textContent=user.email;
-  $("#sideEmail").textContent=user.email+" · "+(isAdmin?"Administrator":"Authorized User");
-  render();
+async function verifyUser(user){
+ authUser=user;
+ $("loginMessage").textContent="Checking access...";
+ const {data,error}=await sb.from("authorized_users").select("*").eq("email",user.email).maybeSingle();
+ if(error){$("loginMessage").textContent="Authorization check failed. Check table permissions.";return;}
+ if(!data||data.is_active!==true){
+  $("loginMessage").textContent="This Google account is not authorized.";
+  await sb.auth.signOut();return;
+ }
+ const admin=String(data.plan_name||"").toLowerCase()==="admin";
+ const paid=data.is_paid===true;
+ const trial=data.trial_ends_at&&new Date(data.trial_ends_at)>=new Date();
+ if(!admin&&!paid&&!trial){
+  $("loginMessage").textContent="Account access is not active. Contact the administrator.";
+  await sb.auth.signOut();return;
+ }
+ authRecord=data;
+ $("loginScreen").classList.add("hidden");
+ $("mainApp").classList.remove("hidden");
+ $("accountInfo").textContent=user.email+(admin?" · Administrator":" · Authorized User");
+ $("navAdmin").classList.toggle("hidden",!admin);
+ loadStorage();
+ loadSettings();
+ updateHome();
+ showPage("home");
 }
-
 async function boot(){
-  if(!setupSupabase()) return;
-  const {data:{session}}=await sb.auth.getSession();
-  if(session?.user) await checkAccess(session.user);
-  sb.auth.onAuthStateChange(async(event,session)=>{
-    if(event==="SIGNED_IN" && session?.user) await checkAccess(session.user);
-    if(event==="SIGNED_OUT"){
-      $("#app").classList.add("hidden");
-      $("#login").classList.remove("hidden");
-      $("#loginMsg").textContent="Signed out successfully.";
-    }
-  });
-}
-
-const pageInfo={
- dashboard:["Dashboard","Your shop at a glance"],
- customers:["Customers","Manage customer contact details"],
- measurements:["Measurements","Record room and window measurements"],
- quotation:["Create Quotation","Prepare a quotation for your customer"],
- saved:["Saved Quotes","Review and print saved quotations"],
- settings:["Shop Settings","Update business details and manage backups"]
-};
-
-function head(title,subtitle,action=""){
- return `<div class="pagehead"><div><h3>${title}</h3><p>${subtitle}</p></div>${action}</div>`;
-}
-function customerOptions(selected=""){
- return `<option value="">Select customer</option>`+customers.map(c=>`<option ${c.name===selected?"selected":""}>${esc(c.name)}</option>`).join("");
-}
-function customerRows(list=customers){
- return list.length?list.map(c=>`<tr><td>${esc(c.name)}</td><td>${esc(c.phone||"—")}</td><td>${esc(c.address||"—")}</td><td>${measurements.filter(m=>m.customer===c.name).length}</td><td><button class="secondary" data-viewc="${c.id}">Measurements</button> <button class="danger" data-delc="${c.id}">Delete</button></td></tr>`).join(""):`<tr><td colspan="5" class="empty">No customers saved.</td></tr>`;
-}
-function measurementRows(list=measurements){
- return list.length?list.map(m=>`<tr><td>${esc(m.customer||"—")}</td><td>${esc(m.area)}</td><td>${esc(m.type)}</td><td>${m.width} × ${m.height} cm</td><td>${(Number(m.width||0)*Number(m.height||0)/929.0304*Number(m.qty||1)).toFixed(2)}</td><td>${esc(m.unit)}</td><td><button class="danger" data-delm="${m.id}">Delete</button></td></tr>`).join(""):`<tr><td colspan="7" class="empty">No measurements saved.</td></tr>`;
-}
-function quoteRows(list=quotes){
- return list.slice().reverse().map(q=>`<tr><td>${esc(q.ref)}</td><td>${esc(q.date)}</td><td>${esc(q.customer)}</td><td>${money(q.total)}</td><td>${q.items.length}</td><td><button class="secondary" data-printq="${q.id}">Print</button> <button class="danger" data-delq="${q.id}">Delete</button></td></tr>`).join("")||`<tr><td colspan="6" class="empty">No saved quotations.</td></tr>`;
-}
-function itemRow(){
- return `<tr><td><input class="iname" placeholder="Curtain or blinds item"></td><td><input class="iqty" type="number" min="0" value="1"></td><td><select class="iunit"><option>Sq.Ft</option><option>Rft</option><option>Nos</option><option>Meter</option><option>Set</option><option>Item</option></select></td><td><input class="irate" type="number" min="0" value="0"></td><td class="iamount">${money(0)}</td><td><button class="danger idel">×</button></td></tr>`;
-}
-
-const pages={
- dashboard:()=>head("Dashboard","Welcome to your workspace")+`
- <div class="grid">
- <div class="stat"><span>Customers</span><strong>${customers.length}</strong></div>
- <div class="stat"><span>Measurements</span><strong>${measurements.length}</strong></div>
- <div class="stat"><span>Quotations</span><strong>${quotes.length}</strong></div>
- <div class="stat"><span>Access Status</span><strong style="font-size:20px">${access?.is_paid||String(access?.plan_name).toLowerCase()==="admin"?"Active":"Trial"}</strong></div>
- </div>
- <div class="panel"><h3>Quick Actions</h3><div class="actions">
- <button class="primary" data-go="customers">Add Customer</button>
- <button class="primary" data-go="measurements">Add Measurement</button>
- <button class="primary" data-go="quotation">Create Quotation</button>
- <button class="secondary" data-go="saved">View Saved Quotes</button>
- </div><p class="notice" style="margin-top:18px">Important: business records are stored in this browser only. Cloud data synchronization has not been configured in this version.</p></div>`,
-
- customers:()=>head("Customers","Manage customer details",`<button class="primary" id="newC">+ Add Customer</button>`)+`
- <div id="cForm" class="panel hidden"><h3>Customer Details</h3><div class="formgrid">
- <div class="field"><label>Full Name *</label><input id="cn"></div>
- <div class="field"><label>Phone Number</label><input id="cp" type="tel"></div>
- <div class="field full"><label>Address</label><textarea id="ca" rows="2"></textarea></div>
- </div><div class="actions"><button class="primary" id="saveC">Save Customer</button><button class="secondary" id="cancelC">Cancel</button></div></div>
- <div class="panel"><div class="toolbar"><input id="searchC" placeholder="Search customers..."></div><div class="tablewrap"><table><thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>Measurements</th><th>Actions</th></tr></thead><tbody id="customerRows">${customerRows()}</tbody></table></div></div>`,
-
- measurements:()=>head("Measurements","Record each room or window measurement",`<button class="primary" id="newM">+ Add Measurement</button>`)+`
- <div id="mForm" class="panel hidden"><h3>New Measurement</h3><div class="formgrid">
- <div class="field"><label>Customer</label><select id="mc">${customerOptions()}</select></div>
- <div class="field"><label>Area / Room *</label><input id="ma" placeholder="Living room"></div>
- <div class="field"><label>Curtain Type</label><select id="mt"><option>Cloth Curtain</option><option>Ripple Curtain</option><option>Eyelet Curtain</option><option>Blackout Curtain</option><option>Zebra Blinds</option><option>Roman Blinds</option><option>Roller Blinds</option><option>Wooden Blinds</option><option>Other</option></select></div>
- <div class="field"><label>Unit</label><select id="mu"><option>Sq.Ft</option><option>Rft</option><option>Meter</option><option>Nos</option><option>Set</option><option>Item</option></select></div>
- <div class="field"><label>Width (cm)</label><input id="mw" type="number" min="0"></div>
- <div class="field"><label>Height (cm)</label><input id="mh" type="number" min="0"></div>
- <div class="field"><label>Quantity / Panels</label><input id="mq" type="number" min="1" value="1"></div>
- <div class="field"><label>Notes</label><input id="mn"></div></div>
- <div class="actions"><button class="primary" id="saveM">Save Measurement</button><button class="secondary" id="cancelM">Cancel</button></div></div>
- <div class="panel"><div class="toolbar"><input id="searchM" placeholder="Search customer, room or type..."></div><div class="tablewrap"><table><thead><tr><th>Customer</th><th>Area</th><th>Type</th><th>Width × Height</th><th>Area (Sq.Ft)</th><th>Unit</th><th>Action</th></tr></thead><tbody id="measurementRows">${measurementRows()}</tbody></table></div></div>`,
-
- quotation:()=>head("Create Quotation","Add items and calculate the total",`<button class="secondary no-print" id="printNow">Print / Save PDF</button>`)+`
- <div class="panel"><div class="formgrid">
- <div class="field"><label>Customer</label><input id="qc" list="customerNames" placeholder="Enter customer name"><datalist id="customerNames">${customers.map(c=>`<option value="${esc(c.name)}">`).join("")}</datalist></div>
- <div class="field"><label>Date</label><input id="qd" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
- <div class="field"><label>Phone</label><input id="qp"></div>
- <div class="field"><label>Quote Reference</label><input id="qr" value="QT-${Date.now().toString().slice(-6)}"></div></div>
- <div class="tablewrap" style="margin-top:18px"><table><thead><tr><th>Item / Description</th><th>Qty</th><th>Unit</th><th>Rate (₹)</th><th>Amount</th><th></th></tr></thead><tbody id="quoteItems">${itemRow()}</tbody></table></div>
- <div class="actions no-print"><button class="secondary" id="addItem">+ Add Item</button></div>
- <div class="formgrid" style="margin-top:18px">
- <div class="field"><label>Discount Type</label><select id="discountType"><option value="percent">Percentage (%)</option><option value="fixed">Fixed Amount (₹)</option></select></div>
- <div class="field"><label>Discount Value</label><input id="discountValue" type="number" min="0" value="0"></div>
- <div class="field"><label>GST (%)</label><input id="gstValue" type="number" min="0" value="0"></div>
- <div class="field"><label>Notes / Terms</label><input id="qnotes" placeholder="Validity, installation, payment terms"></div></div>
- <div class="totalbox"><div class="totalrow"><span>Subtotal</span><b id="subtotal">₹0</b></div><div class="totalrow"><span>Discount</span><b id="discountTotal">₹0</b></div><div class="totalrow"><span>GST</span><b id="taxTotal">₹0</b></div><div class="totalrow grand"><span>Grand Total</span><b id="grandTotal">₹0</b></div></div>
- <div class="actions no-print"><button class="primary" id="saveQ">Save Quotation</button><button class="secondary" id="clearQ">Clear Items</button></div></div>`,
-
- saved:()=>head("Saved Quotes","Review, print or delete saved quotations")+`
- <div class="panel"><div class="toolbar"><input id="searchQ" placeholder="Search customer or quote reference..."></div><div class="tablewrap"><table><thead><tr><th>Reference</th><th>Date</th><th>Customer</th><th>Total</th><th>Items</th><th>Actions</th></tr></thead><tbody id="quoteRows">${quoteRows()}</tbody></table></div></div>`,
-
- settings:()=>head("Shop Settings","Business details and data backup")+`
- <div class="panel"><div class="formgrid">
- <div class="field"><label>Shop / Business Name</label><input id="shopName" value="${esc(settings.shopName)}"></div>
- <div class="field"><label>Phone</label><input id="shopPhone" value="${esc(settings.phone)}"></div>
- <div class="field full"><label>Address</label><textarea id="shopAddress" rows="2">${esc(settings.address)}</textarea></div>
- <div class="field"><label>GSTIN (Optional)</label><input id="shopGST" value="${esc(settings.gst)}"></div>
- <div class="field"><label>Logo Image URL (Optional)</label><input id="shopLogo" value="${esc(settings.logo)}"></div></div>
- <div class="actions"><button class="primary" id="saveSettings">Save Settings</button></div>
- <hr style="border:0;border-top:1px solid var(--line);margin:22px 0">
- <h3>Data Backup</h3><p class="sub">Export your records regularly so you can restore them if needed.</p>
- <div class="notice">Records are currently stored in this browser. Signing in on another device will not automatically transfer your records.</div>
- <div class="actions"><button class="secondary" id="exportBackup">Export Backup</button><button class="secondary" id="importBackup">Import Backup</button><button class="danger" id="clearData">Delete All Local Data</button><input id="backupFile" type="file" accept="application/json" class="hidden"></div></div>`
-};
-
-function render(){
- const [title,subtitle]=pageInfo[page];
- $("#topTitle").textContent=title;$("#topSub").textContent=subtitle;
- document.querySelectorAll(".navbtn[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
- $("#content").innerHTML=pages[page]();
- bindPage();
-}
-function go(p){page=p;render();}
-
-function bindPage(){
- document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
-
- if(page==="customers"){
-  $("#newC").onclick=()=>$("#cForm").classList.remove("hidden");
-  $("#cancelC").onclick=()=>$("#cForm").classList.add("hidden");
-  $("#saveC").onclick=()=>{
-   const name=$("#cn").value.trim();if(!name)return alert("Enter the customer name.");
-   customers.push({id:uid(),name,phone:$("#cp").value.trim(),address:$("#ca").value.trim()});
-   write("customers",customers);render();
-  };
-  $("#searchC").oninput=()=>$("#customerRows").innerHTML=customerRows(customers.filter(c=>(c.name+" "+c.phone+" "+c.address).toLowerCase().includes($("#searchC").value.toLowerCase())));
-  document.querySelectorAll("[data-delc]").forEach(b=>b.onclick=()=>{
-   if(confirm("Delete this customer?")){
-    customers=customers.filter(c=>c.id!=b.dataset.delc);write("customers",customers);render();
-   }
-  });
-  document.querySelectorAll("[data-viewc]").forEach(b=>b.onclick=()=>{
-   const c=customers.find(x=>x.id==b.dataset.viewc);go("measurements");
-   setTimeout(()=>{if($("#searchM")){$("#searchM").value=c.name;$("#searchM").dispatchEvent(new Event("input"));}},0);
-  });
- }
-
- if(page==="measurements"){
-  $("#newM").onclick=()=>$("#mForm").classList.remove("hidden");
-  $("#cancelM").onclick=()=>$("#mForm").classList.add("hidden");
-  $("#saveM").onclick=()=>{
-   const area=$("#ma").value.trim();if(!area)return alert("Enter the area or room name.");
-   const width=Number($("#mw").value),height=Number($("#mh").value),qty=Number($("#mq").value)||1;
-   if(width<=0||height<=0)return alert("Enter a valid width and height.");
-   measurements.push({id:uid(),customer:$("#mc").value,area,type:$("#mt").value,unit:$("#mu").value,width,height,qty,notes:$("#mn").value.trim()});
-   write("measurements",measurements);render();
-  };
-  $("#searchM").oninput=()=>$("#measurementRows").innerHTML=measurementRows(measurements.filter(m=>(m.customer+" "+m.area+" "+m.type).toLowerCase().includes($("#searchM").value.toLowerCase())));
-  document.querySelectorAll("[data-delm]").forEach(b=>b.onclick=()=>{
-   if(confirm("Delete this measurement?")){measurements=measurements.filter(m=>m.id!=b.dataset.delm);write("measurements",measurements);render();}
-  });
- }
-
- if(page==="quotation"){
-  $("#addItem").onclick=()=>{$("#quoteItems").insertAdjacentHTML("beforeend",itemRow());bindItems();};
-  $("#clearQ").onclick=()=>{$("#quoteItems").innerHTML=itemRow();bindItems();};
-  $("#printNow").onclick=()=>window.print();
-  ["discountType","discountValue","gstValue"].forEach(id=>$("#"+id).oninput=calculateQuote);
-  $("#qc").oninput=()=>{const c=customers.find(c=>c.name===$("#qc").value);if(c)$("#qp").value=c.phone||"";};
-  $("#saveQ").onclick=()=>{
-   const items=getItems();if(!items.length)return alert("Add at least one item with a description.");
-   const total=calculateQuote();
-   quotes.push({id:uid(),ref:$("#qr").value.trim()||("QT-"+Date.now()),date:$("#qd").value,customer:$("#qc").value.trim(),phone:$("#qp").value.trim(),notes:$("#qnotes").value.trim(),items,total,shop:{...settings}});
-   write("quotes",quotes);alert("Quotation saved successfully.");go("saved");
-  };
-  bindItems();
- }
-
- if(page==="saved"){
-  $("#searchQ").oninput=()=>$("#quoteRows").innerHTML=quoteRows(quotes.filter(q=>(q.customer+" "+q.ref).toLowerCase().includes($("#searchQ").value.toLowerCase())));
-  document.querySelectorAll("[data-delq]").forEach(b=>b.onclick=()=>{if(confirm("Delete this quotation?")){quotes=quotes.filter(q=>q.id!=b.dataset.delq);write("quotes",quotes);render();}});
-  document.querySelectorAll("[data-printq]").forEach(b=>b.onclick=()=>printQuote(quotes.find(q=>q.id==b.dataset.printq)));
- }
-
- if(page==="settings"){
-  $("#saveSettings").onclick=()=>{
-   settings={shopName:$("#shopName").value.trim(),phone:$("#shopPhone").value.trim(),address:$("#shopAddress").value.trim(),gst:$("#shopGST").value.trim(),logo:$("#shopLogo").value.trim()};
-   write("settings",settings);alert("Settings saved.");render();
-  };
-  $("#exportBackup").onclick=()=>{
-   const blob=new Blob([JSON.stringify({customers,measurements,quotes,settings},null,2)],{type:"application/json"});
-   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="curtain-manager-backup.json";a.click();URL.revokeObjectURL(a.href);
-  };
-  $("#importBackup").onclick=()=>$("#backupFile").click();
-  $("#backupFile").onchange=async e=>{
-   try{
-    const file=e.target.files[0];if(!file)return;
-    const d=JSON.parse(await file.text());
-    customers=Array.isArray(d.customers)?d.customers:[];
-    measurements=Array.isArray(d.measurements)?d.measurements:[];
-    quotes=Array.isArray(d.quotes)?d.quotes:[];
-    settings=d.settings||settings;
-    write("customers",customers);write("measurements",measurements);write("quotes",quotes);write("settings",settings);
-    alert("Backup restored successfully.");render();
-   }catch{alert("Invalid backup file.");}
-  };
-  $("#clearData").onclick=()=>{
-   if(confirm("Delete all locally stored customers, measurements, quotations and settings?")){
-    if(confirm("This cannot be undone. Continue?")){
-     customers=[];measurements=[];quotes=[];
-     settings={shopName:"Homestyle Curtains",phone:"",address:"",gst:"",logo:""};
-     write("customers",customers);write("measurements",measurements);write("quotes",quotes);write("settings",settings);
-     render();
-    }
-   }
-  };
- }
-}
-
-function bindItems(){
- document.querySelectorAll("#quoteItems tr").forEach(tr=>{
-  tr.querySelectorAll("input,select").forEach(el=>el.oninput=calculateQuote);
-  tr.querySelector(".idel").onclick=()=>{if($("#quoteItems").children.length>1)tr.remove();calculateQuote();};
+ if(!initSupabase())return;
+ const {data:{session}}=await sb.auth.getSession();
+ if(session?.user)await verifyUser(session.user);
+ sb.auth.onAuthStateChange((event,session)=>{
+  if(event==="SIGNED_IN"&&session?.user)setTimeout(()=>verifyUser(session.user),0);
+  if(event==="SIGNED_OUT"){
+   $("mainApp").classList.add("hidden");$("loginScreen").classList.remove("hidden");
+   $("loginMessage").textContent="Signed out.";
+  }
  });
- calculateQuote();
 }
-function getItems(){
- return [...document.querySelectorAll("#quoteItems tr")].map(tr=>({
-  name:tr.querySelector(".iname").value.trim(),
-  qty:Number(tr.querySelector(".iqty").value)||0,
-  unit:tr.querySelector(".iunit").value,
-  rate:Number(tr.querySelector(".irate").value)||0
- })).filter(i=>i.name).map(i=>({...i,amount:i.qty*i.rate}));
+async function signOut(){if(sb)await sb.auth.signOut();}
+
+function loadStorage(){
+ try{
+  const d=JSON.parse(localStorage.getItem(DATA_KEY)||"{}");
+  measurements=Array.isArray(d.measurements)?d.measurements:[];
+  quotations=Array.isArray(d.quotations)?d.quotations:[];
+ }catch{measurements=[];quotations=[];}
 }
-function calculateQuote(){
- const items=getItems(),subtotal=items.reduce((s,i)=>s+i.amount,0);
- const val=Math.max(0,Number($("#discountValue")?.value)||0);
- let discount=$("#discountType")?.value==="percent"?subtotal*val/100:val;
- discount=Math.min(discount,subtotal);
- const taxable=subtotal-discount;
- const tax=taxable*Math.max(0,Number($("#gstValue")?.value)||0)/100;
- const total=taxable+tax;
- if($("#subtotal"))$("#subtotal").textContent=money(subtotal);
- if($("#discountTotal"))$("#discountTotal").textContent=money(discount);
- if($("#taxTotal"))$("#taxTotal").textContent=money(tax);
- if($("#grandTotal"))$("#grandTotal").textContent=money(total);
- document.querySelectorAll("#quoteItems tr").forEach(tr=>{
-  tr.querySelector(".iamount").textContent=money((Number(tr.querySelector(".iqty").value)||0)*(Number(tr.querySelector(".irate").value)||0));
- });
- return total;
+function saveStorage(){
+ try{
+  localStorage.setItem(DATA_KEY,JSON.stringify({measurements,quotations}));
+  localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));
+  updateHome();
+ }catch{alert("Unable to save data on this device. Export a backup and free some storage.");}
 }
-function printQuote(q){
- if(!q)return;
- const w=window.open("","_blank");if(!w)return alert("Allow pop-ups to print the quotation.");
- w.document.write(`<html><head><title>${esc(q.ref)}</title><style>body{font:14px Arial;padding:35px;color:#223}h1{color:#147d78}table{width:100%;border-collapse:collapse;margin-top:25px}td,th{padding:10px;border-bottom:1px solid #ddd;text-align:left}.total{text-align:right;font-size:20px;font-weight:bold;margin-top:25px}</style></head><body><h1>${esc(q.shop?.shopName||"Curtain Shop")}</h1><p>${esc(q.shop?.address||"")}<br>${esc(q.shop?.phone||"")}</p><hr><h2>Quotation</h2><p>Reference: ${esc(q.ref)}<br>Date: ${esc(q.date)}<br>Customer: ${esc(q.customer)}<br>Phone: ${esc(q.phone)}</p><table><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Amount</th></tr>${q.items.map(i=>`<tr><td>${esc(i.name)}</td><td>${i.qty}</td><td>${esc(i.unit)}</td><td>${money(i.rate)}</td><td>${money(i.amount)}</td></tr>`).join("")}</table><div class="total">Grand Total: ${money(q.total)}</div><p>${esc(q.notes||"")}</p><p style="margin-top:55px">Thank you for your business.</p><script>window.onload=()=>window.print()<\/script></body></html>`);
- w.document.close();
+function loadSettings(){
+ try{settings=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");}catch{settings={};}
+ $("sName").value=settings.name||"";
+ $("sPhone").value=settings.phone||"";
+ $("sWhatsapp").value=settings.whatsapp||"";
+ $("sEmail").value=settings.email||"";
+ $("sGST").value=settings.gst||"";
+ $("sValidity").value=settings.validity||"15 Days";
+ $("sAddress").value=settings.address||"";
+ $("logoPreview").src=settings.logo||"";
+}
+function saveSettings(){
+ settings={name:$("sName").value.trim(),phone:$("sPhone").value.trim(),whatsapp:$("sWhatsapp").value.trim(),email:$("sEmail").value.trim(),gst:$("sGST").value.trim(),validity:$("sValidity").value.trim(),address:$("sAddress").value.trim(),logo:settings.logo||""};
+ saveStorage();alert("Business settings saved.");
+}
+function loadLogo(e){
+ const f=e.target.files[0];if(!f)return;
+ const r=new FileReader();r.onload=ev=>{settings.logo=ev.target.result;$("logoPreview").src=settings.logo;saveStorage();};r.readAsDataURL(f);
+}
+function updateHome(){
+ $("homeMeasurementCount").textContent=measurements.length;
+ $("homeQuoteCount").textContent=quotations.length;
+}
+function showPage(page){
+ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+ if($(page))$(page).classList.add("active");
+ document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
+ const nav=$("nav"+page.charAt(0).toUpperCase()+page.slice(1));if(nav)nav.classList.add("active");
+ if(page==="savedMeasurements")renderMeasurements();
+ if(page==="customers")renderCustomers();
+ if(page==="savedQuotes")renderSavedQuotes();
+ if(page==="settings")loadSettings();
+ if(page==="admin")loadAuthorizedUsers();
 }
 
-document.querySelectorAll(".navbtn[data-page]").forEach(b=>b.onclick=()=>go(b.dataset.page));
-$("#logoutBtn").onclick=async()=>{if(sb)await sb.auth.signOut();};
-boot();
+function newMeasurement(){
+ currentMeasurementId=null;
+ ["mCustomer","mPhone","mAddress"].forEach(id=>$(id).value="");
+ $("mDate").value=today();$("mUnit").value="cm";$("measurementBody").innerHTML="";
+ addMeasurementRow();showPage("measurement");
+}
+function isRFT(type){return rftTypes.includes(type);}
+function addMeasurementRow(data){
+ const tr=document.createElement("tr");
+ tr.innerHTML=`<td class="rowNo"></td>
+ <td><input class="mArea" placeholder="Hall / Bedroom"></td>
+ <td><select class="mType">${types.map(t=>`<option>${esc(t)}</option>`).join("")}</select></td>
+ <td><input class="mHeight" type="number" min="0" step=".01"></td>
+ <td><input class="mWidth" type="number" min="0" step=".01"></td>
+ <td class="mUnitCell">Sq.Ft</td>
+ <td><input class="mQty" type="number" min="1" value="1"></td>
+ <td class="mAreaCell">0.00</td>
+ <td><input class="mRate" type="number" min="0" step=".01"></td>
+ <td class="mAmount">0.00</td>
+ <td><button class="btn-red" type="button">×</button></td>`;
+ $("measurementBody").appendChild(tr);
+ tr.querySelector(".mType").onchange=recalculateMeasurements;
+ tr.querySelectorAll("input").forEach(i=>i.oninput=recalculateMeasurements);
+ tr.querySelector("button").onclick=()=>{tr.remove();recalculateMeasurements();};
+ if(data){
+  tr.querySelector(".mArea").value=data.area||"";
+  tr.querySelector(".mType").value=data.type||types[0];
+  tr.querySelector(".mHeight").value=data.height??"";
+  tr.querySelector(".mWidth").value=data.width??"";
+  tr.querySelector(".mQty").value=data.qty||1;
+  tr.querySelector(".mRate").value=data.rate||0;
+ }
+ renumberRows();recalculateMeasurements();
+}
+function renumberRows(){document.querySelectorAll("#measurementBody tr").forEach((r,i)=>r.querySelector(".rowNo").textContent=i+1);}
+function getRowCalc(h,w,unit,type,qty,rate){
+ const rft=isRFT(type);
+ const widthFeet=unit==="cm"?w/30.48:w/12;
+ const sqft=unit==="cm"?(h*w)/929.0304:(h*w)/144;
+ const area=rft?widthFeet*qty:sqft*qty;
+ return {unit:rft?"RFT":"Sq.Ft",area,amount:area*rate,sqft:rft?0:sqft*qty,rft:rft?widthFeet*qty:0};
+}
+function recalculateMeasurements(){
+ let totalSqft=0,totalRft=0,totalAmount=0;
+ document.querySelectorAll("#measurementBody tr").forEach(tr=>{
+  const type=tr.querySelector(".mType").value;
+  const h=Number(tr.querySelector(".mHeight").value)||0;
+  const w=Number(tr.querySelector(".mWidth").value)||0;
+  const qty=Math.max(1,Number(tr.querySelector(".mQty").value)||1);
+  const rate=Number(tr.querySelector(".mRate").value)||0;
+  const c=getRowCalc(h,w,$("mUnit").value,type,qty,rate);
+  tr.querySelector(".mUnitCell").textContent=c.unit;
+  tr.querySelector(".mAreaCell").textContent=money(c.area);
+  tr.querySelector(".mAmount").textContent=money(c.amount);
+  totalSqft+=c.sqft;totalRft+=c.rft;totalAmount+=c.amount;
+ });
+ $("measurementSqft").textContent=money(totalSqft);
+ $("measurementRft").textContent=money(totalRft);
+ $("measurementAmount").textContent=money(totalAmount);
+ renumberRows();
+}
+function getMeasurementForm(){
+ const rows=[];
+ document.querySelectorAll("#measurementBody tr").forEach(tr=>{
+  const h=Number(tr.querySelector(".mHeight").value)||0;
+  const w=Number(tr.querySelector(".mWidth").value)||0;
+  if(h<=0||w<=0)return;
+  const type=tr.querySelector(".mType").value,qty=Math.max(1,Number(tr.querySelector(".mQty").value)||1),rate=Number(tr.querySelector(".mRate").value)||0;
+  const c=getRowCalc(h,w,$("mUnit").value,type,qty,rate);
+  rows.push({area:tr.querySelector(".mArea").value.trim(),type,height:h,width:w,qty,rate,unit:c.unit,areaValue:c.area,amount:c.amount,sqft:c.sqft,rft:c.rft});
+ });
+ return {id:currentMeasurementId||newId(),customer:$("mCustomer").value.trim(),phone:$("mPhone").value.trim(),address:$("mAddress").value.trim(),date:$("mDate").value,unit:$("mUnit").value,rows};
+}
+function saveMeasurement(){
+ const m=getMeasurementForm();
+ if(!m.customer)return alert("Please enter Customer Name.");
+ if(!m.rows.length)return alert("Enter at least one valid width and height.");
+ const i=measurements.findIndex(x=>x.id===m.id);
+ if(i>=0)measurements[i]=m;else measurements.push(m);
+ currentMeasurementId=m.id;saveStorage();alert("Measurement saved successfully.");showPage("savedMeasurements");
+}
+function clearMeasurement(){newMeasurement();}
+function viewMeasurement(id){
+ const m=measurements.find(x=>x.id===id);if(!m)return;
+ currentMeasurementId=m.id;$("mCustomer").value=m.customer;$("mPhone").value=m.phone||"";
+ $("mAddress").value=m.address||"";$("mDate").value=m.date||today();$("mUnit").value=m.unit||"cm";
+ $("measurementBody").innerHTML="";m.rows.forEach(r=>addMeasurementRow(r));showPage("measurement");
+}
+function editMeasurement(id){viewMeasurement(id);}
+function deleteMeasurement(id){
+ if(!confirm("Delete this measurement sheet?"))return;
+ measurements=measurements.filter(m=>m.id!==id);saveStorage();renderMeasurements();
+}
+function renderMeasurements(){
+ const s=($("measurementSearch")?.value||"").toLowerCase();
+ const list=measurements.filter(m=>(m.customer+" "+m.phone+" "+m.date).toLowerCase().includes(s));
+ $("measurementList").innerHTML=list.slice().reverse().map(m=>{
+  const sqft=m.rows.reduce((a,r)=>a+Number(r.sqft||0),0);
+  const rft=m.rows.reduce((a,r)=>a+Number(r.rft||0),0);
+  const total=m.rows.reduce((a,r)=>a+Number(r.amount||0),0);
+  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(m.date||"")}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b> · Total: <b>₹${money(total)}</b></p><button class="btn-blue" onclick="viewMeasurement(${m.id})">View</button><button class="btn-green" onclick="editMeasurement(${m.id})">Edit</button><button class="btn-red" onclick="deleteMeasurement(${m.id})">Delete</button></div>`;
+ }).join("")||'<div class="card empty">No saved measurements found.</div>';
+}
+function renderCustomers(){
+ const s=($("customerSearch")?.value||"").toLowerCase();
+ const grouped={};
+ measurements.forEach(m=>{const k=(m.customer||"").toLowerCase();if(k)grouped[k]=m;});
+ const list=Object.values(grouped).filter(m=>(m.customer+" "+m.phone).toLowerCase().includes(s));
+ $("customerList").innerHTML=list.map(m=>`<div class="customer-card"><h3>${esc(m.customer)}</h3><p>${esc(m.phone||"No phone")}<br>${esc(m.address||"")}</p><button class="btn-blue" onclick="showPage('savedMeasurements');$('measurementSearch').value='${esc(m.customer)}';renderMeasurements()">View Measurements</button></div>`).join("")||'<div class="card empty">No customers saved yet.</div>';
+}
+
+function nextQuoteNumber(){return "QT-"+String(quotations.length+1).padStart(4,"0");}
+function newQuotation(){
+ currentQuotationId=null;quotationItems=[];$("qCustomer").value="";$("qPhone").value="";$("qAddress").value="";
+ $("qNumber").value=nextQuoteNumber();$("qDate").value=today();$("discountType").value="percent";$("discountValue").value=0;$("gstValue").value=0;$("qTerms").value="Quotation validity: "+(settings.validity||"15 Days");
+ renderQuotationItems();showPage("quotation");
+}
+function addQuotationItem(item){
+ quotationItems.push({name:item?.name||"",qty:Number(item?.qty||1),unit:item?.unit||"Sq.Ft",rate:Number(item?.rate||0)});
+ renderQuotationItems();
+}
+function renderQuotationItems(){
+ $("quotationItems").innerHTML="";
+ if(!quotationItems.length)$("quotationItems").innerHTML='<div class="empty">No items added. Click Add Item.</div>';
+ quotationItems.forEach((it,i)=>{
+  const d=document.createElement("div");d.className="item-card";
+  d.innerHTML=`<div class="grid">
+  <div class="field"><label>Item / Type</label><input value="${esc(it.name)}" data-k="name"></div>
+  <div class="field"><label>Quantity</label><input type="number" min="0" step=".01" value="${it.qty}" data-k="qty"></div>
+  <div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div>
+  <div class="field"><label>Rate</label><input type="number" min="0" step=".01" value="${it.rate}" data-k="rate"></div></div>
+  <p>Amount: <b>₹${money(it.qty*it.rate)}</b></p><button class="btn-red">Delete Item</button>`;
+  d.querySelectorAll("[data-k]").forEach(el=>el.oninput=()=>{const k=el.dataset.k;quotationItems[i][k]=(k==="qty"||k==="rate")?Number(el.value)||0:el.value;calculateQuotation();});
+  d.querySelector("button").onclick=()=>{quotationItems.splice(i,1);renderQuotationItems();};
+  $("quotationItems").appendChild(d);
+ });
+ calculateQuotation();
+}
+function calculateQuotation(){
+ const subtotal=quotationItems.reduce((s,i)=>s+(Number(i.qty)||0)*(Number(i.rate)||0),0);
+ let discount=$("discountType").value==="percent"?subtotal*(Number($("discountValue").value)||0)/100:(Number($("discountValue").value)||0);
+ discount=Math.min(subtotal,Math.max(0,discount));
+ const gst=(subtotal-discount)*Math.max(0,Number($("gstValue").value)||0)/100;
+ const grand=subtotal-discount+gst;
+ $("qSubtotal").textContent=money(subtotal);$("qDiscount").textContent=money(discount);$("qGST").textContent=money(gst);$("qGrandTotal").textContent=money(grand);
+ return {subtotal,discount,gst,grand};
+}
+function currentQuote(){
+ const c=calculateQuotation();
+ return {id:currentQuotationId||newId(),number:$("qNumber").value||nextQuoteNumber(),date:$("qDate").value,customer:$("qCustomer").value.trim(),phone:$("qPhone").value,address:$("qAddress").value,items:JSON.parse(JSON.stringify(quotationItems)),discountType:$("discountType").value,discountValue:Number($("discountValue").value)||0,gstRate:Number($("gstValue").value)||0,subtotal:c.subtotal,discount:c.discount,gst:c.gst,grand:c.grand,terms:$("qTerms").value};
+}
+function saveQuotation(){
+ const q=currentQuote();if(!q.customer)return alert("Please enter Customer Name.");if(!q.items.length||!q.items.some(i=>i.name.trim()))return alert("Add at least one item with a description.");
+ const i=quotations.findIndex(x=>x.id===q.id);if(i>=0)quotations[i]=q;else quotations.push(q);
+ currentQuotationId=q.id;saveStorage();alert("Quotation saved.");showPage("savedQuotes");
+}
+function measurementToQuotation(){
+ const m=getMeasurementForm();if(!m.customer||!m.rows.length)return alert("Enter a customer and valid measurements first.");
+ const i=measurements.findIndex(x=>x.id===m.id);if(i>=0)measurements[i]=m;else measurements.push(m);saveStorage();
+ newQuotation();$("qCustomer").value=m.customer;$("qPhone").value=m.phone;$("qAddress").value=m.address;
+ const grouped={};m.rows.forEach(r=>{const key=r.type+"|"+r.unit;if(!grouped[key])grouped[key]={qty:0,rate:r.rate,unit:r.unit,name:r.type};grouped[key].qty+=r.areaValue;});
+ quotationItems=Object.values(grouped).map(g=>({name:g.name,qty:Number(g.qty.toFixed(2)),rate:g.rate,unit:g.unit}));
+ renderQuotationItems();
+}
+function renderSavedQuotes(){
+ $("savedQuoteList").innerHTML=quotations.slice().reverse().map(q=>`<div class="quote-card"><h3>${esc(q.number)}</h3><b>${esc(q.customer)}</b><p class="small">${esc(q.date||"")}</p><p>Grand Total: <b>₹${money(q.grand)}</b></p><button class="btn-blue" onclick="editQuotation(${q.id})">Edit</button><button class="btn-green" onclick="openQuote(${q.id})">View / Print</button><button class="btn-red" onclick="deleteQuote(${q.id})">Delete</button></div>`).join("")||'<div class="empty">No saved quotations.</div>';
+}
+function editQuotation(id){
+ const q=quotations.find(x=>x.id===id);if(!q)return;
+ currentQuotationId=q.id;$("qCustomer").value=q.customer;$("qPhone").value=q.phone||"";$("qAddress").value=q.address||"";
+ $("qNumber").value=q.number;$("qDate").value=q.date;$("discountType").value=q.discountType||"percent";$("discountValue").value=q.discountValue||0;$("gstValue").value=q.gstRate||0;$("qTerms").value=q.terms||"";
+ quotationItems=JSON.parse(JSON.stringify(q.items||[]));renderQuotationItems();showPage("quotation");
+}
+function deleteQuote(id){if(!confirm("Delete this quotation?"))return;quotations=quotations.filter(q=>q.id!==id);saveStorage();renderSavedQuotes();}
+function quoteHTML(q){
+ const items=q.items.map((it,i)=>`<tr><td>${i+1}</td><td>${esc(it.name)}</td><td>${money(it.qty)}</td><td>${esc(it.unit)}</td><td>₹${money(it.rate)}</td><td>₹${money(it.qty*it.rate)}</td></tr>`).join("");
+ return `<div class="preview"><div class="quote-header">${settings.logo?`<img class="logo" src="${settings.logo}">`:""}<h1>${esc(settings.name||"Curtain Shop")}</h1><div>${esc(settings.address||"")}</div><div>${esc(settings.phone||"")} ${settings.whatsapp?" · WhatsApp: "+esc(settings.whatsapp):""}</div><div>${esc(settings.email||"")}</div>${settings.gst?"GST: "+esc(settings.gst):""}</div>
+ <div class="quote-info"><div><b>Customer</b><br>${esc(q.customer)}<br>${esc(q.phone||"")}<br>${esc(q.address||"")}</div><div><b>Quotation:</b> ${esc(q.number)}<br><b>Date:</b> ${esc(q.date||"")}</div></div>
+ <table class="quote-table"><thead><tr><th>No.</th><th>Item</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${items}</tbody></table>
+ <div class="quote-total"><div class="summary-row"><span>Subtotal</span><b>₹${money(q.subtotal)}</b></div><div class="summary-row"><span>Discount</span><b>₹${money(q.discount)}</b></div><div class="summary-row"><span>GST (${money(q.gstRate)}%)</span><b>₹${money(q.gst)}</b></div><div class="summary-row grand"><span>Grand Total</span><b>₹${money(q.grand)}</b></div></div><p style="white-space:pre-wrap;margin-top:25px">${esc(q.terms||"")}</p><p style="text-align:center;margin-top:35px">Thank you for your business.</p></div>`;
+}
+function openQuote(id){const q=quotations.find(x=>x.id===id);if(!q)return;$("previewContent").innerHTML=quoteHTML(q);showPage("quotePreview");}
+function previewQuotation(){const q=currentQuote();if(!q.customer)return alert("Please enter Customer Name.");if(!q.items.length)return alert("Please add an item.");$("previewContent").innerHTML=quoteHTML(q);showPage("quotePreview");}
+function downloadBackup(){
+ const blob=new Blob([JSON.stringify({measurements,quotations,settings},null,2)],{type:"application/json"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="curtain-shop-backup.json";a.click();URL.revokeObjectURL(a.href);
+}
+async function restoreBackup(e){
+ try{const d=JSON.parse(await e.target.files[0].text());if(!confirm("Replace the current local records with this backup?"))return;
+ measurements=Array.isArray(d.measurements)?d.measurements:[];quotations=Array.isArray(d.quotations)?d.quotations:[];settings=d.settings||{};
+ saveStorage();loadSettings();alert("Backup restored.");}catch{alert("Invalid backup file.");}
+}
+
+/* ADMIN USER MANAGEMENT: requires suitable Supabase table permissions/RLS */
+async function adminOnly(){
+ return String(authRecord?.plan_name||"").toLowerCase()==="admin";
+}
+async function loadAuthorizedUsers(){
+ if(!await adminOnly())return alert("Administrator access required.");
+ $("adminMessage").textContent="Loading users...";
+ const {data,error}=await sb.from("authorized_users").select("email,is_active,is_paid,plan_name").order("email");
+ if(error){$("adminMessage").textContent="Could not load users. Check Supabase permissions.";return;}
+ $("adminMessage").textContent="";
+ $("authorizedUserList").innerHTML=(data||[]).map(u=>`<div class="customer-card"><b>${esc(u.email)}</b><p class="small">Plan: ${esc(u.plan_name||"customer")} · Paid: ${u.is_paid?"Yes":"No"} · Active: ${u.is_active?"Yes":"No"}</p><button class="btn-blue" onclick="fillAdminUser('${esc(u.email)}','${esc(u.plan_name||"customer")}',${!!u.is_paid},${!!u.is_active})">Edit</button><button class="btn-red" onclick="disableAuthorizedUser('${esc(u.email)}')">Disable</button></div>`).join("")||'<p class="empty">No authorized users.</p>';
+}
+function fillAdminUser(email,plan,paid,active){$("adminEmail").value=email;$("adminPlan").value=plan;$("adminPaid").value=String(paid);$("adminActive").value=String(active);}
+async function saveAuthorizedUser(){
+ if(!await adminOnly())return alert("Administrator access required.");
+ const email=$("adminEmail").value.trim().toLowerCase();
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return alert("Enter a valid email address.");
+ if(email===authUser.email&&$("adminActive").value!=="true")return alert("You cannot disable your own active administrator account here.");
+ const record={email,is_active:$("adminActive").value==="true",is_paid:$("adminPaid").value==="true",plan_name:$("adminPlan").value};
+ const {error}=await sb.from("authorized_users").upsert(record,{onConflict:"email"});
+ if(error){$("adminMessage").textContent="Save failed. Check table columns and RLS permissions.";return;}
+ $("adminMessage").textContent="User saved successfully.";await loadAuthorizedUsers();
+}
+async function disableAuthorizedUser(email){
+ if(!await adminOnly())return alert("Administrator access required.");
+ if(email===authUser.email)return alert("You cannot disable your own account.");
+ if(!confirm("Disable access for "+email+"?"))return;
+ const {error}=await sb.from("authorized_users").update({is_active:false}).eq("email",email);
+ if(error){$("adminMessage").textContent="Could not disable user. Check permissions.";return;}
+ await loadAuthorizedUsers();
+}
+
+window.addEventListener("DOMContentLoaded",()=>{
+ $("mDate").value=today();$("qDate").value=today();
+ addMeasurementRow();boot();
+});
 </script>
 </body>
 </html>
