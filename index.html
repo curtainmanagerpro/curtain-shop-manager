@@ -497,7 +497,80 @@ function measurementToQuotation(){
  renderQuotationItems();
 }
 function renderSavedQuotes(){
- $("savedQuoteList").innerHTML=quotations.slice().reverse().map(q=>`<div class="quote-card"><h3>${esc(q.number)}</h3><b>${esc(q.customer)}</b><p class="small">${esc(q.date||"")}</p><p>Grand Total: <b>₹${money(q.grand)}</b></p><button class="btn-blue" onclick="editQuotation(${q.id})">Edit</button><button class="btn-green" onclick="openQuote(${q.id})">View / Print</button><button class="btn-red" onclick="deleteQuote(${q.id})">Delete</button></div>`).join("")||'<div class="empty">No saved quotations.</div>';
+ $("savedQuoteList").innerHTML=quotations.slice().reverse().map(q=>`
+ <div class="quote-card">
+ <h3>${esc(q.number)}</h3>
+ <b>${esc(q.customer)}</b>
+ <p class="small">${esc(q.date||"")}</p>
+ <p>Grand Total: <b>₹${money(q.grand)}</b></p>
+ <button class="btn-blue" onclick="editQuotation(${q.id})">Edit</button>
+ <button class="btn-green" onclick="openQuote(${q.id})">View / Print</button>
+ <button class="btn-dark" onclick="shareQuotePDF(${q.id})">📤 Share PDF</button>
+ <button class="btn-red" onclick="deleteQuote(${q.id})">Delete</button>
+ </div>`).join("")||'<div class="empty">No saved quotations.</div>';
+}
+
+async function shareQuotePDF(id){
+ const q=quotations.find(x=>x.id===id);
+ if(!q)return alert("Quotation not found.");
+
+ const oldContent=$("previewContent").innerHTML;
+ $("previewContent").innerHTML=quoteHTML(q);
+
+ try{
+  if(!window.jspdf||!window.html2canvas){
+   alert("PDF tools are loading. Please refresh and try again.");
+   return;
+  }
+
+  const canvas=await html2canvas($("previewContent").firstElementChild,{
+   scale:2,
+   useCORS:true,
+   backgroundColor:"#ffffff"
+  });
+
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF("p","mm","a4");
+  const img=canvas.toDataURL("image/jpeg",0.95);
+  const pageWidth=190;
+  const pageHeight=277;
+  const imgHeight=canvas.height*pageWidth/canvas.width;
+  let heightLeft=imgHeight;
+  let position=10;
+
+  pdf.addImage(img,"JPEG",10,position,pageWidth,imgHeight);
+  heightLeft-=pageHeight;
+
+  while(heightLeft>0){
+   position=heightLeft-imgHeight+10;
+   pdf.addPage();
+   pdf.addImage(img,"JPEG",10,position,pageWidth,imgHeight);
+   heightLeft-=pageHeight;
+  }
+
+  const file=new File(
+   [pdf.output("blob")],
+   "Quotation-"+q.number+".pdf",
+   {type:"application/pdf"}
+  );
+
+  if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+   await navigator.share({
+    files:[file],
+    title:"Quotation "+q.number,
+    text:"Quotation from "+(settings.name||"Curtain Shop")
+   });
+  }else{
+   pdf.save("Quotation-"+q.number+".pdf");
+   alert("PDF downloaded. Open it and use your phone's Share option.");
+  }
+ }catch(error){
+  if(error.name!=="AbortError"){
+   alert("Unable to share PDF. Please try again or download the PDF.");
+  }
+ }finally{
+  $("previewContent").innerHTML=oldContent;
+ }
 }
 function editQuotation(id){
  const q=quotations.find(x=>x.id===id);if(!q)return;
