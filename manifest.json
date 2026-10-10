@@ -1,0 +1,17 @@
+{
+  "name": "Curtain Shop Manager Pro",
+  "short_name": "Curtain Manager",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f1f5f8",
+  "theme_color": "#24445c",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
