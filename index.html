@@ -49,6 +49,8 @@ td input,td select{min-width:80px;padding:8px}
 @media(max-width:700px){.app{padding:8px}.grid,.home-buttons{grid-template-columns:1fr}header h1{font-size:20px}.nav button{font-size:12px;padding:10px 3px}.quote-info{flex-direction:column}.preview{padding:12px}.quote-total{width:100%}}
 @media print{body{background:white}.no-print,header,.nav{display:none!important}.app{padding:0;max-width:none}body *{visibility:hidden}#previewContent,#previewContent *{visibility:visible}#previewContent{position:absolute;left:0;top:0;width:100%}.preview{box-shadow:none;padding:0}}
 </style>
+ <link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#24445c">
 </head>
 <body>
 
@@ -564,6 +566,14 @@ window.addEventListener("DOMContentLoaded",()=>{
  $("mDate").value=today();$("qDate").value=today();
  addMeasurementRow();boot();
 });
+</script>
+ <script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js")
+      .catch(error => console.error("Service Worker:", error));
+  });
+}
 </script>
 </body>
 </html>
