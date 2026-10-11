@@ -510,68 +510,93 @@ function renderSavedQuotes(){
  </div>`).join("")||'<div class="empty">No saved quotations.</div>';
 }
 
-async function shareQuotePDF(id){
- const q=quotations.find(x=>x.id===id);
- if(!q)return alert("Quotation not found.");
+async function shareQuotePDF(id) {
+  const q = quotations.find(x => x.id === id);
+  if (!q) return;
 
- const oldContent=$("previewContent").innerHTML;
- $("previewContent").innerHTML=quoteHTML(q);
+  try {
+    const sheet = document.getElementById("pdfSheet");
+    sheet.innerHTML = buildQuotationHTML(q);
 
- try{
-  if(!window.jspdf||!window.html2canvas){
-   alert("PDF tools are loading. Please refresh and try again.");
-   return;
+    const preview = sheet.querySelector(".preview");
+    await waitForImages(preview);
+
+    const canvas = await html2canvas(preview, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false
+    });
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 8;
+    const imgWidth = pageWidth - margin * 2;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+
+    let heightLeft = imgHeight;
+    let position = margin;
+
+    pdf.addImage(imgData, "JPEG", margin, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight - margin * 2;
+
+    while (heightLeft > 0) {
+      position = margin - (imgHeight - heightLeft);
+      pdf.addPage();
+      pdf.addImage(imgData, "JPEG", margin, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight - margin * 2;
+    }
+
+    const blob = pdf.output("blob");
+    const filename = "Quotation-" + q.number + ".pdf";
+    const file = new File([blob], filename, {
+      type: "application/pdf"
+    });
+
+    if (
+      navigator.share &&
+      navigator.canShare &&
+      navigator.canShare({ files: [file] })
+    ) {
+      try {
+        await navigator.share({
+          title: "Quotation " + q.number,
+          text: "Quotation from " + (settings.name || "Curtain Shop"),
+          files: [file]
+        });
+        return;
+      } catch (error) {
+        if (error && error.name === "AbortError") return;
+        console.error("Share error:", error);
+      }
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = filename;
+
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+    alert(
+      "PDF downloaded. Open WhatsApp and attach the downloaded PDF."
+    );
+
+  } catch (error) {
+    console.error("PDF creation error:", error);
+    alert("Unable to create PDF. Please try again.");
+  } finally {
+    document.getElementById("pdfSheet").innerHTML = "";
   }
-
-  const canvas=await html2canvas($("previewContent").firstElementChild,{
-   scale:2,
-   useCORS:true,
-   backgroundColor:"#ffffff"
-  });
-
-  const {jsPDF}=window.jspdf;
-  const pdf=new jsPDF("p","mm","a4");
-  const img=canvas.toDataURL("image/jpeg",0.95);
-  const pageWidth=190;
-  const pageHeight=277;
-  const imgHeight=canvas.height*pageWidth/canvas.width;
-  let heightLeft=imgHeight;
-  let position=10;
-
-  pdf.addImage(img,"JPEG",10,position,pageWidth,imgHeight);
-  heightLeft-=pageHeight;
-
-  while(heightLeft>0){
-   position=heightLeft-imgHeight+10;
-   pdf.addPage();
-   pdf.addImage(img,"JPEG",10,position,pageWidth,imgHeight);
-   heightLeft-=pageHeight;
-  }
-
-  const file=new File(
-   [pdf.output("blob")],
-   "Quotation-"+q.number+".pdf",
-   {type:"application/pdf"}
-  );
-
-  if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-   await navigator.share({
-    files:[file],
-    title:"Quotation "+q.number,
-    text:"Quotation from "+(settings.name||"Curtain Shop")
-   });
-  }else{
-   pdf.save("Quotation-"+q.number+".pdf");
-   alert("PDF downloaded. Open it and use your phone's Share option.");
-  }
- }catch(error){
-  if(error.name!=="AbortError"){
-    console.error("PDF Share Error:", error);
-    alert("PDF share failed: " + (error.message || error.name || "Unknown error"));
-  }
- }finally{
-  $("previewContent").innerHTML=oldContent;
- }
 }
 function editQuotation(id){
  const q=quotations.find(x=>x.id===id);if(!q)return;
