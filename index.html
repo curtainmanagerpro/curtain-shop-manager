@@ -593,7 +593,7 @@ async function shareQuotePDF(id) {
 
   } catch (error) {
     console.error("PDF creation error:", error);
-    alert("Unable to create PDF. Please try again.");
+    alert("PDF Error: " + (error.message || error.name || "Unknown error"));
   } finally {
     document.getElementById("pdfSheet").innerHTML = "";
   }
