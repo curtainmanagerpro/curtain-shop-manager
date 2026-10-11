@@ -566,7 +566,8 @@ async function shareQuotePDF(id){
   }
  }catch(error){
   if(error.name!=="AbortError"){
-   alert("Unable to share PDF. Please try again or download the PDF.");
+    console.error("PDF Share Error:", error);
+    alert("PDF share failed: " + (error.message || error.name || "Unknown error"));
   }
  }finally{
   $("previewContent").innerHTML=oldContent;
