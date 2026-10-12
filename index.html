@@ -516,7 +516,7 @@ async function shareQuotePDF(id) {
 
   try {
     const sheet = document.getElementById("pdfSheet");
-    sheet.innerHTML = buildQuotationHTML(q);
+    sheet.innerHTML = quoteHTML(q);
 
     const preview = sheet.querySelector(".preview");
     await waitForImages(preview);
