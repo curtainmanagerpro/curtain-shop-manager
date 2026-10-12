@@ -510,7 +510,29 @@ function renderSavedQuotes(){
  </div>`).join("")||'<div class="empty">No saved quotations.</div>';
 }
 
-async function shareQuotePDF(id) {
+
+function waitForImages(container) {
+  const images = container.querySelectorAll("img");
+
+  if (!images.length) {
+    return Promise.resolve();
+  }
+
+  return Promise.all(
+    Array.from(images).map(function(img) {
+      if (img.complete) {
+        return Promise.resolve();
+      }
+
+      return new Promise(function(resolve) {
+        img.onload = resolve;
+        img.onerror = resolve;
+      });
+    })
+  );
+}
+
+ async function shareQuotePDF(id) {
   const q = quotations.find(x => x.id === id);
   if (!q) return;
 
