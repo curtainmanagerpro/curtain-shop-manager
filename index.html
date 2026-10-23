@@ -47,6 +47,25 @@ td input,td select{min-width:80px;padding:8px}
 .login-card button{width:100%;margin:12px 0}
 .hidden{display:none!important}.notice{padding:12px;background:#eef7f8;border-radius:9px;font-size:13px;line-height:1.5}
 @media(max-width:700px){.app{padding:8px}.grid,.home-buttons{grid-template-columns:1fr}header h1{font-size:20px}.nav button{font-size:12px;padding:10px 3px}.quote-info{flex-direction:column}.preview{padding:12px}.quote-total{width:100%}}
+
+.bo-input{width:100%;min-width:0!important;padding:7px 4px!important;font-size:12px!important;border-radius:6px!important}
+.bo-cell{padding:4px!important}
+#blindOrderTable{min-width:0;table-layout:fixed;font-size:12px}
+#blindOrderTable th{padding:6px 3px;font-size:11px;overflow-wrap:anywhere}
+#blindOrderTable td{padding:3px 2px}
+#blindOrderTable th:nth-child(1),#blindOrderTable td:nth-child(1){width:9%}
+#blindOrderTable th:nth-child(2),#blindOrderTable td:nth-child(2),#blindOrderTable th:nth-child(3),#blindOrderTable td:nth-child(3){width:14%}
+#blindOrderTable th:nth-child(4),#blindOrderTable td:nth-child(4){width:12%}
+#blindOrderTable th:nth-child(5),#blindOrderTable td:nth-child(5){width:23%}
+#blindOrderTable th:nth-child(6),#blindOrderTable td:nth-child(6){width:20%}
+#blindOrderTable th:nth-child(7),#blindOrderTable td:nth-child(7){width:8%}
+.bo-preview-header{text-align:center;border-bottom:2px solid var(--primary);padding-bottom:12px;margin-bottom:14px}
+.bo-preview-header img{max-width:100px;max-height:65px;object-fit:contain}
+.bo-print-table{width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font-size:12px}
+.bo-print-table th,.bo-print-table td{border:1px solid #b9c3cc;padding:7px 4px;overflow-wrap:anywhere}
+.bo-print-table th{background:#eef2f5;color:#203040}
+@media(max-width:480px){#blindOrderTable th{font-size:10px}#blindOrderTable .bo-input{font-size:11px!important;padding:7px 2px!important}}
+
 @media print{body{background:white}.no-print,header,.nav{display:none!important}.app{padding:0;max-width:none}body *{visibility:hidden}#previewContent,#previewContent *{visibility:visible}#previewContent{position:absolute;left:0;top:0;width:100%}.preview{box-shadow:none;padding:0}}
 </style>
  <link rel="manifest" href="./manifest.json">
@@ -78,6 +97,7 @@ td input,td select{min-width:80px;padding:8px}
  <button id="navQuotation" onclick="showPage('quotation')">Quotation</button>
  <button id="navSavedQuotes" onclick="showPage('savedQuotes')">Saved Quotes</button>
  <button id="navSettings" onclick="showPage('settings')">Settings</button>
+  <button id="navBlindOrder" onclick="showPage('blindOrder')">Blind Sheet</button>
  <button id="navAdmin" class="hidden" onclick="showPage('admin')">Admin Panel</button>
 </div>
 
@@ -91,6 +111,7 @@ td input,td select{min-width:80px;padding:8px}
    <button class="btn-light" onclick="showPage('customers')">Customers</button>
    <button class="btn-light" onclick="showPage('savedQuotes')">Saved Quotations</button>
    <button class="btn-light" onclick="showPage('savedMeasurements')">Saved Measurements</button>
+    <button class="btn-light" onclick="newBlindOrder()">Blind Measurement Sheet</button>
   </div>
  </div>
  <div class="card">
@@ -126,6 +147,31 @@ td input,td select{min-width:80px;padding:8px}
   <button class="btn-light" onclick="clearMeasurement()">Clear</button>
   <button class="btn-light" onclick="showPage('savedMeasurements')">View Saved Measurements</button>
  </div>
+</section>
+
+
+<section id="blindOrder" class="page">
+ <div class="card no-print">
+  <h2>🪟 Blind Measurement Sheet</h2>
+  <p class="small">Separate wholesale measurement sheet. This does not change quotations or saved measurements.</p>
+  <div class="grid">
+   <div class="field"><label>Shop Name</label><input id="boShopName" placeholder="Shop name"></div>
+   <div class="field"><label>Phone Number</label><input id="boPhone" type="tel" placeholder="Shop phone number"></div>
+   <div class="field"><label>Measurement Unit</label><select id="boUnit" onchange="updateBlindUnitLabels()"><option value="cm">Centimeter (cm)</option><option value="inch">Inch</option></select></div>
+   <div class="field"><label>Show Row Number</label><select id="boShowNumbers" onchange="updateBlindUnitLabels()"><option value="yes">Yes</option><option value="no">No</option></select></div>
+   <div class="field"><label>Shop Logo (optional)</label><input id="boLogo" type="file" accept="image/*" onchange="loadBlindLogo(event)"></div>
+  </div>
+  <div class="small">Shop name, phone and logo default from Business Settings when available.</div>
+ </div>
+ <div class="card no-print">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>Measurements</h2><button class="btn-blue" onclick="addBlindOrderRow()">＋ Add Row</button></div>
+  <div class="table-wrap"><table class="quote-table" id="blindOrderTable"><thead><tr id="boHeadRow"><th class="bo-number-head">No.</th><th>Width</th><th>Height</th><th>Unit</th><th>Blind Type</th><th>Shade No.</th><th>Action</th></tr></thead><tbody id="blindOrderBody"></tbody></table></div>
+  <div class="field" style="margin-top:14px"><label>Description / Special Instructions</label><textarea id="boDescription" placeholder="Write special instructions here..."></textarea></div>
+  <button class="btn-green" onclick="previewBlindOrder()">Preview PDF Sheet</button>
+  <button class="btn-blue" onclick="downloadBlindOrderPDF()">Download / Share PDF</button>
+  <button class="btn-light" onclick="newBlindOrder()">Clear Sheet</button>
+ </div>
+ <div id="blindOrderPreview" class="preview hidden"></div>
 </section>
 
 <section id="savedMeasurements" class="page">
@@ -329,6 +375,7 @@ function showPage(page){
  if(page==="customers")renderCustomers();
  if(page==="savedQuotes")renderSavedQuotes();
  if(page==="settings")loadSettings();
+  if(page==="blindOrder"){if(!$ ("boShopName").value)$ ("boShopName").value=settings.name||"";if(!$ ("boPhone").value)$ ("boPhone").value=settings.phone||"";updateBlindUnitLabels();}
  if(page==="admin")loadAuthorizedUsers();
 }
 
@@ -683,6 +730,46 @@ async function disableAuthorizedUser(email){
  await loadAuthorizedUsers();
 }
 
+
+let blindOrderRows=[];
+let blindOrderLogo="";
+function newBlindOrder(){
+  blindOrderRows=[];blindOrderLogo="";
+  $("boShopName").value=settings.name||"";
+  $("boPhone").value=settings.phone||"";
+  $("boUnit").value="cm";$("boShowNumbers").value="yes";$("boDescription").value="";
+  $("boLogo").value="";$("blindOrderPreview").classList.add("hidden");$("blindOrderPreview").innerHTML="";
+  addBlindOrderRow();addBlindOrderRow();showPage("blindOrder");
+}
+function loadBlindLogo(e){const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{blindOrderLogo=String(ev.target.result||"");};r.readAsDataURL(f);}
+function addBlindOrderRow(data={}){
+ const tr=document.createElement("tr");
+ tr.innerHTML=`<td class="bo-cell bo-number-cell"></td><td class="bo-cell"><input class="bo-input bo-width" type="number" min="0" step="any" inputmode="decimal" aria-label="Width"></td><td class="bo-cell"><input class="bo-input bo-height" type="number" min="0" step="any" inputmode="decimal" aria-label="Height"></td><td class="bo-cell bo-unit-cell"></td><td class="bo-cell"><select class="bo-input bo-type" aria-label="Blind Type"><option>Zebra</option><option>Roman</option><option>Roller</option><option>Venetian</option><option>Wooden</option><option>Bamboo</option><option>Honeycomb</option><option>Other</option></select></td><td class="bo-cell"><input class="bo-input bo-shade" type="text" placeholder="Shade" aria-label="Shade number"></td><td class="bo-cell"><button type="button" class="btn-red" style="margin:0;padding:5px 7px">×</button></td>`;
+ $("blindOrderBody").appendChild(tr);
+ tr.querySelector(".bo-width").value=data.width??"";tr.querySelector(".bo-height").value=data.height??"";tr.querySelector(".bo-type").value=data.type||"Zebra";tr.querySelector(".bo-shade").value=data.shade||"";
+ tr.querySelector("button").onclick=()=>{tr.remove();renumberBlindOrderRows();};
+ renumberBlindOrderRows();updateBlindUnitLabels();
+}
+function renumberBlindOrderRows(){document.querySelectorAll("#blindOrderBody tr").forEach((tr,i)=>tr.querySelector(".bo-number-cell").textContent=i+1);}
+function updateBlindUnitLabels(){const unit=$("boUnit").value;document.querySelectorAll(".bo-unit-cell").forEach(td=>td.textContent=unit);const show=$("boShowNumbers").value==="yes";document.querySelectorAll(".bo-number-head,.bo-number-cell").forEach(el=>el.classList.toggle("hidden",!show));}
+function getBlindOrderData(){
+ const unit=$("boUnit").value;const rows=[];
+ document.querySelectorAll("#blindOrderBody tr").forEach(tr=>{const width=tr.querySelector(".bo-width").value.trim(),height=tr.querySelector(".bo-height").value.trim(),type=tr.querySelector(".bo-type").value,shade=tr.querySelector(".bo-shade").value.trim();if(width!==""||height!==""||shade!=="")rows.push({width,height,unit,type,shade});});
+ return {shopName:$ ("boShopName").value.trim(),phone:$ ("boPhone").value.trim(),unit,showNumbers:$ ("boShowNumbers").value==="yes",logo:blindOrderLogo||settings.logo||"",description:$ ("boDescription").value.trim(),rows};
+}
+function blindOrderHTML(d){
+ const logo=d.logo?`<img src="${d.logo}" alt="Shop logo">`:"";
+ const rows=d.rows.map((r,i)=>`<tr>${d.showNumbers?`<td>${i+1}</td>`:""}<td>${esc(r.width)} ${esc(r.unit)}</td><td>${esc(r.height)} ${esc(r.unit)}</td><td>${esc(r.type)}</td><td>${esc(r.shade)}</td></tr>`).join("");
+ return `<div class="preview"><div class="bo-preview-header">${logo}<h2 style="margin:8px 0">${esc(d.shopName||"")}</h2><div>${esc(d.phone||"")}</div></div><h3 style="text-align:center">BLIND MEASUREMENT SHEET</h3><table class="bo-print-table"><thead><tr>${d.showNumbers?"<th>No.</th>":""}<th>Width</th><th>Height</th><th>Blind Type</th><th>Shade No.</th></tr></thead><tbody>${rows||`<tr><td colspan="${d.showNumbers?5:4}">No measurements entered</td></tr>`}</tbody></table><div style="margin-top:18px;white-space:pre-wrap"><b>Description / Special Instructions</b><br>${esc(d.description||"")}</div></div>`;
+}
+function previewBlindOrder(){const d=getBlindOrderData();if(!d.rows.length)return alert("Enter at least one measurement row.");const el=$("blindOrderPreview");el.innerHTML=blindOrderHTML(d);el.classList.remove("hidden");el.scrollIntoView({behavior:"smooth",block:"start"});}
+async function downloadBlindOrderPDF(){
+ const d=getBlindOrderData();if(!d.rows.length)return alert("Enter at least one measurement row.");
+ if(!window.jspdf||!window.html2canvas)return alert("PDF libraries did not load. Check your internet connection and try again.");
+ const host=$("pdfSheet");host.innerHTML=blindOrderHTML(d);host.style.width="794px";host.style.left="-10000px";
+ try{const preview=host.querySelector(".preview");await waitForImages(preview);const canvas=await html2canvas(preview,{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false});const {jsPDF}=window.jspdf;const pdf=new jsPDF("p","mm","a4");const pageWidth=pdf.internal.pageSize.getWidth(),pageHeight=pdf.internal.pageSize.getHeight(),margin=8,imgWidth=pageWidth-2*margin,imgHeight=canvas.height*imgWidth/canvas.width,imgData=canvas.toDataURL("image/jpeg",0.95);let remaining=imgHeight,position=margin;pdf.addImage(imgData,"JPEG",margin,position,imgWidth,imgHeight);remaining-=pageHeight-2*margin;while(remaining>0){position=margin-(imgHeight-remaining);pdf.addPage();pdf.addImage(imgData,"JPEG",margin,position,imgWidth,imgHeight);remaining-=pageHeight-2*margin;}const blob=pdf.output("blob"),file=new File([blob],"Blind-Measurement-Sheet.pdf",{type:"application/pdf"});if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({title:"Blind Measurement Sheet",text:"Blind measurement sheet from "+(d.shopName||"Curtain Shop"),files:[file]});return;}catch(e){if(e&&e.name==="AbortError")return;}}const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="Blind-Measurement-Sheet.pdf";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);alert("PDF downloaded. Open WhatsApp and attach the downloaded PDF.");}catch(e){alert("PDF Error: "+(e.message||e.name||"Unknown error"));}finally{host.innerHTML="";}
+}
+
 window.addEventListener("DOMContentLoaded",()=>{
  $("mDate").value=today();$("qDate").value=today();
  addMeasurementRow();boot();
@@ -699,3 +786,5 @@ if ("serviceWorker" in navigator) {
 <div id="pdfSheet" style="position:fixed;left:-10000px;top:0;width:794px;background:#fff;"></div>
 </body>
 </html>
+
+
