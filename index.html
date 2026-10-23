@@ -61,13 +61,19 @@ td input,td select{min-width:80px;padding:8px}
 #blindOrderTable th:nth-child(7),#blindOrderTable td:nth-child(7){width:8%}
 .bo-preview-header{text-align:center;border-bottom:2px solid var(--primary);padding-bottom:12px;margin-bottom:14px}
 .bo-preview-header img{max-width:100px;max-height:65px;object-fit:contain}
-.bo-print-table{width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font-size:20px}
+.bo-print-table{width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font-size:24px}
 .bo-print-table th,.bo-print-table td{border:1px solid #b9c3cc;padding:7px 4px;overflow-wrap:anywhere}
 .bo-print-table th{background:#eef2f5;color:#203040}
  .bo-print-table th:first-child,.bo-print-table td:first-child{width:6%;min-width:0;padding-left:2px;padding-right:2px}
 @media(max-width:480px){#blindOrderTable th{font-size:10px}#blindOrderTable .bo-input{font-size:11px!important;padding:7px 2px!important}}
 
 @media print{body{background:white}.no-print,header,.nav{display:none!important}.app{padding:0;max-width:none}body *{visibility:hidden}#previewContent,#previewContent *{visibility:visible}#previewContent{position:absolute;left:0;top:0;width:100%}.preview{box-shadow:none;padding:0}}
+ @media (max-width:700px) {
+  body { font-size: 18px; }
+  input, select, textarea { font-size: 16px !important; }
+  .page h2 { font-size: 26px; }
+  .page p, .page label { font-size: 17px; }
+}
 </style>
  <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#24445c">
