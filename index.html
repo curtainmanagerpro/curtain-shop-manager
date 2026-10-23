@@ -61,7 +61,7 @@ td input,td select{min-width:80px;padding:8px}
 #blindOrderTable th:nth-child(7),#blindOrderTable td:nth-child(7){width:8%}
 .bo-preview-header{text-align:center;border-bottom:2px solid var(--primary);padding-bottom:12px;margin-bottom:14px}
 .bo-preview-header img{max-width:100px;max-height:65px;object-fit:contain}
-.bo-print-table{width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font-size:12px}
+.bo-print-table{width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font-size:20px}
 .bo-print-table th,.bo-print-table td{border:1px solid #b9c3cc;padding:7px 4px;overflow-wrap:anywhere}
 .bo-print-table th{background:#eef2f5;color:#203040}
  .bo-print-table th:first-child,.bo-print-table td:first-child{width:6%;min-width:0;padding-left:2px;padding-right:2px}
@@ -112,7 +112,7 @@ td input,td select{min-width:80px;padding:8px}
    <button class="btn-light" onclick="showPage('customers')">Customers</button>
    <button class="btn-light" onclick="showPage('savedQuotes')">Saved Quotations</button>
    <button class="btn-light" onclick="showPage('savedMeasurements')">Saved Measurements</button>
-    <button class="btn-light" onclick="newBlindOrder()">Blind Measurement Sheet</button>
+    <button class="btn-light" onclick="newBlindOrder()">Blinds Order</button>
   </div>
  </div>
  <div class="card">
@@ -153,7 +153,7 @@ td input,td select{min-width:80px;padding:8px}
 
 <section id="blindOrder" class="page">
  <div class="card no-print">
-  <h2>🪟 Blind Measurement Sheet</h2>
+  <h2>🪟 Blinds Order</h2>
   <p class="small">Separate wholesale measurement sheet. This does not change quotations or saved measurements.</p>
   <div class="grid">
    <div class="field"><label>Shop Name</label><input id="boShopName" placeholder="Shop name"></div>
@@ -166,7 +166,7 @@ td input,td select{min-width:80px;padding:8px}
  </div>
  <div class="card no-print">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>Measurements</h2><button class="btn-blue" onclick="addBlindOrderRow()">＋ Add Row</button></div>
-  <div class="table-wrap"><table class="quote-table" id="blindOrderTable"><thead><tr id="boHeadRow"><th class="bo-number-head">No.</th><th>Width</th><th>Height</th><th>Unit</th><th>Blind Type</th><th>Shade No.</th><th>Action</th></tr></thead><tbody id="blindOrderBody"></tbody></table></div>
+  <div class="table-wrap"><table class="quote-table" id="blindOrderTable"><thead><tr id="boHeadRow"><th class="bo-number-head">No.</th><th>Width</th><th>Height</th><th>Unit</th><th>Blind Type</th><th>Shade No.</th><th>Delete</th></tr></thead><tbody id="blindOrderBody"></tbody></table></div>
   <div class="field" style="margin-top:14px"><label>Description / Special Instructions</label><textarea id="boDescription" placeholder="Write special instructions here..."></textarea></div>
   <button class="btn-green" onclick="previewBlindOrder()">Preview PDF Sheet</button>
   <button class="btn-blue" onclick="downloadBlindOrderPDF()">Download / Share PDF</button>
