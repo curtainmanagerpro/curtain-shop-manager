@@ -317,8 +317,10 @@ async function verifyUser(user){
  $("mainApp").classList.remove("hidden");
  $("accountInfo").textContent=user.email+(admin?" · Administrator":" · Authorized User");
  $("navAdmin").classList.toggle("hidden",!admin);
- loadStorage();
- loadSettings();
+
+await loadCloudData();
+loadSettings();
+
  updateHome();
  showPage("home");
 }
@@ -336,20 +338,96 @@ async function boot(){
 }
 async function signOut(){if(sb)await sb.auth.signOut();}
 
-function loadStorage(){
- try{
-  const d=JSON.parse(localStorage.getItem(DATA_KEY)||"{}");
-  measurements=Array.isArray(d.measurements)?d.measurements:[];
-  quotations=Array.isArray(d.quotations)?d.quotations:[];
- }catch{measurements=[];quotations=[];}
+
+
+async function loadCloudData(){
+  if(!sb||!authUser)return;
+  const {data,error}=await sb
+    .from("customer_data")
+    .select("id,data")
+    .eq("user_id",authUser.id)
+    .maybeSingle();
+
+  if(error){
+    alert("Cloud data loading failed: "+error.message);
+    return;
+  }
+
+  if(data&&data.data){
+    measurements=Array.isArray(data.data.measurements)?data.data.measurements:[];
+    quotations=Array.isArray(data.data.quotations)?data.data.quotations:[];
+    settings=data.data.settings||{};
+  }
 }
+
+
+async function saveCloudData(){
+  if(!sb||!authUser)return;
+
+  const cloudData={
+    measurements,
+    quotations,
+    settings
+  };
+
+  const {data:existing,error:findError}=await sb
+    .from("customer_data")
+    .select("id")
+    .eq("user_id",authUser.id)
+    .maybeSingle();
+
+  if(findError){
+    console.error("Cloud lookup failed:",findError.message);
+    return;
+  }
+
+  let result;
+
+  if(existing){
+    result=await sb
+      .from("customer_data")
+      .update({
+        data:cloudData,
+        updated_at:new Date().toISOString()
+      })
+      .eq("id",existing.id);
+  }else{
+    result=await sb
+      .from("customer_data")
+      .insert({
+        user_id:authUser.id,
+        data:cloudData
+      });
+  }
+
+  if(result.error){
+    console.error("Cloud save failed:",result.error.message);
+  }
+}
+
+ function loadStorage(){
+ try{
+   const d=JSON.parse(localStorage.getItem(DATA_KEY)||"{}");
+   measurements=Array.isArray(d.measurements)?d.measurements:[];
+   quotations=Array.isArray(d.quotations)?d.quotations:[];
+ }catch{
+   measurements=[];
+   quotations=[];
+ }
+}
+
+
 function saveStorage(){
- try{
-  localStorage.setItem(DATA_KEY,JSON.stringify({measurements,quotations}));
-  localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));
-  updateHome();
- }catch{alert("Unable to save data on this device. Export a backup and free some storage.");}
+  try{
+    localStorage.setItem(DATA_KEY,JSON.stringify({measurements,quotations}));
+    localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));
+    updateHome();
+    saveCloudData();
+  }catch{
+    alert("Unable to save data on this device. Export a backup and free some storage.");
+  }
 }
+
 function loadSettings(){
  try{settings=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");}catch{settings={};}
  $("sName").value=settings.name||"";
