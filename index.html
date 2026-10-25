@@ -8,7 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-:root{--primary:#24445c;--accent:#0e9b91;--blue:#3277d5;--label-blue:#4b91d0;--bg:#f1f5f8;--line:#dce5eb;--text:#203040}
+:root{--primary:#24445c;--accent:#0e9b91;--bg:#f1f5f8;--line:#dce5eb;--text:#203040}
 *{box-sizing:border-box}
 body{margin:0;font:15px Arial,sans-serif;background:var(--bg);color:var(--text)}
 .app{max-width:1100px;margin:auto;padding:12px}
@@ -18,7 +18,7 @@ header h1{margin:0;font-size:24px}header p{margin:6px 0 0;opacity:.85}
 .nav button{width:100%;margin:0;background:#e2eaf0;color:var(--primary);padding:12px 5px;font-weight:bold}
 .nav button.active{background:var(--primary);color:white}
 button{border:0;border-radius:9px;padding:11px 14px;margin:4px;font-size:14px;font-weight:bold;cursor:pointer}
-.btn-dark{background:var(--primary);color:white}.btn-blue{background:var(--blue);color:white}
+.btn-dark{background:var(--primary);color:white}.btn-blue{background:#3277d5;color:white}
 .btn-green{background:var(--accent);color:white}.btn-red{background:#c94343;color:white}
 .btn-light{background:#e6edf2;color:var(--text)}
 .page{display:none}.page.active{display:block}
@@ -79,29 +79,6 @@ td input,td select{min-width:80px;padding:8px}
  #measurement #measurementBody td:last-child,#blindOrderBody td:last-child{display:flex;justify-content:flex-end}
  #measurement #measurementBody td:last-child::before,#blindOrderBody td:last-child::before{content:""}
 }
-
-/* Mobile-friendly row controls and readable measurement labels; PDF styles are untouched. */
-.row-add-mobile{display:none}
-.row-action-buttons{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%}
-.row-action-buttons button{margin:2px;padding:10px 12px}
-.item-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
-.item-actions button{margin:2px}
-@media(max-width:700px){
- .row-add-top{display:none}
- .row-add-mobile{display:inline-block}
- #measurement #measurementBody td::before,#blindOrderBody td::before{
-   display:flex;align-items:center;justify-content:center;min-height:44px;height:100%;
-   padding:8px 4px;border-radius:8px;background:var(--label-blue);color:#fff;
-   font-size:14px;font-weight:700;text-align:center;line-height:1.2;overflow-wrap:anywhere;
- }
- #measurement #measurementBody td,#blindOrderBody td{grid-template-columns:minmax(76px,28%) minmax(0,1fr);gap:8px}
- #measurement #measurementBody td input,#measurement #measurementBody td select,
- #blindOrderBody td input,#blindOrderBody td select{min-height:44px;height:44px;font-size:17px!important;padding:8px 10px!important}
- #measurement #measurementBody td:last-child,#blindOrderBody td:last-child{display:flex;justify-content:stretch;padding-top:10px}
- #measurement #measurementBody td:last-child::before,#blindOrderBody td:last-child::before{display:none}
- #quotationItems .item-card input,#quotationItems .item-card select{font-size:17px;min-height:46px}
-}
-
 @media print{body{background:white}.no-print,header,.nav{display:none!important}.app{padding:0;max-width:none}body *{visibility:hidden}#previewContent,#previewContent *{visibility:visible}#previewContent{position:absolute;left:0;top:0;width:100%}.preview{box-shadow:none;padding:0}}
  @media (max-width:700px) {
   body { font-size: 18px; }
@@ -178,7 +155,7 @@ td input,td select{min-width:80px;padding:8px}
   </div>
  </div>
  <div class="card">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>Measurements</h2><button class="btn-blue row-add-top" onclick="addMeasurementRow()">＋ Add Row</button></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>Measurements</h2><button class="btn-blue" onclick="addMeasurementRow()">＋ Add Row</button></div>
   <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Type</th><th>Width</th><th>Height</th><th>Unit</th><th>Qty</th><th>Sq.Ft</th><th></th></tr></thead><tbody id="measurementBody"></tbody></table></div>
   <div class="summary">
    <div class="summary-row"><span>Total Sq.Ft</span><strong id="measurementSqft">0.00</strong></div>
@@ -218,7 +195,7 @@ td input,td select{min-width:80px;padding:8px}
   <div class="notice" id="boBusinessInfo"></div>
  </div>
  <div class="card no-print">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>Measurements</h2><button class="btn-blue row-add-top" onclick="addBlindOrderRow()">＋ Add Row</button></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>Measurements</h2><button class="btn-blue" onclick="addBlindOrderRow()">＋ Add Row</button></div>
   <div class="table-wrap"><table class="quote-table" id="blindOrderTable"><thead><tr id="boHeadRow"><th class="bo-number-head">No.</th><th>Width</th><th>Height</th><th>Unit</th><th>Blind Type</th><th>Shade No.</th><th>Delete</th></tr></thead><tbody id="blindOrderBody"></tbody></table></div>
   <div class="field" style="margin-top:14px"><label>Description / Special Instructions</label><textarea id="boDescription" placeholder="Write special instructions here..."></textarea></div>
   <button class="btn-green" onclick="saveBlindOrder()">Save Order</button>
@@ -258,7 +235,7 @@ td input,td select{min-width:80px;padding:8px}
    <div class="field"><label>Date</label><input id="qDate" type="date"></div>
   </div>
  </div>
- <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Quotation Items</h2><button class="btn-blue row-add-top" onclick="addQuotationItem()">＋ Add Item</button></div><div id="quotationItems"></div></div>
+ <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Quotation Items</h2><button class="btn-blue" onclick="addQuotationItem()">＋ Add Item</button></div><div id="quotationItems"></div></div>
  <div class="card"><h2>Calculation</h2>
   <div class="grid">
    <div class="field"><label>Discount Type</label><select id="discountType" onchange="calculateQuotation()"><option value="percent">Percentage %</option><option value="fixed">Fixed Amount ₹</option></select></div>
@@ -549,12 +526,11 @@ function addMeasurementRow(data){
  <td class="mUnitCell" data-label="Unit">Sq.Ft</td>
  <td data-label="Qty"><input class="mQty" type="number" min="1" value="1"></td>
  <td class="mAreaCell" data-label="Sq.Ft">0.00</td>
- <td data-label="Actions"><div class="row-action-buttons"><button class="btn-red m-delete" type="button">Delete</button><button class="btn-blue row-add-mobile m-add" type="button">＋ Add Row</button></div></td>`;
+ <td data-label="Delete"><button class="btn-red" type="button">×</button></td>`;
  $("measurementBody").appendChild(tr);
  tr.querySelector(".mType").onchange=recalculateMeasurements;
  tr.querySelectorAll("input").forEach(i=>i.oninput=recalculateMeasurements);
- tr.querySelector(".m-delete").onclick=()=>{tr.remove();renumberRows();recalculateMeasurements();};
- tr.querySelector(".m-add").onclick=()=>{addMeasurementRow();const rows=document.querySelectorAll("#measurementBody tr");rows[rows.length-1]?.scrollIntoView({behavior:"smooth",block:"center"});};
+ tr.querySelector("button").onclick=()=>{tr.remove();recalculateMeasurements();};
  if(data){
   tr.querySelector(".mArea").value=data.area||"";
   tr.querySelector(".mType").value=data.type||types[0];
@@ -649,7 +625,7 @@ function addQuotationItem(item){
 }
 function renderQuotationItems(){
  $("quotationItems").innerHTML="";
- if(!quotationItems.length)$("quotationItems").innerHTML='<div class="empty">No items added yet.<br><button type="button" class="btn-blue" onclick="addQuotationItem()">＋ Add Item</button></div>';
+ if(!quotationItems.length)$("quotationItems").innerHTML='<div class="empty">No items added. Click Add Item.</div>';
  quotationItems.forEach((it,i)=>{
   const d=document.createElement("div");d.className="item-card";
   d.innerHTML=`<div class="grid">
@@ -657,10 +633,9 @@ function renderQuotationItems(){
   <div class="field"><label>Quantity</label><input type="number" min="0" step=".01" value="${it.qty}" data-k="qty"></div>
   <div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div>
   <div class="field"><label>Rate</label><input type="number" min="0" step=".01" value="${it.rate}" data-k="rate"></div></div>
-  <p>Amount: <b>₹${money(it.qty*it.rate)}</b></p><div class="item-actions"><button type="button" class="btn-red item-delete">Delete Item</button><button type="button" class="btn-blue row-add-mobile item-add">＋ Add Item</button></div>`;
+  <p>Amount: <b>₹${money(it.qty*it.rate)}</b></p><button class="btn-red">Delete Item</button>`;
   d.querySelectorAll("[data-k]").forEach(el=>el.oninput=()=>{const k=el.dataset.k;quotationItems[i][k]=(k==="qty"||k==="rate")?Number(el.value)||0:el.value;calculateQuotation();});
-  d.querySelector(".item-delete").onclick=()=>{quotationItems.splice(i,1);renderQuotationItems();};
-  d.querySelector(".item-add").onclick=()=>{addQuotationItem();const cards=document.querySelectorAll("#quotationItems .item-card");cards[cards.length-1]?.scrollIntoView({behavior:"smooth",block:"center"});};
+  d.querySelector("button").onclick=()=>{quotationItems.splice(i,1);renderQuotationItems();};
   $("quotationItems").appendChild(d);
  });
  calculateQuotation();
@@ -899,11 +874,10 @@ $("boCustomerPhone").value="";
 }
 function addBlindOrderRow(data={}){
  const tr=document.createElement("tr");
- tr.innerHTML=`<td class="bo-cell bo-number-cell" data-label="No."></td><td class="bo-cell" data-label="Width"><input class="bo-input bo-width" type="number" min="0" step="any" inputmode="decimal" aria-label="Width"></td><td class="bo-cell" data-label="Height"><input class="bo-input bo-height" type="number" min="0" step="any" inputmode="decimal" aria-label="Height"></td><td class="bo-cell bo-unit-cell" data-label="Unit"></td><td class="bo-cell" data-label="Blind Type"><select class="bo-input bo-type" aria-label="Blind Type"><option>Zebra</option><option>Roman</option><option>Roller</option><option>Venetian</option><option>Wooden</option><option>Bamboo</option><option>Honeycomb</option><option>Other</option></select></td><td class="bo-cell" data-label="Shade No."><input class="bo-input bo-shade" type="text" placeholder="Shade" aria-label="Shade number"></td><td class="bo-cell" data-label="Actions"><div class="row-action-buttons"><button type="button" class="btn-red bo-delete">Delete</button><button type="button" class="btn-blue row-add-mobile bo-add">＋ Add Row</button></div></td>`;
+ tr.innerHTML=`<td class="bo-cell bo-number-cell" data-label="No."></td><td class="bo-cell" data-label="Width"><input class="bo-input bo-width" type="number" min="0" step="any" inputmode="decimal" aria-label="Width"></td><td class="bo-cell" data-label="Height"><input class="bo-input bo-height" type="number" min="0" step="any" inputmode="decimal" aria-label="Height"></td><td class="bo-cell bo-unit-cell" data-label="Unit"></td><td class="bo-cell" data-label="Blind Type"><select class="bo-input bo-type" aria-label="Blind Type"><option>Zebra</option><option>Roman</option><option>Roller</option><option>Venetian</option><option>Wooden</option><option>Bamboo</option><option>Honeycomb</option><option>Other</option></select></td><td class="bo-cell" data-label="Shade No."><input class="bo-input bo-shade" type="text" placeholder="Shade" aria-label="Shade number"></td><td class="bo-cell" data-label="Delete"><button type="button" class="btn-red" style="margin:0;padding:5px 7px">×</button></td>`;
  $("blindOrderBody").appendChild(tr);
  tr.querySelector(".bo-width").value=data.width??"";tr.querySelector(".bo-height").value=data.height??"";tr.querySelector(".bo-type").value=data.type||"Zebra";tr.querySelector(".bo-shade").value=data.shade||"";
- tr.querySelector(".bo-delete").onclick=()=>{tr.remove();renumberBlindOrderRows();};
- tr.querySelector(".bo-add").onclick=()=>{addBlindOrderRow();const rows=document.querySelectorAll("#blindOrderBody tr");rows[rows.length-1]?.scrollIntoView({behavior:"smooth",block:"center"});};
+ tr.querySelector("button").onclick=()=>{tr.remove();renumberBlindOrderRows();};
  renumberBlindOrderRows();updateBlindUnitLabels();
 }
 function renumberBlindOrderRows(){document.querySelectorAll("#blindOrderBody tr").forEach((tr,i)=>tr.querySelector(".bo-number-cell").textContent=i+1);}
