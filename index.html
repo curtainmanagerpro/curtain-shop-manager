@@ -879,7 +879,8 @@ function getBlindOrderData(){
  description:$("boDescription").value.trim(),
  rows
 };
-function saveBlindOrder(){
+}
+ function saveBlindOrder(){
  const d=getBlindOrderData();
  if(!d.rows.length)return alert("Enter at least one measurement row before saving.");
  const i=blindOrders.findIndex(x=>x.id===d.id);
