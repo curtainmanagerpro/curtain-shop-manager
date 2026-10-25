@@ -67,18 +67,24 @@ td input,td select{min-width:80px;padding:8px}
  .bo-print-table th:first-child,.bo-print-table td:first-child{width:6%;min-width:0;padding-left:2px;padding-right:2px}
 @media(max-width:480px){#blindOrderTable th{font-size:10px}#blindOrderTable .bo-input{font-size:11px!important;padding:7px 2px!important}}
 
-/* On small screens, stack entry fields vertically; PDF print tables remain unchanged. */
+/* Mobile entry cards: label and value columns stay aligned; PDF styling is untouched. */
 @media(max-width:700px){
  #measurement .table-wrap,#blindOrder .table-wrap{overflow:visible}
- #measurement .table-wrap table,#blindOrderTable{width:100%;min-width:0;table-layout:auto;border-collapse:separate;border-spacing:0}
+ #measurement .table-wrap table,#blindOrderTable{width:100%;min-width:0;table-layout:fixed;border-collapse:separate;border-spacing:0}
  #measurement .table-wrap thead,#blindOrderTable thead{display:none}
  #measurement #measurementBody tr,#blindOrderBody tr{display:block;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;margin:0 0 12px}
- #measurement #measurementBody td,#blindOrderBody td{display:grid;grid-template-columns:minmax(90px,35%) minmax(0,1fr);align-items:center;gap:8px;text-align:left;border:0;padding:6px 2px;width:100%!important}
- #measurement #measurementBody td::before,#blindOrderBody td::before{content:attr(data-label);font-weight:bold;color:var(--primary);font-size:13px}
- #measurement #measurementBody td input,#measurement #measurementBody td select,#blindOrderBody td input,#blindOrderBody td select{width:100%;min-width:0!important;font-size:16px!important;padding:10px!important}
- #measurement #measurementBody td:last-child,#blindOrderBody td:last-child{display:flex;justify-content:flex-end}
- #measurement #measurementBody td:last-child::before,#blindOrderBody td:last-child::before{content:""}
+ #measurement #measurementBody td,#blindOrderBody td{display:grid;grid-template-columns:minmax(78px,27%) minmax(0,1fr);align-items:stretch;gap:8px;text-align:left;border:0;padding:5px 2px;width:100%!important;min-height:46px}
+ #measurement #measurementBody td::before,#blindOrderBody td::before{content:attr(data-label);display:flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box;width:100%;min-height:46px;padding:5px 3px;border-radius:8px;background:#4a91cc;color:#fff;font-weight:bold;font-size:14px;line-height:1.15;overflow-wrap:anywhere}
+ #measurement #measurementBody td input,#measurement #measurementBody td select,#blindOrderBody td input,#blindOrderBody td select{width:100%;min-width:0!important;height:46px;min-height:46px;font-size:17px!important;padding:9px 10px!important;border-radius:9px!important}
+ #measurement #measurementBody td.rowNo,#measurement #measurementBody td.mUnitCell,#measurement #measurementBody td.mAreaCell,#blindOrderBody td.bo-unit-cell,#blindOrderBody td.bo-number-cell{align-items:stretch}
+ #measurement #measurementBody td.rowNo,#measurement #measurementBody td.mUnitCell,#measurement #measurementBody td.mAreaCell,#blindOrderBody td.bo-unit-cell,#blindOrderBody td.bo-number-cell{font-size:17px}
+ #measurement #measurementBody td:last-child,#blindOrderBody td:last-child{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:48px}
+ #measurement #measurementBody td:last-child::before,#blindOrderBody td:last-child::before{display:none}
+ .row-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;padding-top:5px}
+ .row-actions button{min-height:44px;font-size:15px;padding:10px 13px}
+ .field label{font-size:15px}
 }
+@media(min-width:701px){.row-actions{display:flex;justify-content:space-between;gap:8px}.row-actions button{margin:2px}}
 @media print{body{background:white}.no-print,header,.nav{display:none!important}.app{padding:0;max-width:none}body *{visibility:hidden}#previewContent,#previewContent *{visibility:visible}#previewContent{position:absolute;left:0;top:0;width:100%}.preview{box-shadow:none;padding:0}}
  @media (max-width:700px) {
   body { font-size: 18px; }
@@ -155,7 +161,7 @@ td input,td select{min-width:80px;padding:8px}
   </div>
  </div>
  <div class="card">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>Measurements</h2><button class="btn-blue" onclick="addMeasurementRow()">＋ Add Row</button></div>
+  <h2>Measurements</h2>
   <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Type</th><th>Width</th><th>Height</th><th>Unit</th><th>Qty</th><th>Sq.Ft</th><th></th></tr></thead><tbody id="measurementBody"></tbody></table></div>
   <div class="summary">
    <div class="summary-row"><span>Total Sq.Ft</span><strong id="measurementSqft">0.00</strong></div>
@@ -195,7 +201,7 @@ td input,td select{min-width:80px;padding:8px}
   <div class="notice" id="boBusinessInfo"></div>
  </div>
  <div class="card no-print">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>Measurements</h2><button class="btn-blue" onclick="addBlindOrderRow()">＋ Add Row</button></div>
+  <h2>Measurements</h2>
   <div class="table-wrap"><table class="quote-table" id="blindOrderTable"><thead><tr id="boHeadRow"><th class="bo-number-head">No.</th><th>Width</th><th>Height</th><th>Unit</th><th>Blind Type</th><th>Shade No.</th><th>Delete</th></tr></thead><tbody id="blindOrderBody"></tbody></table></div>
   <div class="field" style="margin-top:14px"><label>Description / Special Instructions</label><textarea id="boDescription" placeholder="Write special instructions here..."></textarea></div>
   <button class="btn-green" onclick="saveBlindOrder()">Save Order</button>
@@ -235,7 +241,7 @@ td input,td select{min-width:80px;padding:8px}
    <div class="field"><label>Date</label><input id="qDate" type="date"></div>
   </div>
  </div>
- <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Quotation Items</h2><button class="btn-blue" onclick="addQuotationItem()">＋ Add Item</button></div><div id="quotationItems"></div></div>
+ <div class="card"><h2>Quotation Items</h2><div id="quotationItems"></div></div>
  <div class="card"><h2>Calculation</h2>
   <div class="grid">
    <div class="field"><label>Discount Type</label><select id="discountType" onchange="calculateQuotation()"><option value="percent">Percentage %</option><option value="fixed">Fixed Amount ₹</option></select></div>
@@ -526,11 +532,15 @@ function addMeasurementRow(data){
  <td class="mUnitCell" data-label="Unit">Sq.Ft</td>
  <td data-label="Qty"><input class="mQty" type="number" min="1" value="1"></td>
  <td class="mAreaCell" data-label="Sq.Ft">0.00</td>
- <td data-label="Delete"><button class="btn-red" type="button">×</button></td>`;
- $("measurementBody").appendChild(tr);
+ <td data-label="Actions"><div class="row-actions"><button class="btn-red" type="button">Delete</button><button class="btn-blue add-measurement-row" type="button">＋ Add Row</button></div></td>`;
+ const body=$("measurementBody");
+ const activeRow=window.__measurementInsertAfter||null;
+ if(activeRow&&activeRow.parentElement===body){activeRow.after(tr);}else{body.appendChild(tr);}
+ window.__measurementInsertAfter=null;
  tr.querySelector(".mType").onchange=recalculateMeasurements;
  tr.querySelectorAll("input").forEach(i=>i.oninput=recalculateMeasurements);
- tr.querySelector("button").onclick=()=>{tr.remove();recalculateMeasurements();};
+ tr.querySelector(".btn-red").onclick=()=>{tr.remove();recalculateMeasurements();};
+ tr.querySelector(".add-measurement-row").onclick=()=>{window.__measurementInsertAfter=tr;addMeasurementRow();};
  if(data){
   tr.querySelector(".mArea").value=data.area||"";
   tr.querySelector(".mType").value=data.type||types[0];
@@ -633,9 +643,10 @@ function renderQuotationItems(){
   <div class="field"><label>Quantity</label><input type="number" min="0" step=".01" value="${it.qty}" data-k="qty"></div>
   <div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div>
   <div class="field"><label>Rate</label><input type="number" min="0" step=".01" value="${it.rate}" data-k="rate"></div></div>
-  <p>Amount: <b>₹${money(it.qty*it.rate)}</b></p><button class="btn-red">Delete Item</button>`;
+  <p>Amount: <b>₹${money(it.qty*it.rate)}</b></p><div class="row-actions"><button class="btn-red delete-quote-item" type="button">Delete Item</button><button class="btn-blue add-quote-item" type="button">＋ Add Item</button></div>`;
   d.querySelectorAll("[data-k]").forEach(el=>el.oninput=()=>{const k=el.dataset.k;quotationItems[i][k]=(k==="qty"||k==="rate")?Number(el.value)||0:el.value;calculateQuotation();});
-  d.querySelector("button").onclick=()=>{quotationItems.splice(i,1);renderQuotationItems();};
+  d.querySelector(".delete-quote-item").onclick=()=>{quotationItems.splice(i,1);renderQuotationItems();};
+  d.querySelector(".add-quote-item").onclick=()=>{quotationItems.splice(i+1,0,{name:"",qty:1,unit:"Sq.Ft",rate:0});renderQuotationItems();};
   $("quotationItems").appendChild(d);
  });
  calculateQuotation();
@@ -874,10 +885,11 @@ $("boCustomerPhone").value="";
 }
 function addBlindOrderRow(data={}){
  const tr=document.createElement("tr");
- tr.innerHTML=`<td class="bo-cell bo-number-cell" data-label="No."></td><td class="bo-cell" data-label="Width"><input class="bo-input bo-width" type="number" min="0" step="any" inputmode="decimal" aria-label="Width"></td><td class="bo-cell" data-label="Height"><input class="bo-input bo-height" type="number" min="0" step="any" inputmode="decimal" aria-label="Height"></td><td class="bo-cell bo-unit-cell" data-label="Unit"></td><td class="bo-cell" data-label="Blind Type"><select class="bo-input bo-type" aria-label="Blind Type"><option>Zebra</option><option>Roman</option><option>Roller</option><option>Venetian</option><option>Wooden</option><option>Bamboo</option><option>Honeycomb</option><option>Other</option></select></td><td class="bo-cell" data-label="Shade No."><input class="bo-input bo-shade" type="text" placeholder="Shade" aria-label="Shade number"></td><td class="bo-cell" data-label="Delete"><button type="button" class="btn-red" style="margin:0;padding:5px 7px">×</button></td>`;
- $("blindOrderBody").appendChild(tr);
+ tr.innerHTML=`<td class="bo-cell bo-number-cell" data-label="No."></td><td class="bo-cell" data-label="Width"><input class="bo-input bo-width" type="number" min="0" step="any" inputmode="decimal" aria-label="Width"></td><td class="bo-cell" data-label="Height"><input class="bo-input bo-height" type="number" min="0" step="any" inputmode="decimal" aria-label="Height"></td><td class="bo-cell bo-unit-cell" data-label="Unit"></td><td class="bo-cell" data-label="Blind Type"><select class="bo-input bo-type" aria-label="Blind Type"><option>Zebra</option><option>Roman</option><option>Roller</option><option>Venetian</option><option>Wooden</option><option>Bamboo</option><option>Honeycomb</option><option>Other</option></select></td><td class="bo-cell" data-label="Shade No."><input class="bo-input bo-shade" type="text" placeholder="Shade" aria-label="Shade number"></td><td class="bo-cell" data-label="Actions"><div class="row-actions"><button type="button" class="btn-red delete-blind-row">Delete</button><button type="button" class="btn-blue add-blind-row">＋ Add Row</button></div></td>`;
+ const body=$("blindOrderBody");const activeRow=window.__blindInsertAfter||null;if(activeRow&&activeRow.parentElement===body){activeRow.after(tr);}else{body.appendChild(tr);}window.__blindInsertAfter=null;
  tr.querySelector(".bo-width").value=data.width??"";tr.querySelector(".bo-height").value=data.height??"";tr.querySelector(".bo-type").value=data.type||"Zebra";tr.querySelector(".bo-shade").value=data.shade||"";
- tr.querySelector("button").onclick=()=>{tr.remove();renumberBlindOrderRows();};
+ tr.querySelector(".delete-blind-row").onclick=()=>{tr.remove();renumberBlindOrderRows();};
+ tr.querySelector(".add-blind-row").onclick=()=>{window.__blindInsertAfter=tr;addBlindOrderRow();};
  renumberBlindOrderRows();updateBlindUnitLabels();
 }
 function renumberBlindOrderRows(){document.querySelectorAll("#blindOrderBody tr").forEach((tr,i)=>tr.querySelector(".bo-number-cell").textContent=i+1);}
