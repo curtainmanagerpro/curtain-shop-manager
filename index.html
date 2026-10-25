@@ -166,6 +166,20 @@ td input,td select{min-width:80px;padding:8px}
    <div class="field"><label>Measurement Unit</label><select id="boUnit" onchange="updateBlindUnitLabels()"><option value="cm">Centimeter (cm)</option><option value="inch">Inch</option></select></div>
    <div class="field"><label>Show Row Number</label><select id="boShowNumbers" onchange="updateBlindUnitLabels()"><option value="yes">Yes</option><option value="no">No</option></select></div>
   </div>
+<div class="grid">
+ <div class="field">
+  <label>Customer Name</label>
+  <input id="boCustomerName" type="text" placeholder="Customer name">
+ </div>
+ <div class="field">
+  <label>Place / Location</label>
+  <input id="boCustomerPlace" type="text" placeholder="Customer place">
+ </div>
+ <div class="field">
+  <label>Customer Phone Number</label>
+  <input id="boCustomerPhone" type="tel" placeholder="Phone number">
+ </div>
+</div>
   <div class="notice" id="boBusinessInfo"></div>
  </div>
  <div class="card no-print">
@@ -829,6 +843,9 @@ function newBlindOrder(){
  currentBlindOrderId=null;blindOrderRows=[];
  $("boDate").value=today();
  $("boUnit").value="cm";$("boShowNumbers").value="yes";$("boDescription").value="";
+$("boCustomerName").value="";
+$("boCustomerPlace").value="";
+$("boCustomerPhone").value="";
  $("blindOrderPreview").classList.add("hidden");$("blindOrderPreview").innerHTML="";
  $("blindOrderBody").innerHTML="";
  addBlindOrderRow();addBlindOrderRow();
@@ -859,14 +876,38 @@ function saveBlindOrder(){
 function editBlindOrder(id){
  const d=blindOrders.find(x=>String(x.id)===String(id));if(!d)return;
  currentBlindOrderId=d.id;$("boDate").value=d.date||today();$("boUnit").value=d.unit||"cm";$("boShowNumbers").value=d.showNumbers===false?"no":"yes";$("boDescription").value=d.description||"";
+ $("boCustomerName").value=d.customerName||"";
+$("boCustomerPlace").value=d.customerPlace||"";
+$("boCustomerPhone").value=d.customerPhone||"";
  $("blindOrderBody").innerHTML="";(d.rows||[]).forEach(r=>addBlindOrderRow(r));if(!(d.rows||[]).length){addBlindOrderRow();addBlindOrderRow();}
  $("blindOrderPreview").classList.add("hidden");updateBlindBusinessInfo();showPage("blindOrder");window.scrollTo({top:0,behavior:"smooth"});
 }
 function deleteBlindOrder(id){if(!confirm("Delete this saved Blinds Order?"))return;blindOrders=blindOrders.filter(x=>String(x.id)!==String(id));if(String(currentBlindOrderId)===String(id))currentBlindOrderId=null;saveStorage();renderBlindOrders();}
 function renderBlindOrders(){
  const q=($("blindOrderSearch")?.value||"").toLowerCase();
- const list=blindOrders.filter(d=>[d.date,d.description,d.shopName].join(" ").toLowerCase().includes(q));
- $("blindOrderList").innerHTML=list.slice().reverse().map(d=>`<div class="customer-card"><h3>Blinds Order · ${esc(d.date||"")}</h3><div class="small">${esc(d.shopName||settings.name||"Curtain Shop")} · ${esc(d.rows?.length||0)} measurement row(s)</div><p>${esc(d.description||"")}</p><button class="btn-blue" onclick="editBlindOrder('${String(d.id)}')">Edit / Open</button><button class="btn-green" onclick="previewSavedBlindOrder('${String(d.id)}')">Preview PDF</button><button class="btn-dark" onclick="downloadSavedBlindOrderPDF('${String(d.id)}')">Download / Share PDF</button><button class="btn-red" onclick="deleteBlindOrder('${String(d.id)}')">Delete</button></div>`).join("")||'<div class="empty">No saved Blinds Orders.</div>';
+
+ const list=blindOrders.filter(d=>[
+  d.date,d.description,d.shopName,
+  d.customerName,d.customerPlace,d.customerPhone
+ ].join(" ").toLowerCase().includes(q));
+
+ $("blindOrderList").innerHTML=list.slice().reverse().map(d=>`
+  <div class="customer-card">
+   <h3>Blinds Order · ${esc(d.date||"")}</h3>
+   <div class="small">
+    ${esc(d.shopName||settings.name||"Curtain Shop")} ·
+    ${esc(d.rows?.length||0)} measurement row(s)
+   </div>
+   <p><b>Customer:</b> ${esc(d.customerName||"-")}</p>
+   <p><b>Place:</b> ${esc(d.customerPlace||"-")}</p>
+   <p><b>Phone:</b> ${esc(d.customerPhone||"-")}</p>
+   <p>${esc(d.description||"")}</p>
+   <button class="btn-blue" onclick="editBlindOrder('${String(d.id)}')">Edit / Open</button>
+   <button class="btn-green" onclick="previewSavedBlindOrder('${String(d.id)}')">Preview PDF</button>
+   <button class="btn-dark" onclick="downloadSavedBlindOrderPDF('${String(d.id)}')">Download / Share PDF</button>
+   <button class="btn-red" onclick="deleteBlindOrder('${String(d.id)}')">Delete</button>
+  </div>
+ `).join("")||'<div class="empty">No saved Blinds Orders.</div>';
 }
 function blindOrderHTML(d){
  const logo=d.logo?`<img src="${d.logo}" alt="Shop logo">`:"";
