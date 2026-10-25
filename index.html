@@ -190,9 +190,18 @@ td input,td select{min-width:80px;padding:8px}
   <button class="btn-blue" onclick="previewBlindOrder()">Preview PDF Sheet</button>
   <button class="btn-blue" onclick="downloadBlindOrderPDF()">Download / Share PDF</button>
   <button class="btn-light" onclick="newBlindOrder()">New / Clear Sheet</button>
+  <button class="btn-dark" onclick="showPage('savedBlindOrders')">Saved Blinds Orders</button>
  </div>
  <div id="blindOrderPreview" class="preview hidden"></div>
- <div class="card no-print" style="margin-top:14px"><h2>Saved Blinds Orders</h2><input id="blindOrderSearch" placeholder="Search by date or description..." oninput="renderBlindOrders()"><div id="blindOrderList"></div></div>
+</section>
+
+<section id="savedBlindOrders" class="page">
+ <div class="card no-print">
+  <h2>Saved Blinds Orders</h2>
+  <button class="btn-light" onclick="newBlindOrder()">＋ New Blinds Order</button>
+  <input id="blindOrderSearch" placeholder="Search by date, customer, place, phone or description..." oninput="renderBlindOrders()">
+ </div>
+ <div id="blindOrderList"></div>
 </section>
 
 <section id="savedMeasurements" class="page">
@@ -477,7 +486,8 @@ function showPage(page){
  if(page==="customers")renderCustomers();
  if(page==="savedQuotes")renderSavedQuotes();
  if(page==="settings")loadSettings();
-  if(page==="blindOrder"){updateBlindUnitLabels();updateBlindBusinessInfo();renderBlindOrders();}
+  if(page==="blindOrder"){updateBlindUnitLabels();updateBlindBusinessInfo();}
+  if(page==="savedBlindOrders")renderBlindOrders();
  if(page==="admin")loadAuthorizedUsers();
 }
 
