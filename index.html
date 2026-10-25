@@ -119,6 +119,7 @@ td input,td select{min-width:80px;padding:8px}
    <button class="btn-light" onclick="showPage('savedQuotes')">Saved Quotations</button>
    <button class="btn-light" onclick="showPage('savedMeasurements')">Saved Measurements</button>
     <button class="btn-light" onclick="newBlindOrder()">Blinds Order</button>
+    <button class="btn-dark" onclick="showPage('savedBlindOrders')">Saved Blinds Orders</button>
     </div>
  </div>
  <div class="card">
@@ -886,7 +887,7 @@ function getBlindOrderData(){
  if(!d.rows.length)return alert("Enter at least one measurement row before saving.");
  const i=blindOrders.findIndex(x=>x.id===d.id);
  if(i>=0)blindOrders[i]=d;else blindOrders.push(d);
- currentBlindOrderId=d.id;saveStorage();renderBlindOrders();alert("Blinds Order saved successfully.");
+ currentBlindOrderId=d.id;saveStorage();renderBlindOrders();alert("Blinds Order saved successfully.");showPage("savedBlindOrders");
 }
 function editBlindOrder(id){
  const d=blindOrders.find(x=>String(x.id)===String(id));if(!d)return;
