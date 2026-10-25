@@ -119,7 +119,7 @@ td input,td select{min-width:80px;padding:8px}
    <button class="btn-light" onclick="showPage('savedQuotes')">Saved Quotations</button>
    <button class="btn-light" onclick="showPage('savedMeasurements')">Saved Measurements</button>
     <button class="btn-light" onclick="newBlindOrder()">Blinds Order</button>
-  </div>
+    </div>
  </div>
  <div class="card">
   <h3>Quick Summary</h3>
@@ -143,11 +143,10 @@ td input,td select{min-width:80px;padding:8px}
  </div>
  <div class="card">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>Measurements</h2><button class="btn-blue" onclick="addMeasurementRow()">＋ Add Row</button></div>
-  <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Type</th><th>Height</th><th>Width</th><th>Unit</th><th>Qty</th><th>Area</th><th>Rate</th><th>Amount</th><th></th></tr></thead><tbody id="measurementBody"></tbody></table></div>
+  <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Type</th><th>Width</th><th>Height</th><th>Unit</th><th>Qty</th><th>Sq.Ft</th><th></th></tr></thead><tbody id="measurementBody"></tbody></table></div>
   <div class="summary">
    <div class="summary-row"><span>Total Sq.Ft</span><strong id="measurementSqft">0.00</strong></div>
    <div class="summary-row"><span>Total RFT</span><strong id="measurementRft">0.00</strong></div>
-   <div class="summary-row"><span>Total Amount</span><strong>₹<span id="measurementAmount">0.00</span></strong></div>
   </div>
   <button class="btn-green" onclick="saveMeasurement()">Save Measurement</button>
   <button class="btn-blue" onclick="measurementToQuotation()">Create Quotation</button>
@@ -190,7 +189,6 @@ td input,td select{min-width:80px;padding:8px}
   <button class="btn-blue" onclick="previewBlindOrder()">Preview PDF Sheet</button>
   <button class="btn-blue" onclick="downloadBlindOrderPDF()">Download / Share PDF</button>
   <button class="btn-light" onclick="newBlindOrder()">New / Clear Sheet</button>
-  <button class="btn-dark" onclick="showPage('savedBlindOrders')">Saved Blinds Orders</button>
  </div>
  <div id="blindOrderPreview" class="preview hidden"></div>
 </section>
@@ -503,13 +501,11 @@ function addMeasurementRow(data){
  tr.innerHTML=`<td class="rowNo"></td>
  <td><input class="mArea" placeholder="Hall / Bedroom"></td>
  <td><select class="mType">${types.map(t=>`<option>${esc(t)}</option>`).join("")}</select></td>
- <td><input class="mHeight" type="number" min="0" step=".01"></td>
  <td><input class="mWidth" type="number" min="0" step=".01"></td>
+ <td><input class="mHeight" type="number" min="0" step=".01"></td>
  <td class="mUnitCell">Sq.Ft</td>
  <td><input class="mQty" type="number" min="1" value="1"></td>
  <td class="mAreaCell">0.00</td>
- <td><input class="mRate" type="number" min="0" step=".01"></td>
- <td class="mAmount">0.00</td>
  <td><button class="btn-red" type="button">×</button></td>`;
  $("measurementBody").appendChild(tr);
  tr.querySelector(".mType").onchange=recalculateMeasurements;
@@ -521,7 +517,6 @@ function addMeasurementRow(data){
   tr.querySelector(".mHeight").value=data.height??"";
   tr.querySelector(".mWidth").value=data.width??"";
   tr.querySelector(".mQty").value=data.qty||1;
-  tr.querySelector(".mRate").value=data.rate||0;
  }
  renumberRows();recalculateMeasurements();
 }
@@ -534,22 +529,19 @@ function getRowCalc(h,w,unit,type,qty,rate){
  return {unit:rft?"RFT":"Sq.Ft",area,amount:area*rate,sqft:rft?0:sqft*qty,rft:rft?widthFeet*qty:0};
 }
 function recalculateMeasurements(){
- let totalSqft=0,totalRft=0,totalAmount=0;
+ let totalSqft=0,totalRft=0;
  document.querySelectorAll("#measurementBody tr").forEach(tr=>{
   const type=tr.querySelector(".mType").value;
   const h=Number(tr.querySelector(".mHeight").value)||0;
   const w=Number(tr.querySelector(".mWidth").value)||0;
   const qty=Math.max(1,Number(tr.querySelector(".mQty").value)||1);
-  const rate=Number(tr.querySelector(".mRate").value)||0;
-  const c=getRowCalc(h,w,$("mUnit").value,type,qty,rate);
+  const c=getRowCalc(h,w,$("mUnit").value,type,qty,0);
   tr.querySelector(".mUnitCell").textContent=c.unit;
   tr.querySelector(".mAreaCell").textContent=money(c.area);
-  tr.querySelector(".mAmount").textContent=money(c.amount);
-  totalSqft+=c.sqft;totalRft+=c.rft;totalAmount+=c.amount;
+  totalSqft+=c.sqft;totalRft+=c.rft;
  });
  $("measurementSqft").textContent=money(totalSqft);
  $("measurementRft").textContent=money(totalRft);
- $("measurementAmount").textContent=money(totalAmount);
  renumberRows();
 }
 function getMeasurementForm(){
@@ -558,7 +550,7 @@ function getMeasurementForm(){
   const h=Number(tr.querySelector(".mHeight").value)||0;
   const w=Number(tr.querySelector(".mWidth").value)||0;
   if(h<=0||w<=0)return;
-  const type=tr.querySelector(".mType").value,qty=Math.max(1,Number(tr.querySelector(".mQty").value)||1),rate=Number(tr.querySelector(".mRate").value)||0;
+  const type=tr.querySelector(".mType").value,qty=Math.max(1,Number(tr.querySelector(".mQty").value)||1),rate=0;
   const c=getRowCalc(h,w,$("mUnit").value,type,qty,rate);
   rows.push({area:tr.querySelector(".mArea").value.trim(),type,height:h,width:w,qty,rate,unit:c.unit,areaValue:c.area,amount:c.amount,sqft:c.sqft,rft:c.rft});
  });
@@ -590,8 +582,7 @@ function renderMeasurements(){
  $("measurementList").innerHTML=list.slice().reverse().map(m=>{
   const sqft=m.rows.reduce((a,r)=>a+Number(r.sqft||0),0);
   const rft=m.rows.reduce((a,r)=>a+Number(r.rft||0),0);
-  const total=m.rows.reduce((a,r)=>a+Number(r.amount||0),0);
-  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(m.date||"")}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b> · Total: <b>₹${money(total)}</b></p><button class="btn-blue" onclick="viewMeasurement(${m.id})">View</button><button class="btn-green" onclick="editMeasurement(${m.id})">Edit</button><button class="btn-red" onclick="deleteMeasurement(${m.id})">Delete</button></div>`;
+  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(m.date||"")}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></p><button class="btn-blue" onclick="viewMeasurement(${m.id})">View</button><button class="btn-green" onclick="editMeasurement(${m.id})">Edit</button><button class="btn-red" onclick="deleteMeasurement(${m.id})">Delete</button></div>`;
  }).join("")||'<div class="card empty">No saved measurements found.</div>';
 }
 function renderCustomers(){
