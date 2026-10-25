@@ -67,6 +67,18 @@ td input,td select{min-width:80px;padding:8px}
  .bo-print-table th:first-child,.bo-print-table td:first-child{width:6%;min-width:0;padding-left:2px;padding-right:2px}
 @media(max-width:480px){#blindOrderTable th{font-size:10px}#blindOrderTable .bo-input{font-size:11px!important;padding:7px 2px!important}}
 
+/* On small screens, stack entry fields vertically; PDF print tables remain unchanged. */
+@media(max-width:700px){
+ #measurement .table-wrap,#blindOrder .table-wrap{overflow:visible}
+ #measurement .table-wrap table,#blindOrderTable{width:100%;min-width:0;table-layout:auto;border-collapse:separate;border-spacing:0}
+ #measurement .table-wrap thead,#blindOrderTable thead{display:none}
+ #measurement #measurementBody tr,#blindOrderBody tr{display:block;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;margin:0 0 12px}
+ #measurement #measurementBody td,#blindOrderBody td{display:grid;grid-template-columns:minmax(90px,35%) minmax(0,1fr);align-items:center;gap:8px;text-align:left;border:0;padding:6px 2px;width:100%!important}
+ #measurement #measurementBody td::before,#blindOrderBody td::before{content:attr(data-label);font-weight:bold;color:var(--primary);font-size:13px}
+ #measurement #measurementBody td input,#measurement #measurementBody td select,#blindOrderBody td input,#blindOrderBody td select{width:100%;min-width:0!important;font-size:16px!important;padding:10px!important}
+ #measurement #measurementBody td:last-child,#blindOrderBody td:last-child{display:flex;justify-content:flex-end}
+ #measurement #measurementBody td:last-child::before,#blindOrderBody td:last-child::before{content:""}
+}
 @media print{body{background:white}.no-print,header,.nav{display:none!important}.app{padding:0;max-width:none}body *{visibility:hidden}#previewContent,#previewContent *{visibility:visible}#previewContent{position:absolute;left:0;top:0;width:100%}.preview{box-shadow:none;padding:0}}
  @media (max-width:700px) {
   body { font-size: 18px; }
@@ -305,6 +317,13 @@ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const money=n=>Number(n||0).toFixed(2);
 const newId=()=>Date.now()+Math.floor(Math.random()*1000);
 function today(){return new Date().toLocaleDateString("en-CA");}
+function formatDateDMY(value){
+ if(!value)return "";
+ const parts=String(value).slice(0,10).split("-");
+ if(parts.length===3 && parts[0].length===4)return `${parts[2]}/${parts[1]}/${parts[0]}`;
+ const d=new Date(value);
+ return Number.isNaN(d.getTime())?String(value):`${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+}
 
 function initSupabase(){
  if(!window.supabase||SUPABASE_PUBLIC_KEY.includes("PASTE_"))return false;
@@ -499,15 +518,15 @@ function newMeasurement(){
 function isRFT(type){return rftTypes.includes(type);}
 function addMeasurementRow(data){
  const tr=document.createElement("tr");
- tr.innerHTML=`<td class="rowNo"></td>
- <td><input class="mArea" placeholder="Hall / Bedroom"></td>
- <td><select class="mType">${types.map(t=>`<option>${esc(t)}</option>`).join("")}</select></td>
- <td><input class="mWidth" type="number" min="0" step=".01"></td>
- <td><input class="mHeight" type="number" min="0" step=".01"></td>
- <td class="mUnitCell">Sq.Ft</td>
- <td><input class="mQty" type="number" min="1" value="1"></td>
- <td class="mAreaCell">0.00</td>
- <td><button class="btn-red" type="button">×</button></td>`;
+ tr.innerHTML=`<td class="rowNo" data-label="No."></td>
+ <td data-label="Room / Area"><input class="mArea" placeholder="Hall / Bedroom"></td>
+ <td data-label="Type"><select class="mType">${types.map(t=>`<option>${esc(t)}</option>`).join("")}</select></td>
+ <td data-label="Width"><input class="mWidth" type="number" min="0" step=".01"></td>
+ <td data-label="Height"><input class="mHeight" type="number" min="0" step=".01"></td>
+ <td class="mUnitCell" data-label="Unit">Sq.Ft</td>
+ <td data-label="Qty"><input class="mQty" type="number" min="1" value="1"></td>
+ <td class="mAreaCell" data-label="Sq.Ft">0.00</td>
+ <td data-label="Delete"><button class="btn-red" type="button">×</button></td>`;
  $("measurementBody").appendChild(tr);
  tr.querySelector(".mType").onchange=recalculateMeasurements;
  tr.querySelectorAll("input").forEach(i=>i.oninput=recalculateMeasurements);
@@ -583,7 +602,7 @@ function renderMeasurements(){
  $("measurementList").innerHTML=list.slice().reverse().map(m=>{
   const sqft=m.rows.reduce((a,r)=>a+Number(r.sqft||0),0);
   const rft=m.rows.reduce((a,r)=>a+Number(r.rft||0),0);
-  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(m.date||"")}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></p><button class="btn-blue" onclick="viewMeasurement(${m.id})">View</button><button class="btn-green" onclick="editMeasurement(${m.id})">Edit</button><button class="btn-red" onclick="deleteMeasurement(${m.id})">Delete</button></div>`;
+  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(formatDateDMY(m.date))}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></p><button class="btn-blue" onclick="viewMeasurement(${m.id})">View</button><button class="btn-green" onclick="editMeasurement(${m.id})">Edit</button><button class="btn-red" onclick="deleteMeasurement(${m.id})">Delete</button></div>`;
  }).join("")||'<div class="card empty">No saved measurements found.</div>';
 }
 function renderCustomers(){
@@ -652,7 +671,7 @@ function renderSavedQuotes(){
  <div class="quote-card">
  <h3>${esc(q.number)}</h3>
  <b>${esc(q.customer)}</b>
- <p class="small">${esc(q.date||"")}</p>
+ <p class="small">${esc(formatDateDMY(q.date))}</p>
  <p>Grand Total: <b>₹${money(q.grand)}</b></p>
  <button class="btn-blue" onclick="editQuotation(${q.id})">Edit</button>
  <button class="btn-green" onclick="openQuote(${q.id})">View / Print</button>
@@ -781,7 +800,7 @@ function deleteQuote(id){if(!confirm("Delete this quotation?"))return;quotations
 function quoteHTML(q){
  const items=q.items.map((it,i)=>`<tr><td>${i+1}</td><td>${esc(it.name)}</td><td>${money(it.qty)}</td><td>${esc(it.unit)}</td><td>₹${money(it.rate)}</td><td>₹${money(it.qty*it.rate)}</td></tr>`).join("");
  return `<div class="preview"><div class="quote-header">${settings.logo?`<img class="logo" src="${settings.logo}">`:""}<h1>${esc(settings.name||"Curtain Shop")}</h1><div>${esc(settings.address||"")}</div><div>${esc(settings.phone||"")} ${settings.whatsapp?" · WhatsApp: "+esc(settings.whatsapp):""}</div><div>${esc(settings.email||"")}</div>${settings.gst?"GST: "+esc(settings.gst):""}</div>
- <div class="quote-info"><div><b>Customer</b><br>${esc(q.customer)}<br>${esc(q.phone||"")}<br>${esc(q.address||"")}</div><div><b>Quotation:</b> ${esc(q.number)}<br><b>Date:</b> ${esc(q.date||"")}</div></div>
+ <div class="quote-info"><div><b>Customer</b><br>${esc(q.customer)}<br>${esc(q.phone||"")}<br>${esc(q.address||"")}</div><div><b>Quotation:</b> ${esc(q.number)}<br><b>Date:</b> ${esc(formatDateDMY(q.date))}</div></div>
  <table class="quote-table"><thead><tr><th>No.</th><th>Item</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${items}</tbody></table>
  <div class="quote-total"><div class="summary-row"><span>Subtotal</span><b>₹${money(q.subtotal)}</b></div><div class="summary-row"><span>Discount</span><b>₹${money(q.discount)}</b></div><div class="summary-row"><span>GST (${money(q.gstRate)}%)</span><b>₹${money(q.gst)}</b></div><div class="summary-row grand"><span>Grand Total</span><b>₹${money(q.grand)}</b></div></div><p style="white-space:pre-wrap;margin-top:25px">${esc(q.terms||"")}</p><p style="text-align:center;margin-top:35px">Thank you for your business.</p></div>`;
 }
@@ -855,7 +874,7 @@ $("boCustomerPhone").value="";
 }
 function addBlindOrderRow(data={}){
  const tr=document.createElement("tr");
- tr.innerHTML=`<td class="bo-cell bo-number-cell"></td><td class="bo-cell"><input class="bo-input bo-width" type="number" min="0" step="any" inputmode="decimal" aria-label="Width"></td><td class="bo-cell"><input class="bo-input bo-height" type="number" min="0" step="any" inputmode="decimal" aria-label="Height"></td><td class="bo-cell bo-unit-cell"></td><td class="bo-cell"><select class="bo-input bo-type" aria-label="Blind Type"><option>Zebra</option><option>Roman</option><option>Roller</option><option>Venetian</option><option>Wooden</option><option>Bamboo</option><option>Honeycomb</option><option>Other</option></select></td><td class="bo-cell"><input class="bo-input bo-shade" type="text" placeholder="Shade" aria-label="Shade number"></td><td class="bo-cell"><button type="button" class="btn-red" style="margin:0;padding:5px 7px">×</button></td>`;
+ tr.innerHTML=`<td class="bo-cell bo-number-cell" data-label="No."></td><td class="bo-cell" data-label="Width"><input class="bo-input bo-width" type="number" min="0" step="any" inputmode="decimal" aria-label="Width"></td><td class="bo-cell" data-label="Height"><input class="bo-input bo-height" type="number" min="0" step="any" inputmode="decimal" aria-label="Height"></td><td class="bo-cell bo-unit-cell" data-label="Unit"></td><td class="bo-cell" data-label="Blind Type"><select class="bo-input bo-type" aria-label="Blind Type"><option>Zebra</option><option>Roman</option><option>Roller</option><option>Venetian</option><option>Wooden</option><option>Bamboo</option><option>Honeycomb</option><option>Other</option></select></td><td class="bo-cell" data-label="Shade No."><input class="bo-input bo-shade" type="text" placeholder="Shade" aria-label="Shade number"></td><td class="bo-cell" data-label="Delete"><button type="button" class="btn-red" style="margin:0;padding:5px 7px">×</button></td>`;
  $("blindOrderBody").appendChild(tr);
  tr.querySelector(".bo-width").value=data.width??"";tr.querySelector(".bo-height").value=data.height??"";tr.querySelector(".bo-type").value=data.type||"Zebra";tr.querySelector(".bo-shade").value=data.shade||"";
  tr.querySelector("button").onclick=()=>{tr.remove();renumberBlindOrderRows();};
@@ -909,7 +928,7 @@ function renderBlindOrders(){
 
  $("blindOrderList").innerHTML=list.slice().reverse().map(d=>`
   <div class="customer-card">
-   <h3>Blinds Order · ${esc(d.date||"")}</h3>
+   <h3>Blinds Order · ${esc(formatDateDMY(d.date))}</h3>
    <div class="small">
     ${esc(d.shopName||settings.name||"Curtain Shop")} ·
     ${esc(d.rows?.length||0)} measurement row(s)
@@ -928,7 +947,7 @@ function renderBlindOrders(){
 function blindOrderHTML(d){
  const logo=d.logo?`<img src="${d.logo}" alt="Shop logo">`:"";
  const rows=(d.rows||[]).map((r,i)=>`<tr>${d.showNumbers?`<td>${i+1}</td>`:""}<td>${esc(r.width)} ${esc(r.unit)}</td><td>${esc(r.height)} ${esc(r.unit)}</td><td>${esc(r.type)}</td><td>${esc(r.shade)}</td></tr>`).join("");
- return `<div class="preview"><div class="bo-preview-header">${logo}<h2 style="margin:8px 0">${esc(d.shopName||"Curtain Shop")}</h2><div>${esc(d.address||"")}</div><div>${esc(d.phone||"")}</div></div><h3 style="text-align:center">BLINDS ORDER</h3><div style="text-align:right;margin-bottom:12px"><b>Order Date:</b> ${esc(d.date||"")}</div><table class="bo-print-table"><thead><tr>${d.showNumbers?"<th>No.</th>":""}<th>Width</th><th>Height</th><th>Blind Type</th><th>Shade No.</th></tr></thead><tbody>${rows||`<tr><td colspan="${d.showNumbers?5:4}">No measurements entered</td></tr>`}</tbody></table><div style="margin-top:18px;white-space:pre-wrap"><b>Description / Special Instructions</b><br>${esc(d.description||"")}</div></div>`;
+ return `<div class="preview"><div class="bo-preview-header">${logo}<h2 style="margin:8px 0">${esc(d.shopName||"Curtain Shop")}</h2><div>${esc(d.address||"")}</div><div>${esc(d.phone||"")}</div></div><h3 style="text-align:center">BLINDS ORDER</h3><div style="text-align:right;margin-bottom:12px"><b>Order Date:</b> ${esc(formatDateDMY(d.date))}</div><table class="bo-print-table"><thead><tr>${d.showNumbers?"<th>No.</th>":""}<th>Width</th><th>Height</th><th>Blind Type</th><th>Shade No.</th></tr></thead><tbody>${rows||`<tr><td colspan="${d.showNumbers?5:4}">No measurements entered</td></tr>`}</tbody></table><div style="margin-top:18px;white-space:pre-wrap"><b>Description / Special Instructions</b><br>${esc(d.description||"")}</div></div>`;
 }
 function previewBlindOrder(){const d=getBlindOrderData();if(!d.rows.length)return alert("Enter at least one measurement row.");const el=$("blindOrderPreview");el.innerHTML=blindOrderHTML(d);el.classList.remove("hidden");el.scrollIntoView({behavior:"smooth",block:"start"});}
 function previewSavedBlindOrder(id){const d=blindOrders.find(x=>String(x.id)===String(id));if(!d)return;const el=$("blindOrderPreview");el.innerHTML=blindOrderHTML(d);el.classList.remove("hidden");el.scrollIntoView({behavior:"smooth",block:"start"});}
