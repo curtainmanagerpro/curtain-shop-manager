@@ -8,24 +8,24 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-:root{--primary:#24445c;--primary-dark:#245b89;--label-bg:#e4f2ff;--accent:#0e9b91;--bg:#f1f5f8;--line:#dce5eb;--text:#203040}
+:root{--primary:#24445c;--accent:#0e9b91;--blue:#3277d5;--label-blue:#4b91d0;--bg:#f1f5f8;--line:#dce5eb;--text:#203040}
 *{box-sizing:border-box}
 body{margin:0;font:15px Arial,sans-serif;background:var(--bg);color:var(--text)}
 .app{max-width:1100px;margin:auto;padding:12px}
-header{background:var(--primary-dark);color:white;padding:20px;border-radius:16px;margin-bottom:12px}
+header{background:var(--primary);color:white;padding:20px;border-radius:16px;margin-bottom:12px}
 header h1{margin:0;font-size:24px}header p{margin:6px 0 0;opacity:.85}
 .nav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:4px 0 12px}
 .nav button{width:100%;margin:0;background:#e2eaf0;color:var(--primary);padding:12px 5px;font-weight:bold}
-.nav button.active{background:var(--primary-dark);color:white}
+.nav button.active{background:var(--primary);color:white}
 button{border:0;border-radius:9px;padding:11px 14px;margin:4px;font-size:14px;font-weight:bold;cursor:pointer}
-.btn-dark{background:var(--primary-dark);color:white}.btn-blue{background:#3277d5;color:white}
+.btn-dark{background:var(--primary);color:white}.btn-blue{background:var(--blue);color:white}
 .btn-green{background:var(--accent);color:white}.btn-red{background:#c94343;color:white}
 .btn-light{background:#e6edf2;color:var(--text)}
 .page{display:none}.page.active{display:block}
 .card,.customer-card,.quote-card{background:white;border-radius:15px;padding:17px;margin-bottom:13px;box-shadow:0 3px 12px #172b3b0b}
 h2{margin-top:0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.field label{display:block;font-weight:bold;margin-bottom:5px;font-size:14px}
-input,select,textarea{width:100%;padding:12px;border:1px solid #ccd7df;border-radius:9px;font-size:16px;background:white;color:var(--text)}
+.field label{display:block;font-weight:bold;margin-bottom:5px;font-size:13px}
+input,select,textarea{width:100%;padding:11px;border:1px solid #ccd7df;border-radius:9px;font-size:15px;background:white;color:var(--text)}
 textarea{min-height:70px}.home-buttons{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .home-buttons button{min-height:72px;font-size:16px}
 .table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:760px}
@@ -79,6 +79,29 @@ td input,td select{min-width:80px;padding:8px}
  #measurement #measurementBody td:last-child,#blindOrderBody td:last-child{display:flex;justify-content:flex-end}
  #measurement #measurementBody td:last-child::before,#blindOrderBody td:last-child::before{content:""}
 }
+
+/* Mobile-friendly row controls and readable measurement labels; PDF styles are untouched. */
+.row-add-mobile{display:none}
+.row-action-buttons{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%}
+.row-action-buttons button{margin:2px;padding:10px 12px}
+.item-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
+.item-actions button{margin:2px}
+@media(max-width:700px){
+ .row-add-top{display:none}
+ .row-add-mobile{display:inline-block}
+ #measurement #measurementBody td::before,#blindOrderBody td::before{
+   display:flex;align-items:center;justify-content:center;min-height:44px;height:100%;
+   padding:8px 4px;border-radius:8px;background:var(--label-blue);color:#fff;
+   font-size:14px;font-weight:700;text-align:center;line-height:1.2;overflow-wrap:anywhere;
+ }
+ #measurement #measurementBody td,#blindOrderBody td{grid-template-columns:minmax(76px,28%) minmax(0,1fr);gap:8px}
+ #measurement #measurementBody td input,#measurement #measurementBody td select,
+ #blindOrderBody td input,#blindOrderBody td select{min-height:44px;height:44px;font-size:17px!important;padding:8px 10px!important}
+ #measurement #measurementBody td:last-child,#blindOrderBody td:last-child{display:flex;justify-content:stretch;padding-top:10px}
+ #measurement #measurementBody td:last-child::before,#blindOrderBody td:last-child::before{display:none}
+ #quotationItems .item-card input,#quotationItems .item-card select{font-size:17px;min-height:46px}
+}
+
 @media print{body{background:white}.no-print,header,.nav{display:none!important}.app{padding:0;max-width:none}body *{visibility:hidden}#previewContent,#previewContent *{visibility:visible}#previewContent{position:absolute;left:0;top:0;width:100%}.preview{box-shadow:none;padding:0}}
  @media (max-width:700px) {
   body { font-size: 18px; }
@@ -86,24 +109,6 @@ td input,td select{min-width:80px;padding:8px}
   .page h2 { font-size: 26px; }
   .page p, .page label { font-size: 17px; }
 }
-
-/* Professional entry controls: screen-only styles; PDF markup and print tables are unchanged. */
-.row-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%}
-.row-actions button{margin:0;min-height:42px;padding:9px 12px;font-size:14px;white-space:nowrap}
-.row-add-inline{margin-left:auto!important}
-@media(max-width:700px){
- .row-add-top{display:none}
- #measurement #measurementBody td,#blindOrderBody td{grid-template-columns:minmax(82px,29%) minmax(0,1fr);gap:9px;padding:7px 2px}
- #measurement #measurementBody td::before,#blindOrderBody td::before{background:var(--label-bg);color:var(--primary-dark);border-radius:7px;padding:10px 5px;text-align:center;font-size:14px;line-height:1.25;min-height:40px;display:flex;align-items:center;justify-content:center;overflow-wrap:anywhere}
- #measurement #measurementBody td input,#measurement #measurementBody td select,#blindOrderBody td input,#blindOrderBody td select{font-size:17px!important;min-height:44px;padding:10px!important}
- #measurement #measurementBody td:last-child,#blindOrderBody td:last-child{display:flex;justify-content:stretch}
- #measurement #measurementBody td:last-child::before,#blindOrderBody td:last-child::before{display:none}
- .row-actions button{font-size:14px;padding:9px 10px;min-height:44px}
- .item-card{padding:14px}
- .item-card input,.item-card select{font-size:17px!important;min-height:46px}
- .item-card label{font-size:15px!important}
-}
-
 </style>
  <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#24445c">
@@ -544,12 +549,12 @@ function addMeasurementRow(data){
  <td class="mUnitCell" data-label="Unit">Sq.Ft</td>
  <td data-label="Qty"><input class="mQty" type="number" min="1" value="1"></td>
  <td class="mAreaCell" data-label="Sq.Ft">0.00</td>
- <td data-label="Actions"><div class="row-actions"><button class="btn-red row-delete" type="button" aria-label="Delete row">Delete</button><button class="btn-blue row-add-inline" type="button">＋ Add Row</button></div></td>`;
+ <td data-label="Actions"><div class="row-action-buttons"><button class="btn-red m-delete" type="button">Delete</button><button class="btn-blue row-add-mobile m-add" type="button">＋ Add Row</button></div></td>`;
  $("measurementBody").appendChild(tr);
  tr.querySelector(".mType").onchange=recalculateMeasurements;
  tr.querySelectorAll("input").forEach(i=>i.oninput=recalculateMeasurements);
- tr.querySelector(".row-delete").onclick=()=>{tr.remove();recalculateMeasurements();};
- tr.querySelector(".row-add-inline").onclick=()=>addMeasurementRow();
+ tr.querySelector(".m-delete").onclick=()=>{tr.remove();renumberRows();recalculateMeasurements();};
+ tr.querySelector(".m-add").onclick=()=>{addMeasurementRow();const rows=document.querySelectorAll("#measurementBody tr");rows[rows.length-1]?.scrollIntoView({behavior:"smooth",block:"center"});};
  if(data){
   tr.querySelector(".mArea").value=data.area||"";
   tr.querySelector(".mType").value=data.type||types[0];
@@ -644,7 +649,7 @@ function addQuotationItem(item){
 }
 function renderQuotationItems(){
  $("quotationItems").innerHTML="";
- if(!quotationItems.length)$("quotationItems").innerHTML='<div class="empty">No items added. Click Add Item.</div>';
+ if(!quotationItems.length)$("quotationItems").innerHTML='<div class="empty">No items added yet.<br><button type="button" class="btn-blue" onclick="addQuotationItem()">＋ Add Item</button></div>';
  quotationItems.forEach((it,i)=>{
   const d=document.createElement("div");d.className="item-card";
   d.innerHTML=`<div class="grid">
@@ -652,10 +657,10 @@ function renderQuotationItems(){
   <div class="field"><label>Quantity</label><input type="number" min="0" step=".01" value="${it.qty}" data-k="qty"></div>
   <div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div>
   <div class="field"><label>Rate</label><input type="number" min="0" step=".01" value="${it.rate}" data-k="rate"></div></div>
-  <p>Amount: <b>₹${money(it.qty*it.rate)}</b></p><div class="row-actions"><button class="btn-red row-delete" type="button">Delete Item</button><button class="btn-blue row-add-inline" type="button">＋ Add Item</button></div>`;
+  <p>Amount: <b>₹${money(it.qty*it.rate)}</b></p><div class="item-actions"><button type="button" class="btn-red item-delete">Delete Item</button><button type="button" class="btn-blue row-add-mobile item-add">＋ Add Item</button></div>`;
   d.querySelectorAll("[data-k]").forEach(el=>el.oninput=()=>{const k=el.dataset.k;quotationItems[i][k]=(k==="qty"||k==="rate")?Number(el.value)||0:el.value;calculateQuotation();});
-  d.querySelector(".row-delete").onclick=()=>{quotationItems.splice(i,1);renderQuotationItems();};
-  d.querySelector(".row-add-inline").onclick=()=>addQuotationItem();
+  d.querySelector(".item-delete").onclick=()=>{quotationItems.splice(i,1);renderQuotationItems();};
+  d.querySelector(".item-add").onclick=()=>{addQuotationItem();const cards=document.querySelectorAll("#quotationItems .item-card");cards[cards.length-1]?.scrollIntoView({behavior:"smooth",block:"center"});};
   $("quotationItems").appendChild(d);
  });
  calculateQuotation();
@@ -894,11 +899,11 @@ $("boCustomerPhone").value="";
 }
 function addBlindOrderRow(data={}){
  const tr=document.createElement("tr");
- tr.innerHTML=`<td class="bo-cell bo-number-cell" data-label="No."></td><td class="bo-cell" data-label="Width"><input class="bo-input bo-width" type="number" min="0" step="any" inputmode="decimal" aria-label="Width"></td><td class="bo-cell" data-label="Height"><input class="bo-input bo-height" type="number" min="0" step="any" inputmode="decimal" aria-label="Height"></td><td class="bo-cell bo-unit-cell" data-label="Unit"></td><td class="bo-cell" data-label="Blind Type"><select class="bo-input bo-type" aria-label="Blind Type"><option>Zebra</option><option>Roman</option><option>Roller</option><option>Venetian</option><option>Wooden</option><option>Bamboo</option><option>Honeycomb</option><option>Other</option></select></td><td class="bo-cell" data-label="Shade No."><input class="bo-input bo-shade" type="text" placeholder="Shade" aria-label="Shade number"></td><td class="bo-cell" data-label="Actions"><div class="row-actions"><button type="button" class="btn-red row-delete" aria-label="Delete row">Delete</button><button type="button" class="btn-blue row-add-inline">＋ Add Row</button></div></td>`;
+ tr.innerHTML=`<td class="bo-cell bo-number-cell" data-label="No."></td><td class="bo-cell" data-label="Width"><input class="bo-input bo-width" type="number" min="0" step="any" inputmode="decimal" aria-label="Width"></td><td class="bo-cell" data-label="Height"><input class="bo-input bo-height" type="number" min="0" step="any" inputmode="decimal" aria-label="Height"></td><td class="bo-cell bo-unit-cell" data-label="Unit"></td><td class="bo-cell" data-label="Blind Type"><select class="bo-input bo-type" aria-label="Blind Type"><option>Zebra</option><option>Roman</option><option>Roller</option><option>Venetian</option><option>Wooden</option><option>Bamboo</option><option>Honeycomb</option><option>Other</option></select></td><td class="bo-cell" data-label="Shade No."><input class="bo-input bo-shade" type="text" placeholder="Shade" aria-label="Shade number"></td><td class="bo-cell" data-label="Actions"><div class="row-action-buttons"><button type="button" class="btn-red bo-delete">Delete</button><button type="button" class="btn-blue row-add-mobile bo-add">＋ Add Row</button></div></td>`;
  $("blindOrderBody").appendChild(tr);
  tr.querySelector(".bo-width").value=data.width??"";tr.querySelector(".bo-height").value=data.height??"";tr.querySelector(".bo-type").value=data.type||"Zebra";tr.querySelector(".bo-shade").value=data.shade||"";
- tr.querySelector(".row-delete").onclick=()=>{tr.remove();renumberBlindOrderRows();};
- tr.querySelector(".row-add-inline").onclick=()=>addBlindOrderRow();
+ tr.querySelector(".bo-delete").onclick=()=>{tr.remove();renumberBlindOrderRows();};
+ tr.querySelector(".bo-add").onclick=()=>{addBlindOrderRow();const rows=document.querySelectorAll("#blindOrderBody tr");rows[rows.length-1]?.scrollIntoView({behavior:"smooth",block:"center"});};
  renumberBlindOrderRows();updateBlindUnitLabels();
 }
 function renumberBlindOrderRows(){document.querySelectorAll("#blindOrderBody tr").forEach((tr,i)=>tr.querySelector(".bo-number-cell").textContent=i+1);}
