@@ -864,8 +864,21 @@ function updateBlindUnitLabels(){const unit=$("boUnit").value;document.querySele
 function getBlindOrderData(){
  const unit=$("boUnit").value;const rows=[];
  document.querySelectorAll("#blindOrderBody tr").forEach(tr=>{const width=tr.querySelector(".bo-width").value.trim(),height=tr.querySelector(".bo-height").value.trim(),type=tr.querySelector(".bo-type").value,shade=tr.querySelector(".bo-shade").value.trim();if(width!==""||height!==""||shade!=="")rows.push({width,height,unit,type,shade});});
- return {id:currentBlindOrderId||newId(),date:$("boDate").value||today(),shopName:settings.name||"Curtain Shop",phone:settings.phone||"",address:settings.address||"",unit,showNumbers:$("boShowNumbers").value==="yes",logo:settings.logo||"",description:$("boDescription").value.trim(),rows};
-}
+ return {
+ id:currentBlindOrderId||newId(),
+ date:$("boDate").value||today(),
+ shopName:settings.name||"Curtain Shop",
+ phone:settings.phone||"",
+ address:settings.address||"",
+ unit,
+ showNumbers:$("boShowNumbers").value==="yes",
+ logo:settings.logo||"",
+ customerName:$("boCustomerName").value.trim(),
+ customerPlace:$("boCustomerPlace").value.trim(),
+ customerPhone:$("boCustomerPhone").value.trim(),
+ description:$("boDescription").value.trim(),
+ rows
+};
 function saveBlindOrder(){
  const d=getBlindOrderData();
  if(!d.rows.length)return alert("Enter at least one measurement row before saving.");
