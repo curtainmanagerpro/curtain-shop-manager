@@ -225,15 +225,43 @@ td input,td select{min-width:80px;padding:8px}
   <div class="notice" id="boBusinessInfo"></div>
  </div>
  <div class="card no-print">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>Measurements</h2><button class="btn-blue row-add-top" onclick="addBlindOrderRow()">＋ Add Row</button></div>
-  <div class="table-wrap"><table class="quote-table" id="blindOrderTable"><thead><tr id="boHeadRow"><th class="bo-number-head">No.</th><th>Width</th><th>Height</th><th>Unit</th><th>Blind Type</th><th>Shade No.</th><th>Delete</th></tr></thead><tbody id="blindOrderBody"></tbody></table></div>
-  <div class="field" style="margin-top:14px"><label>Description / Special Instructions</label><textarea id="boDescription" placeholder="Write special instructions here..."></textarea></div>
-  <button class="btn-green" onclick="saveBlindOrder()">Save Order</button>
-  <button class="btn-blue" onclick="previewBlindOrder()">Preview PDF Sheet</button>
-  <button class="btn-blue" onclick="downloadBlindOrderPDF()">Download / Share PDF</button>
-  <button class="btn-light" onclick="newBlindOrder()">New / Clear Sheet</button>
- </div>
- <div id="blindOrderPreview" class="preview hidden"></div>
+ <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+  <h2>Measurements</h2>
+</div>
+
+<div class="table-wrap">
+  <table class="quote-table" id="blindOrderTable">
+    <thead>
+      <tr id="boHeadRow">
+        <th class="bo-number-head">No.</th>
+        <th>Width</th>
+        <th>Height</th>
+        <th>Unit</th>
+        <th>Blind Type</th>
+        <th>Shade No.</th>
+        <th>Delete</th>
+      </tr>
+    </thead>
+    <tbody id="blindOrderBody"></tbody>
+  </table>
+</div>
+
+<div style="display:flex;justify-content:flex-end;margin-top:10px">
+  <button class="btn-blue" type="button" onclick="addBlindOrderRow()">＋ Add Row</button>
+</div>
+
+<div class="field" style="margin-top:14px">
+  <label>Description / Special Instructions</label>
+  <textarea id="boDescription" placeholder="Write special instructions here..."></textarea>
+</div>
+
+<button class="btn-green" onclick="saveBlindOrder()">Save Order</button>
+<button class="btn-blue" onclick="previewBlindOrder()">Preview PDF Sheet</button>
+<button class="btn-blue" onclick="downloadBlindOrderPDF()">Download / Share PDF</button>
+<button class="btn-light" onclick="newBlindOrder()">New / Clear Sheet</button>
+</div>
+
+<div id="blindOrderPreview" class="preview hidden"></div>
 </section>
 
 <section id="savedBlindOrders" class="page">
@@ -910,7 +938,7 @@ $("boCustomerPlace").value="";
 $("boCustomerPhone").value="";
  $("blindOrderPreview").classList.add("hidden");$("blindOrderPreview").innerHTML="";
  $("blindOrderBody").innerHTML="";
- addBlindOrderRow();addBlindOrderRow();
+ addBlindOrderRow();
  updateBlindBusinessInfo();showPage("blindOrder");
 }
 function addBlindOrderRow(data={}){
