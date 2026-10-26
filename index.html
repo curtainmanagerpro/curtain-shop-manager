@@ -1001,13 +1001,22 @@ $("boCustomerPhone").value="";
 }
 function addBlindOrderRow(data={}){
  const tr=document.createElement("tr");
- tr.innerHTML=`<td class="bo-cell bo-number-cell" data-label="No."></td><td class="bo-cell" data-label="Width"><input class="bo-input bo-width" type="number" min="0" step="any" inputmode="decimal" aria-label="Width"></td><td class="bo-cell" data-label="Height"><input class="bo-input bo-height" type="number" min="0" step="any" inputmode="decimal" aria-label="Height"></td><td class="bo-cell bo-unit-cell" data-label="Unit"></td><td class="bo-cell" data-label="Blind Type"><select class="bo-input bo-type" aria-label="Blind Type"><option>Zebra</option><option>Roman</option><option>Roller</option><option>Venetian</option><option>Wooden</option><option>Bamboo</option><option>Honeycomb</option><option>Other</option></select></td><td class="bo-cell" data-label="Shade No."><input class="bo-input bo-shade" type="text" placeholder="Shade" aria-label="Shade number"></td><td class="bo-cell" data-label="Actions"><div class="row-actions"><button type="button" class="btn-red row-delete" aria-label="Delete row">Delete</button><button type="button" class="btn-blue row-add-inline">＋ Add Row</button></div></td>`;
- $("blindOrderBody").appendChild(tr);
- tr.querySelector(".bo-width").value=data.width??"";tr.querySelector(".bo-height").value=data.height??"";tr.querySelector(".bo-type").value=data.type||"Zebra";tr.querySelector(".bo-shade").value=data.shade||"";
- tr.querySelector(".row-delete").onclick=()=>{tr.remove();renumberBlindOrderRows();};
- 
- renumberBlindOrderRows();updateBlindUnitLabels();
-}
+tr.innerHTML=`<td class="bo-cell bo-number-cell" data-label="No."></td><td class="bo-cell" data-label="Width"><input class="bo-input bo-width" type="number" min="0" step="any" inputmode="decimal" aria-label="Width"></td><td class="bo-cell" data-label="Height"><input class="bo-input bo-height" type="number" min="0" step="any" inputmode="decimal" aria-label="Height"></td><td class="bo-cell bo-unit-cell" data-label="Unit"></td><td class="bo-cell" data-label="Blind Type"><select class="bo-input bo-type" aria-label="Blind Type"><option>Zebra</option><option>Roman</option><option>Roller</option><option>Venetian</option><option>Wooden</option><option>Bamboo</option><option>Honeycomb</option><option>Other</option></select></td><td class="bo-cell" data-label="Shade No."><input class="bo-input bo-shade" type="text" placeholder="Shade" aria-label="Shade number"></td><td class="bo-cell" data-label="Actions"><div class="row-actions"><button type="button" class="btn-red row-delete" aria-label="Delete row">Delete</button></div></td>`;
+
+$("blindOrderBody").appendChild(tr);
+
+tr.querySelector(".bo-width").value=data.width??"";
+tr.querySelector(".bo-height").value=data.height??"";
+tr.querySelector(".bo-type").value=data.type||"Zebra";
+tr.querySelector(".bo-shade").value=data.shade||"";
+
+tr.querySelector(".row-delete").onclick=()=>{
+  tr.remove();
+  renumberBlindOrderRows();
+};
+
+renumberBlindOrderRows();
+updateBlindUnitLabels();
 function renumberBlindOrderRows(){document.querySelectorAll("#blindOrderBody tr").forEach((tr,i)=>tr.querySelector(".bo-number-cell").textContent=i+1);}
 function updateBlindUnitLabels(){const unit=$("boUnit").value;document.querySelectorAll(".bo-unit-cell").forEach(td=>td.textContent=unit);const show=$("boShowNumbers").value==="yes";document.querySelectorAll(".bo-number-head,.bo-number-cell").forEach(el=>el.classList.toggle("hidden",!show));}
 function getBlindOrderData(){
