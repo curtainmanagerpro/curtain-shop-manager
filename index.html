@@ -79,6 +79,10 @@ td input,td select{min-width:80px;padding:8px}
  #measurement .table-wrap thead,#blindOrderTable thead{display:none}
  #measurement #measurementBody tr,#blindOrderBody tr{display:block;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;margin:0 0 12px}
  #measurement #measurementBody td,#blindOrderBody td{display:grid;grid-template-columns:minmax(90px,35%) minmax(0,1fr);align-items:center;gap:8px;text-align:left;border:0;padding:6px 2px;width:100%!important}
+ #blindOrderBody td.bo-number-cell,
+#blindOrderBody td.bo-unit-cell {
+  font-size:16px!important;
+}
  #measurement #measurementBody td::before,#blindOrderBody td::before{content:attr(data-label);font-weight:bold;color:var(--primary);font-size:13px}
  #measurement #measurementBody td input,#measurement #measurementBody td select,#blindOrderBody td input,#blindOrderBody td select{width:100%;min-width:0!important;font-size:16px!important;padding:10px!important}
  #measurement #measurementBody td:last-child,#blindOrderBody td:last-child{display:flex;justify-content:flex-end}
