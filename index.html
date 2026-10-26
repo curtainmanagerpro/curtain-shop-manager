@@ -1017,6 +1017,7 @@ tr.querySelector(".row-delete").onclick=()=>{
 
 renumberBlindOrderRows();
 updateBlindUnitLabels();
+ }
 function renumberBlindOrderRows(){document.querySelectorAll("#blindOrderBody tr").forEach((tr,i)=>tr.querySelector(".bo-number-cell").textContent=i+1);}
 function updateBlindUnitLabels(){const unit=$("boUnit").value;document.querySelectorAll(".bo-unit-cell").forEach(td=>td.textContent=unit);const show=$("boShowNumbers").value==="yes";document.querySelectorAll(".bo-number-head,.bo-number-cell").forEach(el=>el.classList.toggle("hidden",!show));}
 function getBlindOrderData(){
