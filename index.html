@@ -302,7 +302,15 @@ td input,td select{min-width:80px;padding:8px}
    <div class="field"><label>Date</label><input id="qDate" type="date"></div>
   </div>
  </div>
- <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Quotation Items</h2><button class="btn-blue row-add-top" onclick="addQuotationItem()">＋ Add Item</button></div><div id="quotationItems"></div></div>
+
+<div class="card">
+  <h2>Quotation Items</h2>
+  <div id="quotationItems"></div>
+  <div style="display:flex;justify-content:flex-end;margin-top:10px">
+    <button class="btn-blue" type="button" onclick="addQuotationItem()">＋ Add Item</button>
+  </div>
+</div>
+
  <div class="card"><h2>Calculation</h2>
   <div class="grid">
    <div class="field"><label>Discount Type</label><select id="discountType" onchange="calculateQuotation()"><option value="percent">Percentage %</option><option value="fixed">Fixed Amount ₹</option></select></div>
@@ -691,33 +699,74 @@ function renderCustomers(){
 }
 
 function nextQuoteNumber(){return "QT-"+String(quotations.length+1).padStart(4,"0");}
+
 function newQuotation(){
- currentQuotationId=null;quotationItems=[];$("qCustomer").value="";$("qPhone").value="";$("qAddress").value="";
- $("qNumber").value=nextQuoteNumber();$("qDate").value=today();$("discountType").value="percent";$("discountValue").value=0;$("gstValue").value=0;$("qTerms").value="Quotation validity: "+(settings.validity||"15 Days");
- renderQuotationItems();showPage("quotation");
+ currentQuotationId=null;
+ quotationItems=[{name:"",qty:1,unit:"Sq.Ft",rate:0}];
+ $("qCustomer").value="";
+ $("qPhone").value="";
+ $("qAddress").value="";
+ $("qNumber").value=nextQuoteNumber();
+ $("qDate").value=today();
+ $("discountType").value="percent";
+ $("discountValue").value=0;
+ $("gstValue").value=0;
+ $("qTerms").value="Quotation validity: "+(settings.validity||"15 Days");
+ renderQuotationItems();
+ showPage("quotation");
 }
+
 function addQuotationItem(item){
- quotationItems.push({name:item?.name||"",qty:Number(item?.qty||1),unit:item?.unit||"Sq.Ft",rate:Number(item?.rate||0)});
+ quotationItems.push({
+  name:item?.name||"",
+  qty:Number(item?.qty||1),
+  unit:item?.unit||"Sq.Ft",
+  rate:Number(item?.rate||0)
+ });
  renderQuotationItems();
 }
+
 function renderQuotationItems(){
  $("quotationItems").innerHTML="";
- if(!quotationItems.length)$("quotationItems").innerHTML='<div class="empty">No items added. Click Add Item.</div>';
+
  quotationItems.forEach((it,i)=>{
-  const d=document.createElement("div");d.className="item-card";
+  const d=document.createElement("div");
+  d.className="item-card";
+
   d.innerHTML=`<div class="grid">
   <div class="field"><label>Item / Type</label><input value="${esc(it.name)}" data-k="name"></div>
   <div class="field"><label>Quantity</label><input type="number" min="0" step=".01" value="${it.qty}" data-k="qty"></div>
   <div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div>
   <div class="field"><label>Rate</label><input type="number" min="0" step=".01" value="${it.rate}" data-k="rate"></div></div>
-  <p>Amount: <b>₹${money(it.qty*it.rate)}</b></p><div class="row-actions"><button class="btn-red row-delete" type="button">Delete Item</button><button class="btn-blue row-add-inline" type="button">＋ Add Item</button></div>`;
-  d.querySelectorAll("[data-k]").forEach(el=>el.oninput=()=>{const k=el.dataset.k;quotationItems[i][k]=(k==="qty"||k==="rate")?Number(el.value)||0:el.value;calculateQuotation();});
-  d.querySelector(".row-delete").onclick=()=>{quotationItems.splice(i,1);renderQuotationItems();};
-  d.querySelector(".row-add-inline").onclick=()=>addQuotationItem();
+  <p>Amount: <b>₹${money(it.qty*it.rate)}</b></p>
+  <div class="row-actions" style="display:flex;justify-content:flex-start">
+  <button class="btn-red row-delete" type="button">Delete Item</button>
+  </div>`;
+
+  d.querySelectorAll("[data-k]").forEach(el=>{
+   el.oninput=()=>{
+    const k=el.dataset.k;
+    quotationItems[i][k]=(k==="qty"||k==="rate")?Number(el.value)||0:el.value;
+    calculateQuotation();
+   };
+   el.onchange=()=>{
+    const k=el.dataset.k;
+    quotationItems[i][k]=el.value;
+    calculateQuotation();
+   };
+  });
+
+  d.querySelector(".row-delete").onclick=()=>{
+   quotationItems.splice(i,1);
+   renderQuotationItems();
+  };
+
   $("quotationItems").appendChild(d);
  });
+
  calculateQuotation();
 }
+
 function calculateQuotation(){
  const subtotal=quotationItems.reduce((s,i)=>s+(Number(i.qty)||0)*(Number(i.rate)||0),0);
  let discount=$("discountType").value==="percent"?subtotal*(Number($("discountValue").value)||0)/100:(Number($("discountValue").value)||0);
