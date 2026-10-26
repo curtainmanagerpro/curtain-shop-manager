@@ -173,7 +173,15 @@ td input,td select{min-width:80px;padding:8px}
   </div>
  </div>
  <div class="card">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>Measurements</h2><button class="btn-blue row-add-top" onclick="addMeasurementRow()">＋ Add Row</button></div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+  <h2>Measurements</h2>
+</div>
+
+<div class="row-add-bottom">
+  <button class="btn-blue" type="button" onclick="addMeasurementRow()">＋ Add Row</button>
+</div>
+
   <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Type</th><th>Width</th><th>Height</th><th>Unit</th><th>Qty</th><th>Sq.Ft</th><th></th></tr></thead><tbody id="measurementBody"></tbody></table></div>
   <div class="summary">
    <div class="summary-row"><span>Total Sq.Ft</span><strong id="measurementSqft">0.00</strong></div>
