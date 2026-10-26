@@ -65,8 +65,13 @@ td input,td select{min-width:80px;padding:8px}
 .bo-print-table th,.bo-print-table td{border:1px solid #b9c3cc;padding:7px 4px;overflow-wrap:anywhere}
 .bo-print-table th{background:#eef2f5;color:#203040}
  .bo-print-table th:first-child,.bo-print-table td:first-child{width:6%;min-width:0;padding-left:2px;padding-right:2px}
-@media(max-width:480px){#blindOrderTable th{font-size:10px}#blindOrderTable .bo-input{font-size:11px!important;padding:7px 2px!important}}
-
+@media(max-width:480px){
+  #blindOrderTable th{font-size:10px}
+  #blindOrderTable .bo-input{
+    font-size:16px!important;
+    padding:10px 6px!important;
+  }
+}
 /* On small screens, stack entry fields vertically; PDF print tables remain unchanged. */
 @media(max-width:700px){
  #measurement .table-wrap,#blindOrder .table-wrap{overflow:visible}
