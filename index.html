@@ -947,7 +947,7 @@ function addBlindOrderRow(data={}){
  $("blindOrderBody").appendChild(tr);
  tr.querySelector(".bo-width").value=data.width??"";tr.querySelector(".bo-height").value=data.height??"";tr.querySelector(".bo-type").value=data.type||"Zebra";tr.querySelector(".bo-shade").value=data.shade||"";
  tr.querySelector(".row-delete").onclick=()=>{tr.remove();renumberBlindOrderRows();};
- tr.querySelector(".row-add-inline").onclick=()=>addBlindOrderRow();
+ 
  renumberBlindOrderRows();updateBlindUnitLabels();
 }
 function renumberBlindOrderRows(){document.querySelectorAll("#blindOrderBody tr").forEach((tr,i)=>tr.querySelector(".bo-number-cell").textContent=i+1);}
