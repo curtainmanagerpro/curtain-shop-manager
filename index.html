@@ -178,11 +178,14 @@ td input,td select{min-width:80px;padding:8px}
   <h2>Measurements</h2>
 </div>
 
-<div class="row-add-bottom">
-  <button class="btn-blue" type="button" onclick="addMeasurementRow()">＋ Add Row</button>
-</div>
 
-  <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Type</th><th>Width</th><th>Height</th><th>Unit</th><th>Qty</th><th>Sq.Ft</th><th></th></tr></thead><tbody id="measurementBody"></tbody></table></div>
+ 
+  <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Type</th><th>Width</th><th>Height</th><th>Unit</th><th>Qty</th><th>Sq.Ft</th><th>Delete</th></tr></thead><tbody id="measurementBody"></tbody></table></div>
+
+  <div class="row-add-bottom" style="display:flex;justify-content:flex-end;margin-top:10px">
+    <button class="btn-blue" type="button" onclick="addMeasurementRow()">＋ Add Row</button>
+  </div>
+
   <div class="summary">
    <div class="summary-row"><span>Total Sq.Ft</span><strong id="measurementSqft">0.00</strong></div>
    <div class="summary-row"><span>Total RFT</span><strong id="measurementRft">0.00</strong></div>
@@ -193,6 +196,7 @@ td input,td select{min-width:80px;padding:8px}
   <button class="btn-light" onclick="showPage('savedMeasurements')">View Saved Measurements</button>
  </div>
 </section>
+
 
 
 <section id="blindOrder" class="page">
@@ -553,7 +557,9 @@ tr.innerHTML=`<td class="rowNo" data-label="No."></td>
  <td class="mUnitCell" data-label="Unit">Sq.Ft</td>
  <td data-label="Qty"><input class="mQty" type="number" min="1" value="1"></td>
  <td class="mAreaCell" data-label="Sq.Ft">0.00</td>
- <td data-label="Actions"><button class="btn-red" type="button">×</button></td>`;
+ 
+<td data-label="Delete"><button class="btn-red" type="button" style="padding:5px 9px;font-size:12px;margin:0">Delete</button></td>
+`;
 
  $("measurementBody").appendChild(tr);
  tr.querySelector(".mType").onchange=recalculateMeasurements;
