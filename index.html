@@ -558,8 +558,13 @@ tr.innerHTML=`<td class="rowNo" data-label="No."></td>
  $("measurementBody").appendChild(tr);
  tr.querySelector(".mType").onchange=recalculateMeasurements;
  tr.querySelectorAll("input").forEach(i=>i.oninput=recalculateMeasurements);
- tr.querySelector(".row-delete").onclick=()=>{tr.remove();recalculateMeasurements();};
- tr.querySelector(".row-add-inline").onclick=()=>addMeasurementRow();
+ const deleteButton = tr.querySelector("button");
+if (deleteButton) {
+  deleteButton.onclick = () => {
+    tr.remove();
+    recalculateMeasurements();
+  };
+}
  if(data){
   tr.querySelector(".mArea").value=data.area||"";
   tr.querySelector(".mType").value=data.type||types[0];
