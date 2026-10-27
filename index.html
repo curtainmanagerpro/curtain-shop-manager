@@ -639,7 +639,7 @@ function loadLogo(e){
 function updateSignaturePreview(){
  const img=$("signaturePreview"),status=$("signatureStatus");
  if(!img||!status)return;
- if(settings.signature){img.src=settings.signature;img.style.display="block";status.textContent="ഒപ്പ് സൂക്ഷിച്ചിട്ടുണ്ട്. ഇത് ഈ അക്കൗണ്ടിന്റെ കോട്ടേഷൻ, ഇൻവോയ്സ്, രസീത് എന്നിവയിൽ സ്വയം വരും.";}
+ if(settings.signature){img.src=settings.signature;img.style.display="block";status.textContent="ഒപ്പ് Save ആയിട്ടുണ്ട്.";}
  else{img.removeAttribute("src");img.style.display="none";status.textContent="ഇതുവരെ ഒപ്പ് ചേർത്തിട്ടില്ല.";}
 }
 function loadSignature(e){
