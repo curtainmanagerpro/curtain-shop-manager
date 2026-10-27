@@ -13,7 +13,7 @@
 body{margin:0;font:15px Arial,sans-serif;background:var(--bg);color:var(--text)}
 .app{max-width:1100px;margin:auto;padding:12px}
 header{background:var(--primary-dark);color:white;padding:20px;border-radius:16px;margin-bottom:12px}
-header h1{margin:0;font-size:24px}header p{margin:6px 0 0;opacity:.85}
+header h1{margin:0;font-size:27px;line-height:1.2}header p{display:none}
 .nav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:4px 0 12px}
 .nav button{width:100%;margin:0;background:#e2eaf0;color:var(--primary);padding:12px 5px;font-weight:bold}
 .nav button.active{background:var(--primary-dark);color:white}
@@ -27,7 +27,7 @@ h2{margin-top:0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))
 .field label{display:block;font-weight:bold;margin-bottom:5px;font-size:14px}
 input,select,textarea{width:100%;padding:12px;border:1px solid #ccd7df;border-radius:9px;font-size:16px;background:white;color:var(--text)}
 textarea{min-height:70px}.home-buttons{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.home-buttons button{min-height:72px;font-size:16px}
+.home-buttons button{min-height:64px;font-size:17px;border-radius:13px;box-shadow:0 3px 9px #172b3b12}.home-buttons{grid-template-columns:1fr}.home-section-title{margin:18px 0 10px;font-size:18px;color:var(--primary)}.home-primary{background:#245b89;color:white}.home-blue{background:#3277d5;color:white}.home-green{background:#21845f;color:white}.home-purple{background:#7650a8;color:white}.doc-actions{display:flex;flex-wrap:wrap;gap:5px}
 .table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:760px}
 th{background:var(--primary);color:white;padding:9px}td{padding:7px;text-align:center;border-bottom:1px solid var(--line)}
 td input,td select{min-width:80px;padding:8px}
@@ -46,7 +46,7 @@ td input,td select{min-width:80px;padding:8px}
 .login-card{width:min(440px,100%);background:white;border-radius:16px;padding:25px;box-shadow:0 4px 20px #1232}
 .login-card button{width:100%;margin:12px 0}
 .hidden{display:none!important}.notice{padding:12px;background:#eef7f8;border-radius:9px;font-size:13px;line-height:1.5}
-@media(max-width:700px){.app{padding:8px}.grid,.home-buttons{grid-template-columns:1fr}header h1{font-size:20px}.nav button{font-size:12px;padding:10px 3px}.quote-info{flex-direction:column}.preview{padding:12px}.quote-total{width:100%}}
+@media(max-width:700px){.app{padding:8px}.grid,.home-buttons{grid-template-columns:1fr}.nav{grid-template-columns:repeat(2,minmax(0,1fr))}header h1{font-size:20px}.nav button{font-size:12px;padding:10px 3px}.quote-info{flex-direction:column}.preview{padding:12px}.quote-total{width:100%}}
 
 .bo-input{width:100%;min-width:0!important;padding:7px 4px!important;font-size:12px!important;border-radius:6px!important}
 .bo-cell{padding:4px!important}
@@ -131,43 +131,33 @@ td input,td select{min-width:80px;padding:8px}
 
 <div id="mainApp" class="app hidden">
 <header>
- <h1>🪟 Curtain Shop Manager</h1>
- <p>Measurement • Quotation • Customers</p>
+ <h1>🪟 Curtain Shop Manager Pro</h1>
  <div class="small" style="color:white;margin-top:8px" id="accountInfo"></div>
 </header>
 
 <div class="nav no-print">
- <button id="navHome" class="active" onclick="showPage('home')">Home</button>
- <button id="navMeasurement" onclick="showPage('measurement')">Measurement</button>
+ <button id="navSavedMeasurements" onclick="showPage('savedMeasurements')">Saved Measurements</button>
+ <button id="navSavedQuotes" onclick="showPage('savedQuotes')">Saved Quotations</button>
  <button id="navCustomers" onclick="showPage('customers')">Customers</button>
- <button id="navQuotation" onclick="showPage('quotation')">Quotation</button>
- <button id="navSavedQuotes" onclick="showPage('savedQuotes')">Saved Quotes</button>
+ <button id="navSavedBlindOrders" onclick="showPage('savedBlindOrders')">Saved Blinds Orders</button>
+ <button id="navSavedInvoices" onclick="showPage('savedInvoices')">Saved Invoices</button>
+ <button id="navSavedReceipts" onclick="showPage('savedReceipts')">Saved Receipts</button>
  <button id="navSettings" onclick="showPage('settings')">Settings</button>
-  <button id="navBlindOrder" onclick="showPage('blindOrder')">Blinds Order</button>
  <button id="navAdmin" class="hidden" onclick="showPage('admin')">Admin Panel</button>
 </div>
 
 <section id="home" class="page active">
- <div class="card">
-  <h2>Welcome</h2>
-  <p>Manage measurements separately and create quotations only for selected items.</p>
-  <div class="home-buttons">
-   <button class="btn-dark" onclick="newMeasurement()">＋ New Measurement</button>
-   <button class="btn-blue" onclick="newQuotation()">＋ New Quotation</button>
-   <button class="btn-light" onclick="showPage('customers')">Customers</button>
-   <button class="btn-light" onclick="showPage('savedQuotes')">Saved Quotations</button>
-   <button class="btn-light" onclick="showPage('savedMeasurements')">Saved Measurements</button>
-    <button class="btn-light" onclick="newBlindOrder()">Blinds Order</button>
-    <button class="btn-dark" onclick="showPage('savedBlindOrders')">Saved Blinds Orders</button>
-    </div>
- </div>
- <div class="card">
-  <h3>Quick Summary</h3>
-  <div class="grid">
-   <div class="notice">Saved Measurements: <b id="homeMeasurementCount">0</b></div>
-   <div class="notice">Saved Quotations: <b id="homeQuoteCount">0</b></div>
-  </div>
- </div>
+ <div class="card"><h2 style="margin-bottom:6px">Homestyle Curtains</h2><div class="small" id="homeAccountInfo"></div>
+  <h3 class="home-section-title">New</h3><div class="home-buttons">
+   <button class="home-primary" onclick="newMeasurement()">＋ New Measurement</button><button class="home-blue" onclick="newQuotation()">＋ New Quotation</button>
+   <button class="home-blue" onclick="newBlindOrder()">＋ New Blinds Order</button><button class="home-green" onclick="newInvoice()">＋ New Invoice</button>
+   <button class="home-purple" onclick="newReceipt()">＋ New Payment Receipt</button>
+  </div><h3 class="home-section-title">Saved Records</h3><div class="home-buttons">
+   <button class="btn-light" onclick="showPage('savedMeasurements')">Saved Measurements</button><button class="btn-light" onclick="showPage('savedQuotes')">Saved Quotations</button>
+   <button class="btn-light" onclick="showPage('savedBlindOrders')">Saved Blinds Orders</button><button class="btn-light" onclick="showPage('savedInvoices')">Saved Invoices</button>
+   <button class="btn-light" onclick="showPage('savedReceipts')">Saved Payment Receipts</button><button class="btn-light" onclick="showPage('customers')">Customers</button><button class="btn-light" onclick="showPage('settings')">Settings</button>
+  </div><div id="homeAdminButton" class="hidden" style="margin-top:10px"><button class="btn-dark" style="width:100%" onclick="showPage('admin')">Admin Panel</button></div>
+ </div><div class="card"><h3>Quick Summary</h3><div class="grid"><div class="notice">Saved Measurements: <b id="homeMeasurementCount">0</b></div><div class="notice">Saved Quotations: <b id="homeQuoteCount">0</b></div><div class="notice">Saved Invoices: <b id="homeInvoiceCount">0</b></div><div class="notice">Saved Receipts: <b id="homeReceiptCount">0</b></div></div></div>
 </section>
 
 <section id="measurement" class="page">
@@ -336,6 +326,18 @@ td input,td select{min-width:80px;padding:8px}
  <div id="previewContent"></div>
 </section>
 
+<section id="invoice" class="page"><div class="card"><h2>New Invoice</h2><div class="grid">
+<div class="field"><label>Customer Name *</label><input id="iCustomer"></div><div class="field"><label>Phone / WhatsApp</label><input id="iPhone" type="tel"></div><div class="field"><label>Address</label><textarea id="iAddress"></textarea></div><div class="field"><label>Invoice Number</label><input id="iNumber"></div><div class="field"><label>Date</label><input id="iDate" type="date"></div></div></div>
+<div class="card"><h2>Invoice Items</h2><div id="invoiceItems"></div><div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn-blue" type="button" onclick="addInvoiceItem()">＋ Add Item</button></div></div>
+<div class="card"><h2>Calculation</h2><div class="grid"><div class="field"><label>Discount Type</label><select id="iDiscountType" onchange="calculateInvoice()"><option value="percent">Percentage %</option><option value="fixed">Fixed Amount ₹</option></select></div><div class="field"><label>Discount</label><input id="iDiscountValue" type="number" value="0" oninput="calculateInvoice()"></div><div class="field"><label>GST %</label><input id="iGstValue" type="number" value="0" oninput="calculateInvoice()"></div><div class="field"><label>Amount Received</label><input id="iPaid" type="number" min="0" value="0" oninput="calculateInvoice()"></div></div>
+<div class="summary"><div class="summary-row"><span>Subtotal</span><b>₹<span id="iSubtotal">0.00</span></b></div><div class="summary-row"><span>Discount</span><b>₹<span id="iDiscount">0.00</span></b></div><div class="summary-row"><span>GST</span><b>₹<span id="iGST">0.00</span></b></div><div class="summary-row grand"><span>Grand Total</span><b>₹<span id="iGrand">0.00</span></b></div><div class="summary-row"><span>Amount Received</span><b>₹<span id="iPaidShow">0.00</span></b></div><div class="summary-row"><span>Balance Due</span><b>₹<span id="iBalance">0.00</span></b></div></div>
+<div class="field" style="margin-top:12px"><label>Notes / Terms</label><textarea id="iNotes"></textarea></div><button class="btn-green" onclick="saveInvoice()">Save Invoice</button><button class="btn-blue" onclick="previewInvoice()">Preview</button><button class="btn-dark" onclick="shareInvoicePDF()">Download / Share PDF</button></div><div id="invoicePreview" class="preview hidden"></div></section>
+<section id="savedInvoices" class="page"><div class="card"><h2>Saved Invoices</h2><button class="btn-green" onclick="newInvoice()">＋ New Invoice</button><input id="invoiceSearch" placeholder="Search invoice or customer..." oninput="renderInvoices()"></div><div id="invoiceList"></div></section>
+<section id="receipt" class="page"><div class="card"><h2>New Payment Receipt</h2><div class="grid">
+<div class="field"><label>Customer Name *</label><input id="rCustomer"></div><div class="field"><label>Phone / WhatsApp</label><input id="rPhone" type="tel"></div><div class="field"><label>Address / Place</label><textarea id="rAddress"></textarea></div><div class="field"><label>Receipt Number</label><input id="rNumber"></div><div class="field"><label>Date</label><input id="rDate" type="date"></div><div class="field"><label>Invoice / Job Reference (optional)</label><input id="rReference"></div><div class="field"><label>Total Job Amount (₹) *</label><input id="rTotal" type="number" min="0" step="0.01" oninput="calculateReceipt()"></div><div class="field"><label>Amount Received Now (₹) *</label><input id="rReceived" type="number" min="0" step="0.01" oninput="calculateReceipt()"></div></div>
+<div class="summary"><div class="summary-row"><span>Total Job Amount</span><b>₹<span id="rTotalShow">0.00</span></b></div><div class="summary-row"><span>Amount Received</span><b>₹<span id="rReceivedShow">0.00</span></b></div><div class="summary-row grand"><span>Balance Due</span><b>₹<span id="rBalance">0.00</span></b></div></div><div class="field" style="margin-top:12px"><label>Payment Method / Note</label><input id="rNote" placeholder="Cash, UPI, bank transfer... (optional)"></div><button class="btn-green" onclick="saveReceipt()">Save Receipt</button><button class="btn-blue" onclick="previewReceipt()">Preview</button><button class="btn-dark" onclick="shareReceiptPDF()">Download / Share PDF</button></div><div id="receiptPreview" class="preview hidden"></div></section>
+<section id="savedReceipts" class="page"><div class="card"><h2>Saved Payment Receipts</h2><button class="btn-green" onclick="newReceipt()">＋ New Payment Receipt</button><input id="receiptSearch" placeholder="Search receipt or customer..." oninput="renderReceipts()"></div><div id="receiptList"></div></section>
+
 <section id="settings" class="page">
  <div class="card"><h2>Business Settings</h2>
   <div class="grid">
@@ -381,8 +383,9 @@ const SUPABASE_URL="https://bhlttsdmlzrqerhwdozm.supabase.co";
 const SUPABASE_PUBLIC_KEY="sb_publishable_B0SUM02iSibnEyDTpnVBdw_21pxeAtW";
 
 let sb=null,authUser=null,authRecord=null;
-let measurements=[],quotations=[],blindOrders=[],settings={};
+let measurements=[],quotations=[],blindOrders=[],invoices=[],receipts=[],settings={};
 let currentMeasurementId=null,currentQuotationId=null,currentBlindOrderId=null,quotationItems=[];
+let currentInvoiceId=null,currentReceiptId=null,invoiceItems=[];
 const DATA_KEY="curtain_manager_data_v4";
 const SETTINGS_KEY="curtain_manager_settings_v4";
 const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Blackout Curtain","Zebra Blind","Roman Blind","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Other"];
@@ -473,6 +476,8 @@ async function loadCloudData(){
     measurements=Array.isArray(data.data.measurements)?data.data.measurements:[];
     quotations=Array.isArray(data.data.quotations)?data.data.quotations:[];
     blindOrders=Array.isArray(data.data.blindOrders)?data.data.blindOrders:[];
+    invoices=Array.isArray(data.data.invoices)?data.data.invoices:[];
+    receipts=Array.isArray(data.data.receipts)?data.data.receipts:[];
     settings=data.data.settings||{};
   }
 }
@@ -485,6 +490,8 @@ async function saveCloudData(){
     measurements,
     quotations,
     blindOrders,
+    invoices,
+    receipts,
     settings
   };
 
@@ -529,16 +536,21 @@ async function saveCloudData(){
    measurements=Array.isArray(d.measurements)?d.measurements:[];
    quotations=Array.isArray(d.quotations)?d.quotations:[];
     blindOrders=Array.isArray(d.blindOrders)?d.blindOrders:[];
+    invoices=Array.isArray(d.invoices)?d.invoices:[];
+    receipts=Array.isArray(d.receipts)?d.receipts:[];
  }catch{
    measurements=[];
    quotations=[];
+   blindOrders=[];
+   invoices=[];
+   receipts=[];
  }
 }
 
 
 function saveStorage(){
   try{
-    localStorage.setItem(DATA_KEY,JSON.stringify({measurements,quotations,blindOrders}));
+    localStorage.setItem(DATA_KEY,JSON.stringify({measurements,quotations,blindOrders,invoices,receipts}));
     localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));
     updateHome();
     saveCloudData();
@@ -548,7 +560,7 @@ function saveStorage(){
 }
 
 function loadSettings(){
- try{settings=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");}catch{settings={};}
+ try{const localSettings=localStorage.getItem(SETTINGS_KEY);if(localSettings)settings=JSON.parse(localSettings)||settings;}catch{}
  $("sName").value=settings.name||"";
  $("sPhone").value=settings.phone||"";
  $("sWhatsapp").value=settings.whatsapp||"";
@@ -934,15 +946,126 @@ function quoteHTML(q){
 function openQuote(id){const q=quotations.find(x=>x.id===id);if(!q)return;$("previewContent").innerHTML=quoteHTML(q);showPage("quotePreview");}
 function previewQuotation(){const q=currentQuote();if(!q.customer)return alert("Please enter Customer Name.");if(!q.items.length)return alert("Please add an item.");$("previewContent").innerHTML=quoteHTML(q);showPage("quotePreview");}
 function downloadBackup(){
- const blob=new Blob([JSON.stringify({measurements,quotations,blindOrders,settings},null,2)],{type:"application/json"});
+ const blob=new Blob([JSON.stringify({measurements,quotations,blindOrders,invoices,receipts,settings},null,2)],{type:"application/json"});
  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="curtain-shop-backup.json";a.click();URL.revokeObjectURL(a.href);
 }
 async function restoreBackup(e){
  try{const d=JSON.parse(await e.target.files[0].text());if(!confirm("Replace the current local records with this backup?"))return;
  measurements=Array.isArray(d.measurements)?d.measurements:[];quotations=Array.isArray(d.quotations)?d.quotations:[];
-    blindOrders=Array.isArray(d.blindOrders)?d.blindOrders:[];settings=d.settings||{};
+    blindOrders=Array.isArray(d.blindOrders)?d.blindOrders:[];invoices=Array.isArray(d.invoices)?d.invoices:[];receipts=Array.isArray(d.receipts)?d.receipts:[];settings=d.settings||{};
  saveStorage();loadSettings();alert("Backup restored.");}catch{alert("Invalid backup file.");}
 }
+
+
+/* INVOICES AND PAYMENT RECEIPTS */
+function nextInvoiceNumber(){return "INV-"+String(invoices.length+1).padStart(4,"0");}
+function nextReceiptNumber(){return "REC-"+String(receipts.length+1).padStart(4,"0");}
+function newInvoice(){
+ currentInvoiceId=null;invoiceItems=[{name:"",qty:1,unit:"Item",rate:0}];
+ $("iCustomer").value="";$("iPhone").value="";$("iAddress").value="";
+ $("iNumber").value=nextInvoiceNumber();$("iDate").value=today();
+ $("iDiscountType").value="percent";$("iDiscountValue").value=0;$("iGstValue").value=0;$("iPaid").value=0;$("iNotes").value="";
+ renderInvoiceItems();$("invoicePreview").classList.add("hidden");$("invoicePreview").innerHTML="";showPage("invoice");
+}
+function addInvoiceItem(item){
+ invoiceItems.push({name:item?.name||"",qty:Number(item?.qty??1),unit:item?.unit||"Item",rate:Number(item?.rate||0)});
+ renderInvoiceItems();
+}
+function renderInvoiceItems(){
+ $("invoiceItems").innerHTML="";
+ invoiceItems.forEach((it,i)=>{
+  const d=document.createElement("div");d.className="item-card";
+  d.innerHTML=`<div class="grid"><div class="field"><label>Item / Description</label><input data-k="name" value="${esc(it.name)}"></div><div class="field"><label>Quantity</label><input data-k="qty" type="number" min="0" step=".01" value="${it.qty}"></div><div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div><div class="field"><label>Rate (₹)</label><input data-k="rate" type="number" min="0" step=".01" value="${it.rate}"></div></div><p>Amount: <b>₹${money(it.qty*it.rate)}</b></p><button class="btn-red" type="button">Delete Item</button>`;
+  d.querySelectorAll("[data-k]").forEach(el=>{const update=()=>{const k=el.dataset.k;invoiceItems[i][k]=(k==="qty"||k==="rate")?(Number(el.value)||0):el.value;calculateInvoice();};el.oninput=update;el.onchange=update;});
+  d.querySelector("button").onclick=()=>{invoiceItems.splice(i,1);renderInvoiceItems();};
+  $("invoiceItems").appendChild(d);
+ });calculateInvoice();
+}
+function calculateInvoice(){
+ if(!$("iSubtotal"))return {subtotal:0,discount:0,gst:0,grand:0,paid:0,balance:0};
+ const subtotal=invoiceItems.reduce((a,x)=>a+(Number(x.qty)||0)*(Number(x.rate)||0),0);
+ let discount=$("iDiscountType").value==="percent"?subtotal*(Number($("iDiscountValue").value)||0)/100:(Number($("iDiscountValue").value)||0);
+ discount=Math.min(subtotal,Math.max(0,discount));
+ const gst=(subtotal-discount)*Math.max(0,Number($("iGstValue").value)||0)/100;
+ const grand=subtotal-discount+gst,paid=Math.max(0,Number($("iPaid").value)||0),balance=Math.max(0,grand-paid);
+ $("iSubtotal").textContent=money(subtotal);$("iDiscount").textContent=money(discount);$("iGST").textContent=money(gst);$("iGrand").textContent=money(grand);$("iPaidShow").textContent=money(paid);$("iBalance").textContent=money(balance);
+ return {subtotal,discount,gst,grand,paid,balance};
+}
+function currentInvoice(){
+ const c=calculateInvoice();
+ return {id:currentInvoiceId||newId(),number:$("iNumber").value||nextInvoiceNumber(),date:$("iDate").value||today(),customer:$("iCustomer").value.trim(),phone:$("iPhone").value.trim(),address:$("iAddress").value.trim(),items:JSON.parse(JSON.stringify(invoiceItems)),discountType:$("iDiscountType").value,discountValue:Number($("iDiscountValue").value)||0,gstRate:Number($("iGstValue").value)||0,subtotal:c.subtotal,discount:c.discount,gst:c.gst,grand:c.grand,paid:c.paid,balance:c.balance,notes:$("iNotes").value.trim()};
+}
+function saveInvoice(){
+ const d=currentInvoice();if(!d.customer)return alert("Please enter Customer Name.");if(!d.items.length||!d.items.some(x=>x.name.trim()))return alert("Add at least one item with a description.");
+ const i=invoices.findIndex(x=>String(x.id)===String(d.id));if(i>=0)invoices[i]=d;else invoices.push(d);
+ currentInvoiceId=d.id;saveStorage();alert("Invoice saved.");showPage("savedInvoices");
+}
+function editInvoice(id){
+ const d=invoices.find(x=>String(x.id)===String(id));if(!d)return;currentInvoiceId=d.id;
+ $("iCustomer").value=d.customer||"";$("iPhone").value=d.phone||"";$("iAddress").value=d.address||"";$("iNumber").value=d.number||nextInvoiceNumber();$("iDate").value=d.date||today();
+ $("iDiscountType").value=d.discountType||"percent";$("iDiscountValue").value=d.discountValue||0;$("iGstValue").value=d.gstRate||0;$("iPaid").value=d.paid||0;$("iNotes").value=d.notes||"";
+ invoiceItems=JSON.parse(JSON.stringify(d.items||[]));if(!invoiceItems.length)invoiceItems=[{name:"",qty:1,unit:"Item",rate:0}];
+ renderInvoiceItems();showPage("invoice");
+}
+function invoiceHTML(d){
+ const rows=(d.items||[]).map((it,i)=>`<tr><td>${i+1}</td><td>${esc(it.name)}</td><td>${money(it.qty)}</td><td>${esc(it.unit)}</td><td>₹${money(it.rate)}</td><td>₹${money(it.qty*it.rate)}</td></tr>`).join("");
+ return `<div class="preview"><div class="quote-header">${settings.logo?`<img class="logo" src="${settings.logo}">`:""}<h1>${esc(settings.name||"Curtain Shop")}</h1><div>${esc(settings.address||"")}</div><div>${esc(settings.phone||"")}${settings.whatsapp?" · WhatsApp: "+esc(settings.whatsapp):""}</div><div>${esc(settings.email||"")}</div>${settings.gst?"GST: "+esc(settings.gst):""}</div><h2 style="text-align:center">INVOICE</h2><div class="quote-info"><div><b>Customer</b><br>${esc(d.customer)}<br>${esc(d.phone||"")}<br>${esc(d.address||"")}</div><div><b>Invoice No:</b> ${esc(d.number)}<br><b>Date:</b> ${esc(formatDateDMY(d.date))}</div></div><table class="quote-table"><thead><tr><th>No.</th><th>Item</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table><div class="quote-total"><div class="summary-row"><span>Subtotal</span><b>₹${money(d.subtotal)}</b></div><div class="summary-row"><span>Discount</span><b>₹${money(d.discount)}</b></div><div class="summary-row"><span>GST (${money(d.gstRate)}%)</span><b>₹${money(d.gst)}</b></div><div class="summary-row grand"><span>Grand Total</span><b>₹${money(d.grand)}</b></div><div class="summary-row"><span>Amount Received</span><b>₹${money(d.paid)}</b></div><div class="summary-row"><span>Balance Due</span><b>₹${money(d.balance)}</b></div></div><p style="white-space:pre-wrap;margin-top:22px">${esc(d.notes||"")}</p><p style="text-align:center;margin-top:30px">Thank you for your business.</p></div>`;
+}
+function previewInvoice(){const d=currentInvoice();if(!d.customer)return alert("Please enter Customer Name.");if(!d.items.some(x=>x.name.trim()))return alert("Add an item description.");const el=$("invoicePreview");el.innerHTML=invoiceHTML(d);el.classList.remove("hidden");el.scrollIntoView({behavior:"smooth",block:"start"});}
+function renderInvoices(){
+ const q=($("invoiceSearch")?.value||"").toLowerCase();
+ $("invoiceList").innerHTML=invoices.filter(d=>[d.number,d.customer,d.phone,d.date].join(" ").toLowerCase().includes(q)).slice().reverse().map(d=>`<div class="customer-card"><h3>${esc(d.number)}</h3><b>${esc(d.customer)}</b><p class="small">${esc(formatDateDMY(d.date))}</p><p>Grand Total: <b>₹${money(d.grand)}</b> · Balance: <b>₹${money(d.balance)}</b></p><div class="doc-actions"><button class="btn-blue" onclick="editInvoice('${String(d.id)}')">Edit / Open</button><button class="btn-green" onclick="previewSavedInvoice('${String(d.id)}')">Preview</button><button class="btn-dark" onclick="shareSavedInvoicePDF('${String(d.id)}')">Share PDF</button><button class="btn-red" onclick="deleteInvoice('${String(d.id)}')">Delete</button></div></div>`).join("")||'<div class="empty">No saved invoices.</div>';
+}
+function previewSavedInvoice(id){const d=invoices.find(x=>String(x.id)===String(id));if(!d)return;const el=$("invoicePreview");el.innerHTML=invoiceHTML(d);el.classList.remove("hidden");showPage("savedInvoices");el.scrollIntoView({behavior:"smooth",block:"start"});}
+function deleteInvoice(id){if(!confirm("Delete this invoice?"))return;invoices=invoices.filter(x=>String(x.id)!==String(id));saveStorage();renderInvoices();}
+function newReceipt(){
+ currentReceiptId=null;$("rCustomer").value="";$("rPhone").value="";$("rAddress").value="";$("rNumber").value=nextReceiptNumber();$("rDate").value=today();$("rReference").value="";$("rTotal").value="";$("rReceived").value="";$("rNote").value="";
+ calculateReceipt();$("receiptPreview").classList.add("hidden");$("receiptPreview").innerHTML="";showPage("receipt");
+}
+function calculateReceipt(){
+ const total=Math.max(0,Number($("rTotal").value)||0),received=Math.max(0,Number($("rReceived").value)||0),balance=Math.max(0,total-received);
+ $("rTotalShow").textContent=money(total);$("rReceivedShow").textContent=money(received);$("rBalance").textContent=money(balance);return {total,received,balance};
+}
+function currentReceipt(){const c=calculateReceipt();return {id:currentReceiptId||newId(),number:$("rNumber").value||nextReceiptNumber(),date:$("rDate").value||today(),customer:$("rCustomer").value.trim(),phone:$("rPhone").value.trim(),address:$("rAddress").value.trim(),reference:$("rReference").value.trim(),total:c.total,received:c.received,balance:c.balance,note:$("rNote").value.trim()};}
+function saveReceipt(){
+ const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");if(d.received<=0)return alert("Enter the amount received.");
+ if(d.received>d.total&&!confirm("The received amount is greater than the total job amount. Save anyway?"))return;
+ const i=receipts.findIndex(x=>String(x.id)===String(d.id));if(i>=0)receipts[i]=d;else receipts.push(d);
+ currentReceiptId=d.id;saveStorage();alert("Payment receipt saved.");showPage("savedReceipts");
+}
+function editReceipt(id){
+ const d=receipts.find(x=>String(x.id)===String(id));if(!d)return;currentReceiptId=d.id;
+ $("rCustomer").value=d.customer||"";$("rPhone").value=d.phone||"";$("rAddress").value=d.address||"";$("rNumber").value=d.number||nextReceiptNumber();$("rDate").value=d.date||today();$("rReference").value=d.reference||"";$("rTotal").value=d.total||0;$("rReceived").value=d.received||0;$("rNote").value=d.note||"";
+ calculateReceipt();showPage("receipt");
+}
+function receiptHTML(d){
+ return `<div class="preview"><div class="quote-header">${settings.logo?`<img class="logo" src="${settings.logo}">`:""}<h1>${esc(settings.name||"Curtain Shop")}</h1><div>${esc(settings.address||"")}</div><div>${esc(settings.phone||"")}${settings.whatsapp?" · WhatsApp: "+esc(settings.whatsapp):""}</div><div>${esc(settings.email||"")}</div>${settings.gst?"GST: "+esc(settings.gst):""}</div><h2 style="text-align:center">PAYMENT RECEIPT</h2><div class="quote-info"><div><b>Received from</b><br>${esc(d.customer)}<br>${esc(d.phone||"")}<br>${esc(d.address||"")}</div><div><b>Receipt No:</b> ${esc(d.number)}<br><b>Date:</b> ${esc(formatDateDMY(d.date))}</div></div><table class="quote-table"><tbody><tr><th>Job / Invoice Reference</th><td>${esc(d.reference||"-")}</td></tr><tr><th>Total Job Amount</th><td>₹${money(d.total)}</td></tr><tr><th>Amount Received</th><td>₹${money(d.received)}</td></tr><tr><th>Balance Due</th><td><b>₹${money(d.balance)}</b></td></tr><tr><th>Payment Method / Note</th><td>${esc(d.note||"-")}</td></tr></tbody></table><p style="margin-top:28px">Received with thanks.</p><p style="text-align:right;margin-top:45px">Authorized Signature</p></div>`;
+}
+function previewReceipt(){const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");const el=$("receiptPreview");el.innerHTML=receiptHTML(d);el.classList.remove("hidden");el.scrollIntoView({behavior:"smooth",block:"start"});}
+function renderReceipts(){
+ const q=($("receiptSearch")?.value||"").toLowerCase();
+ $("receiptList").innerHTML=receipts.filter(d=>[d.number,d.customer,d.phone,d.date,d.reference].join(" ").toLowerCase().includes(q)).slice().reverse().map(d=>`<div class="customer-card"><h3>${esc(d.number)}</h3><b>${esc(d.customer)}</b><p class="small">${esc(formatDateDMY(d.date))}</p><p>Received: <b>₹${money(d.received)}</b> · Balance: <b>₹${money(d.balance)}</b></p><div class="doc-actions"><button class="btn-blue" onclick="editReceipt('${String(d.id)}')">Edit / Open</button><button class="btn-green" onclick="previewSavedReceipt('${String(d.id)}')">Preview</button><button class="btn-dark" onclick="shareSavedReceiptPDF('${String(d.id)}')">Share PDF</button><button class="btn-red" onclick="deleteReceipt('${String(d.id)}')">Delete</button></div></div>`).join("")||'<div class="empty">No saved payment receipts.</div>';
+}
+function previewSavedReceipt(id){const d=receipts.find(x=>String(x.id)===String(id));if(!d)return;const el=$("receiptPreview");el.innerHTML=receiptHTML(d);el.classList.remove("hidden");showPage("savedReceipts");el.scrollIntoView({behavior:"smooth",block:"start"});}
+function deleteReceipt(id){if(!confirm("Delete this payment receipt?"))return;receipts=receipts.filter(x=>String(x.id)!==String(id));saveStorage();renderReceipts();}
+async function makeDocumentPDF(html,filename,title){
+ if(!window.jspdf||!window.html2canvas)return alert("PDF libraries did not load. Check your internet connection and try again.");
+ const host=$("pdfSheet");host.innerHTML=html;host.style.width="794px";
+ try{
+  const preview=host.querySelector(".preview");await waitForImages(preview);
+  const canvas=await html2canvas(preview,{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false});
+  const {jsPDF}=window.jspdf,pdf=new jsPDF("p","mm","a4"),pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight(),margin=8,w=pw-2*margin,h=canvas.height*w/canvas.width,img=canvas.toDataURL("image/jpeg",0.95);
+  let remaining=h,pos=margin;pdf.addImage(img,"JPEG",margin,pos,w,h);remaining-=ph-2*margin;
+  while(remaining>0){pos=margin-(h-remaining);pdf.addPage();pdf.addImage(img,"JPEG",margin,pos,w,h);remaining-=ph-2*margin;}
+  const blob=pdf.output("blob"),file=new File([blob],filename,{type:"application/pdf"});
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({title,text:"From "+(settings.name||"Curtain Shop"),files:[file]});return;}catch(e){if(e&&e.name==="AbortError")return;}}
+  const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);alert("PDF downloaded. Open WhatsApp and attach the downloaded PDF.");
+ }catch(e){alert("PDF Error: "+(e.message||e.name||"Unknown error"));}finally{host.innerHTML="";}
+}
+async function shareInvoicePDF(){const d=currentInvoice();if(!d.customer)return alert("Please enter Customer Name.");if(!d.items.some(x=>x.name.trim()))return alert("Add an item description.");await makeDocumentPDF(invoiceHTML(d),"Invoice-"+d.number+".pdf","Invoice "+d.number);}
+async function shareSavedInvoicePDF(id){const d=invoices.find(x=>String(x.id)===String(id));if(d)await makeDocumentPDF(invoiceHTML(d),"Invoice-"+d.number+".pdf","Invoice "+d.number);}
+async function shareReceiptPDF(){const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");await makeDocumentPDF(receiptHTML(d),"Receipt-"+d.number+".pdf","Receipt "+d.number);}
+async function shareSavedReceiptPDF(id){const d=receipts.find(x=>String(x.id)===String(id));if(d)await makeDocumentPDF(receiptHTML(d),"Receipt-"+d.number+".pdf","Receipt "+d.number);}
 
 /* ADMIN USER MANAGEMENT: requires suitable Supabase table permissions/RLS */
 async function adminOnly(){
@@ -1099,7 +1222,7 @@ async function downloadBlindOrderPDF(){await createBlindOrderPDF(getBlindOrderDa
 async function downloadSavedBlindOrderPDF(id){const d=blindOrders.find(x=>String(x.id)===String(id));if(d)await createBlindOrderPDF(d);}
 
 window.addEventListener("DOMContentLoaded",()=>{
- $("mDate").value=today();$("qDate").value=today();$("boDate").value=today();
+ $("mDate").value=today();$("qDate").value=today();$("boDate").value=today();$("iDate").value=today();$("rDate").value=today();$("iDate").value=today();$("rDate").value=today();
  addMeasurementRow();boot();
 });
 </script>
