@@ -113,6 +113,17 @@ td input,td select{min-width:80px;padding:8px}
  .item-card label{font-size:15px!important}
 }
 
+
+.home-welcome{background:linear-gradient(135deg,#24445c,#2e688e);color:#fff;padding:22px}
+.home-welcome h2{margin:0 0 8px;font-size:27px}
+.home-welcome .small{color:#e8f2f8;font-size:14px}
+.home-primary-buttons{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:16px}
+.home-primary-buttons button{min-height:82px;font-size:20px;border-radius:15px;margin:0}
+.home-secondary-buttons{display:grid;grid-template-columns:1fr;gap:8px}
+.home-secondary-buttons button{min-height:48px;margin:0;text-align:left}
+.btn-purple{background:#8055b7;color:#fff}
+@media(min-width:701px){.home-primary-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}.home-secondary-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.nav.no-print{display:none!important}
 </style>
  <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#24445c">
@@ -135,16 +146,7 @@ td input,td select{min-width:80px;padding:8px}
  <div class="small" style="color:white;margin-top:8px" id="accountInfo"></div>
 </header>
 
-<div class="nav no-print">
- <button id="navSavedMeasurements" onclick="showPage('savedMeasurements')">Saved Measurements</button>
- <button id="navSavedQuotes" onclick="showPage('savedQuotes')">Saved Quotations</button>
- <button id="navCustomers" onclick="showPage('customers')">Customers</button>
- <button id="navSavedBlindOrders" onclick="showPage('savedBlindOrders')">Saved Blinds Orders</button>
- <button id="navSavedInvoices" onclick="showPage('savedInvoices')">Saved Invoices</button>
- <button id="navSavedReceipts" onclick="showPage('savedReceipts')">Saved Receipts</button>
- <button id="navSettings" onclick="showPage('settings')">Settings</button>
- <button id="navAdmin" class="hidden" onclick="showPage('admin')">Admin Panel</button>
-</div>
+
 
 <section id="home" class="page active">
  <div class="card"><h2 style="margin-bottom:6px">Homestyle Curtains</h2><div class="small" id="homeAccountInfo"></div>
@@ -579,8 +581,12 @@ function loadLogo(e){
  const r=new FileReader();r.onload=ev=>{settings.logo=ev.target.result;$("logoPreview").src=settings.logo;saveStorage();};r.readAsDataURL(f);
 }
 function updateHome(){
- $("homeMeasurementCount").textContent=measurements.length;
- $("homeQuoteCount").textContent=quotations.length;
+ if($("homeMeasurementCount"))$("homeMeasurementCount").textContent=measurements.length;
+ if($("homeQuoteCount"))$("homeQuoteCount").textContent=quotations.length;
+ if($("homeInvoiceCount"))$("homeInvoiceCount").textContent=invoices.length;
+ if($("homeReceiptCount"))$("homeReceiptCount").textContent=receipts.length;
+ if($("homeBusinessName"))$("homeBusinessName").textContent=settings.name||"Homestyle Curtains";
+ if($("homeAccountEmail"))$("homeAccountEmail").textContent=authUser?.email||"";
 }
 function showPage(page){
  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
@@ -590,6 +596,8 @@ function showPage(page){
  if(page==="savedMeasurements")renderMeasurements();
  if(page==="customers")renderCustomers();
  if(page==="savedQuotes")renderSavedQuotes();
+ if(page==="savedInvoices")renderInvoices();
+ if(page==="savedReceipts")renderReceipts();
  if(page==="settings")loadSettings();
   if(page==="blindOrder"){updateBlindUnitLabels();updateBlindBusinessInfo();}
   if(page==="savedBlindOrders")renderBlindOrders();
@@ -998,7 +1006,7 @@ function currentInvoice(){
 function saveInvoice(){
  const d=currentInvoice();if(!d.customer)return alert("Please enter Customer Name.");if(!d.items.length||!d.items.some(x=>x.name.trim()))return alert("Add at least one item with a description.");
  const i=invoices.findIndex(x=>String(x.id)===String(d.id));if(i>=0)invoices[i]=d;else invoices.push(d);
- currentInvoiceId=d.id;saveStorage();alert("Invoice saved.");showPage("savedInvoices");
+ currentInvoiceId=d.id;saveStorage();renderInvoices();alert("Invoice saved.");showPage("savedInvoices");
 }
 function editInvoice(id){
  const d=invoices.find(x=>String(x.id)===String(id));if(!d)return;currentInvoiceId=d.id;
@@ -1031,7 +1039,7 @@ function saveReceipt(){
  const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");if(d.received<=0)return alert("Enter the amount received.");
  if(d.received>d.total&&!confirm("The received amount is greater than the total job amount. Save anyway?"))return;
  const i=receipts.findIndex(x=>String(x.id)===String(d.id));if(i>=0)receipts[i]=d;else receipts.push(d);
- currentReceiptId=d.id;saveStorage();alert("Payment receipt saved.");showPage("savedReceipts");
+ currentReceiptId=d.id;saveStorage();renderReceipts();alert("Payment receipt saved.");showPage("savedReceipts");
 }
 function editReceipt(id){
  const d=receipts.find(x=>String(x.id)===String(id));if(!d)return;currentReceiptId=d.id;
