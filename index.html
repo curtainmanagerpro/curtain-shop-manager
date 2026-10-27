@@ -345,7 +345,7 @@ td input,td select{min-width:80px;padding:8px}
 <section id="savedInvoices" class="page"><div class="card"><h2>Saved Invoices</h2><button class="btn-green" onclick="newInvoice()">＋ New Invoice</button><input id="invoiceSearch" placeholder="Search invoice or customer..." oninput="renderInvoices()"></div><div id="invoiceList"></div></section>
 <section id="receipt" class="page"><div class="card"><h2>New Payment Receipt</h2><div class="grid">
 <div class="field"><label>Customer Name *</label><input id="rCustomer"></div><div class="field"><label>Phone / WhatsApp</label><input id="rPhone" type="tel"></div><div class="field"><label>Address / Place</label><textarea id="rAddress"></textarea></div><div class="field"><label>Receipt Number</label><input id="rNumber"></div><div class="field"><label>Date</label><input id="rDate" type="date"></div><div class="field"><label>Invoice / Job Reference (optional)</label><input id="rReference"></div><div class="field"><label>Total Job Amount (₹) *</label><input id="rTotal" type="number" min="0" step="0.01" oninput="calculateReceipt()"></div><div class="field"><label>Amount Received Now (₹) *</label><input id="rReceived" type="number" min="0" step="0.01" oninput="calculateReceipt()"></div></div>
-<div class="summary"><div class="summary-row"><span>Total Job Amount</span><b>₹<span id="rTotalShow">0.00</span></b></div><div class="summary-row"><span>Amount Received</span><b>₹<span id="rReceivedShow">0.00</span></b></div><div class="summary-row grand"><span>Balance Due</span><b>₹<span id="rBalance">0.00</span></b></div></div><div class="field" style="margin-top:12px"><label>Payment Method / Note</label><input id="rNote" placeholder="Cash, UPI, bank transfer... (optional)"></div><button class="btn-green" onclick="saveReceipt()">Save Receipt</button><button class="btn-blue" onclick="previewReceipt()">Preview</button><button class="btn-dark" onclick="shareReceiptPDF()">Download / Share PDF</button></div><div id="receiptPreview" class="preview hidden"></div></section>
+<div class="summary"><div class="summary-row"><span>Total Job Amount</span><b>₹<span id="rTotalShow">0.00</span></b></div><div class="summary-row"><span>Amount Received</span><b>₹<span id="rReceivedShow">0.00</span></b></div><div class="summary-row grand"><span>Balance Due</span><b>₹<span id="rBalance">0.00</span></b></div></div><div class="grid" style="margin-top:12px"><div class="field"><label>Payment Method</label><select id="rMethod"><option value="Cash">Cash</option><option value="UPI">UPI</option><option value="Bank Transfer">Bank Transfer</option><option value="Other">Other</option></select></div><div class="field"><label>Notes (optional)</label><input id="rNote" placeholder="Additional note"></div></div><button class="btn-green" onclick="saveReceipt()">Save Receipt</button><button class="btn-blue" onclick="previewReceipt()">Preview</button><button class="btn-dark" onclick="shareReceiptPDF()">Download / Share PDF</button></div><div id="receiptPreview" class="preview hidden"></div></section>
 <section id="savedReceipts" class="page"><div class="card"><h2>Saved Payment Receipts</h2><button class="btn-green" onclick="newReceipt()">＋ New Payment Receipt</button><input id="receiptSearch" placeholder="Search receipt or customer..." oninput="renderReceipts()"></div><div id="receiptList"></div></section>
 
 <section id="settings" class="page">
@@ -1073,14 +1073,14 @@ function renderInvoices(){
 function previewSavedInvoice(id){const d=invoices.find(x=>String(x.id)===String(id));if(!d)return;const el=$("invoicePreview");el.innerHTML=invoiceHTML(d);el.classList.remove("hidden");showPage("savedInvoices");el.scrollIntoView({behavior:"smooth",block:"start"});}
 function deleteInvoice(id){if(!confirm("Delete this invoice?"))return;invoices=invoices.filter(x=>String(x.id)!==String(id));saveStorage();renderInvoices();}
 function newReceipt(){
- currentReceiptId=null;$("rCustomer").value="";$("rPhone").value="";$("rAddress").value="";$("rNumber").value=nextReceiptNumber();$("rDate").value=today();$("rReference").value="";$("rTotal").value="";$("rReceived").value="";$("rNote").value="";
+ currentReceiptId=null;$("rCustomer").value="";$("rPhone").value="";$("rAddress").value="";$("rNumber").value=nextReceiptNumber();$("rDate").value=today();$("rReference").value="";$("rTotal").value="";$("rReceived").value="";$("rMethod").value="Cash";$("rNote").value="";
  calculateReceipt();$("receiptPreview").classList.add("hidden");$("receiptPreview").innerHTML="";showPage("receipt");
 }
 function calculateReceipt(){
  const total=Math.max(0,Number($("rTotal").value)||0),received=Math.max(0,Number($("rReceived").value)||0),balance=Math.max(0,total-received);
  $("rTotalShow").textContent=money(total);$("rReceivedShow").textContent=money(received);$("rBalance").textContent=money(balance);return {total,received,balance};
 }
-function currentReceipt(){const c=calculateReceipt();return {id:currentReceiptId||newId(),number:$("rNumber").value||nextReceiptNumber(),date:$("rDate").value||today(),customer:$("rCustomer").value.trim(),phone:$("rPhone").value.trim(),address:$("rAddress").value.trim(),reference:$("rReference").value.trim(),total:c.total,received:c.received,balance:c.balance,note:$("rNote").value.trim()};}
+function currentReceipt(){const c=calculateReceipt();return {id:currentReceiptId||newId(),number:$("rNumber").value||nextReceiptNumber(),date:$("rDate").value||today(),customer:$("rCustomer").value.trim(),phone:$("rPhone").value.trim(),address:$("rAddress").value.trim(),reference:$("rReference").value.trim(),total:c.total,received:c.received,balance:c.balance,method:$("rMethod").value||"Cash",note:$("rNote").value.trim()};}
 function saveReceipt(){
  const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");if(d.received<=0)return alert("Enter the amount received.");
  if(d.received>d.total&&!confirm("The received amount is greater than the total job amount. Save anyway?"))return;
@@ -1089,11 +1089,59 @@ function saveReceipt(){
 }
 function editReceipt(id){
  const d=receipts.find(x=>String(x.id)===String(id));if(!d)return;currentReceiptId=d.id;
- $("rCustomer").value=d.customer||"";$("rPhone").value=d.phone||"";$("rAddress").value=d.address||"";$("rNumber").value=d.number||nextReceiptNumber();$("rDate").value=d.date||today();$("rReference").value=d.reference||"";$("rTotal").value=d.total||0;$("rReceived").value=d.received||0;$("rNote").value=d.note||"";
+ $("rCustomer").value=d.customer||"";$("rPhone").value=d.phone||"";$("rAddress").value=d.address||"";$("rNumber").value=d.number||nextReceiptNumber();$("rDate").value=d.date||today();$("rReference").value=d.reference||"";$("rTotal").value=d.total||0;$("rReceived").value=d.received||0;$("rMethod").value=d.method||(["Cash","UPI","Bank Transfer","Other"].includes(d.note)?d.note:"Cash");$("rNote").value=(d.method?"":(["Cash","UPI","Bank Transfer","Other"].includes(d.note)?"":d.note))||"";
  calculateReceipt();showPage("receipt");
 }
 function receiptHTML(d){
- return `<div class="preview"><div class="quote-header">${settings.logo?`<img class="logo" src="${settings.logo}">`:""}<h1>${esc(settings.name||"Curtain Shop")}</h1><div>${esc(settings.address||"")}</div><div>${esc(settings.phone||"")}${settings.whatsapp?" · WhatsApp: "+esc(settings.whatsapp):""}</div><div>${esc(settings.email||"")}</div>${settings.gst?"GST: "+esc(settings.gst):""}</div><h2 style="text-align:center">PAYMENT RECEIPT</h2><div class="quote-info"><div><b>Received from</b><br>${esc(d.customer)}<br>${esc(d.phone||"")}<br>${esc(d.address||"")}</div><div><b>Receipt No:</b> ${esc(d.number)}<br><b>Date:</b> ${esc(formatDateDMY(d.date))}</div></div><table class="quote-table"><tbody><tr><th>Job / Invoice Reference</th><td>${esc(d.reference||"-")}</td></tr><tr><th>Total Job Amount</th><td>₹${money(d.total)}</td></tr><tr><th>Amount Received</th><td>₹${money(d.received)}</td></tr><tr><th>Balance Due</th><td><b>₹${money(d.balance)}</b></td></tr><tr><th>Payment Method / Note</th><td>${esc(d.note||"-")}</td></tr></tbody></table><p style="margin-top:28px">Received with thanks.</p><p style="text-align:right;margin-top:45px">Authorized Signature</p></div>`;
+ const method=d.method||(["Cash","UPI","Bank Transfer","Other"].includes(d.note)?d.note:"Cash");
+ const check=(value)=>method===value?"✓":"";
+ const logo=settings.logo?`<img src="${settings.logo}" style="width:118px;height:96px;object-fit:contain;display:block;margin:auto">`:`<div style="width:118px;height:96px;border:2px dashed #d9a0b4;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#986477;font-weight:bold;margin:auto">YOUR LOGO</div>`;
+ const business=settings.name||"Your Business Name";
+ return `<div class="preview" style="width:100%;max-width:100%;margin:0 auto;padding:18px;background:#fff7fa;color:#302a30;border:5px double #a85d7c;border-radius:4px;font-family:Arial,sans-serif;box-shadow:none">
+ <div style="display:grid;grid-template-columns:125px minmax(0,1fr) 220px;gap:12px;align-items:center;padding-bottom:12px;border-bottom:2px solid #a85d7c">
+  <div>${logo}</div>
+  <div style="text-align:center;overflow-wrap:anywhere">
+   <h1 style="font-size:28px;line-height:1.12;margin:0;color:#6f2948;letter-spacing:.5px">${esc(business)}</h1>
+   ${settings.address?`<div style="font-size:12px;margin-top:7px">${esc(settings.address)}</div>`:""}
+   <div style="font-size:12px;margin-top:5px">${settings.phone?`Phone: ${esc(settings.phone)}`:""}${settings.whatsapp?` &nbsp; WhatsApp: ${esc(settings.whatsapp)}`:""}</div>
+   ${settings.email?`<div style="font-size:12px;margin-top:3px">${esc(settings.email)}</div>`:""}
+   ${settings.gst?`<div style="font-size:11px;margin-top:3px">GST: ${esc(settings.gst)}</div>`:""}
+  </div>
+  <div style="text-align:center">
+   <div style="background:#702b4b;color:#fff;border:2px solid #d6a4b8;border-radius:8px;padding:12px 8px;font-size:18px;font-weight:bold;letter-spacing:.4px">PAYMENT<br>RECEIPT</div>
+   <div style="margin-top:9px;font-size:12px;font-weight:bold">Receipt No.</div>
+   <div style="background:#f2dce5;border-radius:5px;padding:7px;font-size:16px;font-weight:bold;color:#6f2948;overflow-wrap:anywhere">${esc(d.number)}</div>
+  </div>
+ </div>
+ <div style="display:grid;grid-template-columns:minmax(0,1fr) 205px;margin-top:14px;border:1px solid #c58ba2">
+  <div style="display:grid;grid-template-columns:130px minmax(0,1fr);border-right:1px solid #c58ba2">
+   <div style="background:#f0dce5;padding:10px;font-weight:bold;border-bottom:1px solid #c58ba2">RECEIVED FROM</div>
+   <div style="padding:10px;border-bottom:1px solid #c58ba2;font-size:16px;font-weight:bold;overflow-wrap:anywhere">${esc(d.customer)}</div>
+   <div style="background:#f0dce5;padding:10px;font-weight:bold;border-bottom:1px solid #c58ba2">PHONE</div>
+   <div style="padding:10px;border-bottom:1px solid #c58ba2;overflow-wrap:anywhere">${esc(d.phone||"—")}</div>
+   <div style="background:#f0dce5;padding:10px;font-weight:bold">FOR</div>
+   <div style="padding:10px;overflow-wrap:anywhere">${esc(d.reference||d.address||"Curtain / Blinds Work")}</div>
+  </div>
+  <div style="display:flex;flex-direction:column;justify-content:center;padding:12px;background:#fffafd">
+   <div style="font-weight:bold;color:#702b4b;font-size:13px">DATE</div>
+   <div style="font-size:17px;margin:6px 0 15px">${esc(formatDateDMY(d.date))}</div>
+   <div style="font-weight:bold;color:#702b4b;font-size:13px">AMOUNT RECEIVED</div>
+   <div style="font-size:23px;font-weight:bold;color:#702b4b;margin-top:5px">₹ ${money(d.received)}</div>
+  </div>
+ </div>
+ <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(150px,.9fr);margin-top:12px;border:1px solid #b77791">
+  <div style="border-right:1px solid #b77791"><div style="background:#702b4b;color:white;text-align:center;padding:9px 4px;font-size:12px;font-weight:bold">TOTAL BILL AMOUNT</div><div style="padding:16px 5px;text-align:center;font-size:20px;font-weight:bold">₹ ${money(d.total)}</div></div>
+  <div style="border-right:1px solid #b77791"><div style="background:#702b4b;color:white;text-align:center;padding:9px 4px;font-size:12px;font-weight:bold">PAYMENT RECEIVED</div><div style="padding:16px 5px;text-align:center;font-size:20px;font-weight:bold;color:#26765f">₹ ${money(d.received)}</div></div>
+  <div style="border-right:1px solid #b77791"><div style="background:#702b4b;color:white;text-align:center;padding:9px 4px;font-size:12px;font-weight:bold">BALANCE DUE</div><div style="padding:16px 5px;text-align:center;font-size:20px;font-weight:bold;color:#9b3155">₹ ${money(d.balance)}</div></div>
+  <div><div style="background:#f0dce5;text-align:center;padding:9px 4px;font-size:12px;font-weight:bold">PAYMENT METHOD</div><div style="padding:9px 10px;font-size:13px;line-height:1.8"><div>${check("Cash")?"☑":"☐"} Cash</div><div>${check("UPI")?"☑":"☐"} UPI</div><div>${check("Bank Transfer")?"☑":"☐"} Bank Transfer</div><div>${check("Other")?"☑":"☐"} Other</div></div></div>
+ </div>
+ <div style="display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:15px;margin-top:12px;border:1px solid #c58ba2;border-radius:4px;padding:12px;min-height:72px">
+  <div><b style="color:#702b4b">NOTES</b><div style="margin-top:8px;white-space:pre-wrap;overflow-wrap:anywhere">${esc(d.note||"")}</div></div>
+  <div style="border-left:1px solid #c58ba2;padding-left:14px;display:flex;flex-direction:column;justify-content:flex-end;text-align:center;min-height:65px"><div style="margin-bottom:18px;font-size:12px">Received by</div><div style="border-bottom:1px solid #6f2948"></div><div style="font-size:11px;margin-top:5px">Authorized Signature</div></div>
+ </div>
+ <div style="display:flex;align-items:center;gap:12px;margin-top:14px;color:#702b4b"><div style="height:1px;background:#b77791;flex:1"></div><div style="font-size:17px;font-weight:bold;font-style:italic;text-align:center">Thank you for your business!</div><div style="height:1px;background:#b77791;flex:1"></div></div>
+ <div style="text-align:center;font-size:10px;letter-spacing:2px;color:#806574;margin-top:7px">${esc(business.toUpperCase())}${settings.address?" | "+esc(settings.address):""}</div>
+ </div>`;
 }
 function previewReceipt(){const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");const el=$("receiptPreview");el.innerHTML=receiptHTML(d);el.classList.remove("hidden");el.scrollIntoView({behavior:"smooth",block:"start"});}
 function renderReceipts(){
