@@ -124,6 +124,11 @@ td input,td select{min-width:80px;padding:8px}
 .btn-purple{background:#8055b7;color:#fff}
 @media(min-width:701px){.home-primary-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}.home-secondary-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .nav.no-print{display:none!important}
+
+.app-header-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.app-header-top h1{flex:1;min-width:0}
+.header-home-btn{background:#fff;color:#24445c;border-radius:10px;padding:10px 14px;margin:0;white-space:nowrap;font-size:15px}
+@media(max-width:480px){.app-header-top h1{font-size:19px}.header-home-btn{padding:9px 10px;font-size:14px}}
 </style>
  <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#24445c">
@@ -141,8 +146,11 @@ td input,td select{min-width:80px;padding:8px}
 </section>
 
 <div id="mainApp" class="app hidden">
-<header>
- <h1>🪟 Curtain Shop Manager Pro</h1>
+<header class="app-header">
+ <div class="app-header-top">
+  <h1>🪟 Curtain Shop Manager Pro</h1>
+  <button type="button" class="header-home-btn no-print" onclick="showPage('home')">⌂ Home</button>
+ </div>
  <div class="small" style="color:white;margin-top:8px" id="accountInfo"></div>
 </header>
 
@@ -462,7 +470,11 @@ async function signOut(){if(sb)await sb.auth.signOut();}
 
 
 async function loadCloudData(){
-  if(!sb||!authUser)return;
+  if(!sb||!authUser)return false;
+
+  // Load this device's saved data first, so cloud errors do not hide local records.
+  loadStorage();
+
   const {data,error}=await sb
     .from("customer_data")
     .select("id,data")
@@ -470,66 +482,61 @@ async function loadCloudData(){
     .maybeSingle();
 
   if(error){
-    alert("Cloud data loading failed: "+error.message);
-    return;
+    console.error("Cloud data loading failed:",error.message);
+    updateHome();
+    return false;
   }
 
   if(data&&data.data){
-    measurements=Array.isArray(data.data.measurements)?data.data.measurements:[];
-    quotations=Array.isArray(data.data.quotations)?data.data.quotations:[];
-    blindOrders=Array.isArray(data.data.blindOrders)?data.data.blindOrders:[];
-    invoices=Array.isArray(data.data.invoices)?data.data.invoices:[];
-    receipts=Array.isArray(data.data.receipts)?data.data.receipts:[];
-    settings=data.data.settings||{};
+    const cloud=data.data;
+    // Keep cloud records, and append any local-only records by ID instead of dropping them.
+    const mergeById=(localList,cloudList)=>{
+      const map=new Map();
+      (Array.isArray(cloudList)?cloudList:[]).forEach(x=>map.set(String(x.id),x));
+      (Array.isArray(localList)?localList:[]).forEach(x=>{if(!map.has(String(x.id)))map.set(String(x.id),x);});
+      return Array.from(map.values());
+    };
+    measurements=mergeById(measurements,cloud.measurements);
+    quotations=mergeById(quotations,cloud.quotations);
+    blindOrders=mergeById(blindOrders,cloud.blindOrders);
+    invoices=mergeById(invoices,cloud.invoices);
+    receipts=mergeById(receipts,cloud.receipts);
+    if(cloud.settings&&Object.keys(cloud.settings).length)settings=cloud.settings;
   }
+
+  // Cache the merged data locally and attempt to sync it back to the signed-in user's row.
+  try{
+    localStorage.setItem(DATA_KEY,JSON.stringify({measurements,quotations,blindOrders,invoices,receipts}));
+    localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));
+  }catch(e){console.error("Local cache save failed:",e);}
+  updateHome();
+  return true;
 }
 
-
 async function saveCloudData(){
-  if(!sb||!authUser)return;
+  if(!sb||!authUser)return {ok:false,message:"Cloud login is not ready."};
 
-  const cloudData={
-    measurements,
-    quotations,
-    blindOrders,
-    invoices,
-    receipts,
-    settings
-  };
-
+  const cloudData={measurements,quotations,blindOrders,invoices,receipts,settings};
   const {data:existing,error:findError}=await sb
     .from("customer_data")
     .select("id")
     .eq("user_id",authUser.id)
     .maybeSingle();
 
-  if(findError){
-    console.error("Cloud lookup failed:",findError.message);
-    return;
-  }
+  if(findError)return {ok:false,message:findError.message};
 
   let result;
-
   if(existing){
-    result=await sb
-      .from("customer_data")
-      .update({
-        data:cloudData,
-        updated_at:new Date().toISOString()
-      })
+    result=await sb.from("customer_data")
+      .update({data:cloudData,updated_at:new Date().toISOString()})
       .eq("id",existing.id);
   }else{
-    result=await sb
-      .from("customer_data")
-      .insert({
-        user_id:authUser.id,
-        data:cloudData
-      });
+    result=await sb.from("customer_data")
+      .insert({user_id:authUser.id,data:cloudData});
   }
 
-  if(result.error){
-    console.error("Cloud save failed:",result.error.message);
-  }
+  if(result.error)return {ok:false,message:result.error.message};
+  return {ok:true,message:""};
 }
 
  function loadStorage(){
@@ -555,9 +562,15 @@ function saveStorage(){
     localStorage.setItem(DATA_KEY,JSON.stringify({measurements,quotations,blindOrders,invoices,receipts}));
     localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));
     updateHome();
-    saveCloudData();
-  }catch{
-    alert("Unable to save data on this device. Export a backup and free some storage.");
+    // Cloud sync runs after the local save; failures are shown clearly in the console.
+    saveCloudData().then(result=>{
+      if(!result.ok)console.error("Cloud sync did not complete:",result.message);
+    }).catch(error=>console.error("Cloud sync error:",error));
+    return true;
+  }catch(error){
+    console.error("Local save failed:",error);
+    alert("ഈ ഉപകരണത്തിൽ ഡാറ്റ സംരക്ഷിക്കാനായില്ല. ബ്രൗസറിലെ സംഭരണസ്ഥലം പരിശോധിക്കുക.");
+    return false;
   }
 }
 
