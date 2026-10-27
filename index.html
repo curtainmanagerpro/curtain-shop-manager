@@ -124,6 +124,8 @@ td input,td select{min-width:80px;padding:8px}
 .btn-purple{background:#8055b7;color:#fff}
 @media(min-width:701px){.home-primary-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}.home-secondary-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .nav.no-print{display:none!important}
+#signatureCanvas{touch-action:none;cursor:crosshair}
+#signaturePreview{object-position:center}
 
 .app-header-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .app-header-top h1{flex:1;min-width:0}
@@ -157,7 +159,7 @@ td input,td select{min-width:80px;padding:8px}
 
 
 <section id="home" class="page active">
- <div class="card"><h2 style="margin-bottom:6px">Homestyle Curtains</h2><div class="small" id="homeAccountInfo"></div>
+ <div class="card"><h2 id="homeBusinessName" style="margin-bottom:6px"></h2><div class="small" id="homeAccountInfo"></div>
   <h3 class="home-section-title">New</h3><div class="home-buttons">
    <button class="home-primary" onclick="newMeasurement()">＋ New Measurement</button><button class="home-blue" onclick="newQuotation()">＋ New Quotation</button>
    <button class="home-blue" onclick="newBlindOrder()">＋ New Blinds Order</button><button class="home-green" onclick="newInvoice()">＋ New Invoice</button>
@@ -360,6 +362,21 @@ td input,td select{min-width:80px;padding:8px}
   </div>
   <div class="field" style="margin-top:12px"><label>Business Address</label><textarea id="sAddress"></textarea></div>
   <div class="field" style="margin-top:12px"><label>Business Logo</label><input id="sLogo" type="file" accept="image/*" onchange="loadLogo(event)"><img id="logoPreview" class="logo"></div>
+  <div class="field" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
+   <label>Owner Signature / ഒപ്പ്</label>
+   <p class="small">ഒപ്പിന്റെ ചിത്രം பதிவேற்றുക, അല്ലെങ്കിൽ താഴെയുള്ള സ്ഥലത്ത് വിരലால் ഒപ്പിടുക. சேமித்த ഒപ്പ് ഈ അക്കൗണ്ടിന്റെ രസീതുകളിൽ മാത്രം വരും.</p>
+   <input id="sSignatureFile" type="file" accept="image/*" onchange="loadSignature(event)">
+   <div style="margin-top:10px;font-weight:bold;font-size:13px">ഫോണിൽ വിരലാൽ ഒപ്പിടാനുള്ള സ്ഥലം</div>
+   <canvas id="signatureCanvas" width="700" height="180" aria-label="ഒപ്പ് വരയ്ക്കാനുള്ള സ്ഥലം" style="display:block;width:100%;max-width:700px;height:150px;background:#fff;border:1px solid #c8d3dc;border-radius:10px;touch-action:none;margin-top:6px"></canvas>
+   <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+    <button type="button" class="btn-blue" onclick="saveDrawnSignature()">ഈ ഒപ്പ് സൂക്ഷിക്കുക</button>
+    <button type="button" class="btn-light" onclick="clearSignatureCanvas()">വരച്ചത് മായ്ക്കുക</button>
+    <button type="button" class="btn-red" onclick="removeSavedSignature()">സൂക്ഷിച്ച ഒപ്പ് നീക്കുക</button>
+   </div>
+   <div style="margin-top:12px;font-size:13px;font-weight:bold">രസീതിൽ വരാനുള്ള ഒപ്പിന്റെ മാതൃക</div>
+   <img id="signaturePreview" alt="സൂക്ഷിച്ച ഒപ്പിന്റെ മാതൃക" style="display:none;max-width:260px;max-height:90px;object-fit:contain;background:#fff;border:1px dashed #d5dce2;border-radius:8px;padding:6px;margin-top:6px">
+   <div id="signatureStatus" class="small" style="margin-top:5px">ഇതുവരെ ഒപ്പ് ചേർത്തിട്ടില്ല.</div>
+  </div>
   <button class="btn-green" onclick="saveSettings()">Save Settings</button>
   <button class="btn-light" onclick="downloadBackup()">Download Backup</button>
   <button class="btn-light" onclick="document.getElementById('restoreFile').click()">Restore Backup</button>
@@ -398,6 +415,7 @@ let currentMeasurementId=null,currentQuotationId=null,currentBlindOrderId=null,q
 let currentInvoiceId=null,currentReceiptId=null,invoiceItems=[];
 const DATA_KEY="curtain_manager_data_v4";
 const SETTINGS_KEY="curtain_manager_settings_v4";
+function settingsStorageKey(){return authUser?.id?SETTINGS_KEY+"_"+authUser.id:SETTINGS_KEY;}
 const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Blackout Curtain","Zebra Blind","Roman Blind","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Other"];
 const rftTypes=["Cloth Curtain","Eyelet Curtain","Ripple Curtain"];
 const $=id=>document.getElementById(id);
@@ -508,7 +526,7 @@ async function loadCloudData(){
 
   try{
     localStorage.setItem(DATA_KEY,JSON.stringify({measurements,quotations,blindOrders,invoices,receipts}));
-    localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));
+    localStorage.setItem(settingsStorageKey(),JSON.stringify(settings));
   }catch(e){console.error("Local cache save failed:",e);}
 
   updateHome();
@@ -575,7 +593,7 @@ async function saveCloudData(){
 function saveStorage(){
   try{
     localStorage.setItem(DATA_KEY,JSON.stringify({measurements,quotations,blindOrders,invoices,receipts}));
-    localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));
+    localStorage.setItem(settingsStorageKey(),JSON.stringify(settings));
     updateHome();
   }catch(error){
     console.error("Local save failed:",error);
@@ -598,7 +616,7 @@ function saveStorage(){
 }
 
 function loadSettings(){
- try{const localSettings=localStorage.getItem(SETTINGS_KEY);if(localSettings)settings=JSON.parse(localSettings)||settings;}catch{}
+ try{const localSettings=localStorage.getItem(settingsStorageKey());if(localSettings)settings=JSON.parse(localSettings)||settings;}catch{}
  $("sName").value=settings.name||"";
  $("sPhone").value=settings.phone||"";
  $("sWhatsapp").value=settings.whatsapp||"";
@@ -607,21 +625,57 @@ function loadSettings(){
  $("sValidity").value=settings.validity||"15 Days";
  $("sAddress").value=settings.address||"";
  $("logoPreview").src=settings.logo||"";
+ updateSignaturePreview();
+ clearSignatureCanvas();
 }
 function saveSettings(){
- settings={name:$("sName").value.trim(),phone:$("sPhone").value.trim(),whatsapp:$("sWhatsapp").value.trim(),email:$("sEmail").value.trim(),gst:$("sGST").value.trim(),validity:$("sValidity").value.trim(),address:$("sAddress").value.trim(),logo:settings.logo||""};
+ settings={...settings,name:$("sName").value.trim(),phone:$("sPhone").value.trim(),whatsapp:$("sWhatsapp").value.trim(),email:$("sEmail").value.trim(),gst:$("sGST").value.trim(),validity:$("sValidity").value.trim(),address:$("sAddress").value.trim(),logo:settings.logo||"",signature:settings.signature||""};
  saveStorage();alert("Business settings saved.");
 }
 function loadLogo(e){
  const f=e.target.files[0];if(!f)return;
  const r=new FileReader();r.onload=ev=>{settings.logo=ev.target.result;$("logoPreview").src=settings.logo;saveStorage();};r.readAsDataURL(f);
 }
+function updateSignaturePreview(){
+ const img=$("signaturePreview"),status=$("signatureStatus");
+ if(!img||!status)return;
+ if(settings.signature){img.src=settings.signature;img.style.display="block";status.textContent="ഒപ്പ് സൂക്ഷിച്ചിട്ടുണ്ട്. ഇത് ഈ അക്കൗണ്ടിന്റെ രസീതുകളിൽ സ്വയം വരും.";}
+ else{img.removeAttribute("src");img.style.display="none";status.textContent="ഇതുവരെ ഒപ്പ് ചേർത്തിട്ടില്ല.";}
+}
+function loadSignature(e){
+ const f=e.target.files&&e.target.files[0];if(!f)return;
+ if(!f.type.startsWith("image/")){alert("ദയവായി ഒപ്പിന്റെ ചിത്രഫയൽ തിരഞ്ഞെടുക്കുക.");e.target.value="";return;}
+ if(f.size>4*1024*1024){alert("ചിത്രത്തിന്റെ വലുപ്പം 4 MB-ൽ താഴെയായിരിക്കണം.");e.target.value="";return;}
+ const r=new FileReader();r.onload=ev=>{settings.signature=String(ev.target.result||"");saveStorage();updateSignaturePreview();alert("ഒപ്പിന്റെ ചിത്രം ഈ അക്കൗണ്ടിൽ സൂക്ഷിച്ചു.");};r.readAsDataURL(f);
+}
+let signatureDrawing=false,signatureHasInk=false;
+function clearSignatureCanvas(){
+ const canvas=$("signatureCanvas");if(!canvas)return;
+ const ctx=canvas.getContext("2d");ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle="#ffffff";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.strokeStyle="#152536";ctx.lineWidth=3.5;ctx.lineCap="round";ctx.lineJoin="round";signatureDrawing=false;signatureHasInk=false;
+}
+function signaturePoint(e){const canvas=$("signatureCanvas"),rect=canvas.getBoundingClientRect();return {x:(e.clientX-rect.left)*canvas.width/rect.width,y:(e.clientY-rect.top)*canvas.height/rect.height};}
+function setupSignatureCanvas(){
+ const canvas=$("signatureCanvas");if(!canvas||canvas.dataset.ready==="yes")return;canvas.dataset.ready="yes";const ctx=canvas.getContext("2d");
+ canvas.addEventListener("pointerdown",e=>{e.preventDefault();canvas.setPointerCapture?.(e.pointerId);const p=signaturePoint(e);signatureDrawing=true;signatureHasInk=true;ctx.beginPath();ctx.moveTo(p.x,p.y);});
+ canvas.addEventListener("pointermove",e=>{if(!signatureDrawing)return;e.preventDefault();const p=signaturePoint(e);ctx.lineTo(p.x,p.y);ctx.stroke();});
+ const finish=()=>{if(signatureDrawing){signatureDrawing=false;ctx.closePath();}};canvas.addEventListener("pointerup",finish);canvas.addEventListener("pointercancel",finish);canvas.addEventListener("pointerleave",e=>{if(e.buttons===0)finish();});clearSignatureCanvas();
+}
+function saveDrawnSignature(){
+ const canvas=$("signatureCanvas");if(!canvas)return;
+ if(!signatureHasInk)return alert("ആദ്യം വെളുത്ത സ്ഥലത്ത് വിരൽ കൊണ്ട് ഒപ്പിടുക.");
+ settings.signature=canvas.toDataURL("image/png");saveStorage();updateSignaturePreview();alert("നിങ്ങളുടെ ഒപ്പ് ഈ അക്കൗണ്ടിൽ സൂക്ഷിച്ചു.");
+}
+function removeSavedSignature(){
+ if(!settings.signature)return alert("സൂക്ഷിച്ച ഒപ്പ് നിലവിലില്ല.");
+ if(!confirm("സൂക്ഷിച്ച ഒപ്പ് നീക്കണോ?"))return;
+ delete settings.signature;saveStorage();updateSignaturePreview();if($("sSignatureFile"))$("sSignatureFile").value="";alert("ഒപ്പ് നീക്കി.");
+}
 function updateHome(){
  if($("homeMeasurementCount"))$("homeMeasurementCount").textContent=measurements.length;
  if($("homeQuoteCount"))$("homeQuoteCount").textContent=quotations.length;
  if($("homeInvoiceCount"))$("homeInvoiceCount").textContent=invoices.length;
  if($("homeReceiptCount"))$("homeReceiptCount").textContent=receipts.length;
- if($("homeBusinessName"))$("homeBusinessName").textContent=settings.name||"Homestyle Curtains";
+ if($("homeBusinessName")){const businessName=String(settings.name||"").trim();$("homeBusinessName").textContent=businessName;$("homeBusinessName").classList.toggle("hidden",!businessName);}
  if($("homeAccountEmail"))$("homeAccountEmail").textContent=authUser?.email||"";
 }
 function showPage(page){
@@ -1137,7 +1191,7 @@ function receiptHTML(d){
  </div>
  <div style="display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:15px;margin-top:12px;border:1px solid #c58ba2;border-radius:4px;padding:12px;min-height:72px">
   <div><b style="color:#702b4b">NOTES</b><div style="margin-top:8px;white-space:pre-wrap;overflow-wrap:anywhere">${esc(d.note||"")}</div></div>
-  <div style="border-left:1px solid #c58ba2;padding-left:14px;display:flex;flex-direction:column;justify-content:flex-end;text-align:center;min-height:65px"><div style="margin-bottom:18px;font-size:12px">Received by</div><div style="border-bottom:1px solid #6f2948"></div><div style="font-size:11px;margin-top:5px">Authorized Signature</div></div>
+  <div style="border-left:1px solid #c58ba2;padding-left:14px;display:flex;flex-direction:column;justify-content:flex-end;text-align:center;min-height:65px"><div style="margin-bottom:4px;font-size:12px">Received by</div>${settings.signature?`<img src="${settings.signature}" alt="Authorized signature" style="display:block;max-width:170px;width:100%;height:42px;object-fit:contain;margin:0 auto 2px">`:`<div style="height:42px"></div>`}<div style="border-bottom:1px solid #6f2948"></div><div style="font-size:11px;margin-top:5px">Authorized Signature</div></div>
  </div>
  <div style="display:flex;align-items:center;gap:12px;margin-top:14px;color:#702b4b"><div style="height:1px;background:#b77791;flex:1"></div><div style="font-size:17px;font-weight:bold;font-style:italic;text-align:center">Thank you for your business!</div><div style="height:1px;background:#b77791;flex:1"></div></div>
  <div style="text-align:center;font-size:10px;letter-spacing:2px;color:#806574;margin-top:7px">${esc(business.toUpperCase())}${settings.address?" | "+esc(settings.address):""}</div>
@@ -1325,7 +1379,7 @@ async function downloadSavedBlindOrderPDF(id){const d=blindOrders.find(x=>String
 
 window.addEventListener("DOMContentLoaded",()=>{
  $("mDate").value=today();$("qDate").value=today();$("boDate").value=today();$("iDate").value=today();$("rDate").value=today();$("iDate").value=today();$("rDate").value=today();
- addMeasurementRow();boot();
+ setupSignatureCanvas();addMeasurementRow();boot();
 });
 </script>
  <script>
