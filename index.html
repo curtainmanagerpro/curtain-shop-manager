@@ -136,6 +136,10 @@ td input,td select{min-width:80px;padding:8px}
 .admin-state.paid{background:#dff4e7;color:#176a3b}
 .admin-state.expired{background:#fde4e4;color:#a12626}
 .admin-state.soon{background:#e4edff;color:#2859a8}
+#adminToast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9999;background:#203040;color:#fff;padding:11px 18px;border-radius:10px;box-shadow:0 4px 16px #0003;font-weight:bold;display:none;max-width:90vw;text-align:center}
+.admin-phone-wrap{display:flex;align-items:stretch}
+.admin-phone-prefix{display:flex;align-items:center;padding:0 13px;background:#edf2f6;border:1px solid #ccd7df;border-right:0;border-radius:9px 0 0 9px;font-weight:bold;white-space:nowrap}
+.admin-phone-wrap input{border-radius:0 9px 9px 0;min-width:0}
 @media(max-width:520px){.admin-user-meta{grid-template-columns:1fr}}
 #signatureCanvas{touch-action:none;cursor:crosshair}
 #signaturePreview{object-position:center}
@@ -404,15 +408,15 @@ td input,td select{min-width:80px;padding:8px}
   <div class="notice">Add and manage authorized Google accounts. Only an administrator should manage this list. Trial and annual dates require the Supabase columns listed in the supplied database update script.</div>
   <div class="grid" style="margin-top:14px">
    <div class="field"><label for="adminEmail">Authorized Gmail</label><input id="adminEmail" type="email" placeholder="customer@gmail.com" autocomplete="off"></div>
-   <div class="field"><label for="adminPhone">Phone / WhatsApp (include country code)</label><input id="adminPhone" type="tel" placeholder="91XXXXXXXXXX"></div>
+   <div class="field"><label for="adminPhone">Phone / WhatsApp</label><div class="admin-phone-wrap"><span class="admin-phone-prefix">+91</span><input id="adminPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number" autocomplete="tel-national"></div></div>
    <div class="field"><label for="adminPlan">Plan</label><select id="adminPlan"><option value="customer">Customer</option><option value="admin">Administrator</option></select></div>
    <div class="field"><label for="adminPaid">Paid Access</label><select id="adminPaid" onchange="adminPaidChanged()"><option value="false">Not Paid</option><option value="true">Paid</option></select></div>
    <div class="field"><label for="adminActive">Account Status</label><select id="adminActive"><option value="true">Active</option><option value="false">Inactive</option></select></div>
    <div class="field"><label for="adminAccessType">Access Type</label><select id="adminAccessType" onchange="adminAccessTypeChanged()"><option value="trial">Free Trial — 7 Days</option><option value="annual">Annual — 1 Year</option></select></div>
-   <div class="field"><label for="adminTrialStart">Trial Start Date</label><input id="adminTrialStart" type="date" onchange="adminTrialDateChanged()"></div>
-   <div class="field"><label for="adminTrialEnd">Trial Expiry Date (auto-calculated)</label><input id="adminTrialEnd" type="date" readonly></div>
-   <div class="field"><label for="adminPaidStart">Payment Date</label><input id="adminPaidStart" type="date" onchange="adminPaidDateChanged()"></div>
-   <div class="field"><label for="adminPaidEnd">Annual Expiry Date (auto-calculated)</label><input id="adminPaidEnd" type="date" readonly></div>
+   <div class="field"><label for="adminTrialStart">Trial Start Date</label><input id="adminTrialStart" type="date" lang="en-GB" onchange="adminTrialDateChanged()"></div>
+   <div class="field"><label for="adminTrialEnd">Trial Expiry Date (auto-calculated)</label><input id="adminTrialEnd" type="date" lang="en-GB" readonly></div>
+   <div class="field"><label for="adminPaidStart">Payment Date</label><input id="adminPaidStart" type="date" lang="en-GB" onchange="adminPaidDateChanged()"></div>
+   <div class="field"><label for="adminPaidEnd">Annual Expiry Date (auto-calculated)</label><input id="adminPaidEnd" type="date" lang="en-GB" readonly></div>
   </div>
   <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:12px">
    <button id="adminSaveButton" class="btn-green" type="button" onclick="saveAuthorizedUser()">Add User</button>
@@ -430,6 +434,7 @@ td input,td select{min-width:80px;padding:8px}
    <div class="notice">Trial Expired: <b id="adminCountTrialExpired">0</b></div>
    <div class="notice">Paid Annual: <b id="adminCountPaid">0</b></div>
    <div class="notice">Renewal Due (7 days): <b id="adminCountRenewal">0</b></div>
+    <div class="notice">Expires Tomorrow: <b id="adminCountTomorrow">0</b></div>
    <div class="notice">Expired / Disabled: <b id="adminCountExpired">0</b></div>
   </div>
   <input id="adminUserSearch" style="margin-top:12px" placeholder="Search Gmail or phone..." oninput="renderAuthorizedUsers()">
@@ -439,6 +444,7 @@ td input,td select{min-width:80px;padding:8px}
    <button class="btn-light" type="button" onclick="setAdminFilter('trialExpired')">Trial Expired</button>
    <button class="btn-light" type="button" onclick="setAdminFilter('paid')">Paid Annual</button>
    <button class="btn-light" type="button" onclick="setAdminFilter('renewal')">Renewal Due</button>
+    <button class="btn-light" type="button" onclick="setAdminFilter('expiresTomorrow')">Expires Tomorrow</button>
    <button class="btn-light" type="button" onclick="setAdminFilter('expired')">Expired / Disabled</button>
   </div>
   <div id="authorizedUserList"><div class="empty">Press Refresh User List to load authorized users.</div></div>
@@ -446,6 +452,7 @@ td input,td select{min-width:80px;padding:8px}
 </section>
 
 </div>
+<div id="adminToast" role="status" aria-live="polite"></div>
 
 <script>
 "use strict";
@@ -858,7 +865,7 @@ function nextQuoteNumber(){return "QT-"+String(quotations.length+1).padStart(4,"
 
 function newQuotation(){
  currentQuotationId=null;
- quotationItems=[{name:"",qty:1,unit:"Sq.Ft",rate:0}];
+ quotationItems=[{name:"",qty:"",unit:"Sq.Ft",rate:""}];
  $("qCustomer").value="";
  $("qPhone").value="";
  $("qAddress").value="";
@@ -875,9 +882,9 @@ function newQuotation(){
 function addQuotationItem(item){
  quotationItems.push({
   name:item?.name||"",
-  qty:Number(item?.qty||1),
+  qty:item?.qty??"",
   unit:item?.unit||"Sq.Ft",
-  rate:Number(item?.rate||0)
+  rate:item?.rate??""
  });
  renderQuotationItems();
 }
@@ -891,9 +898,9 @@ function renderQuotationItems(){
 
   d.innerHTML=`<div class="grid">
   <div class="field"><label>Item / Type</label><input value="${esc(it.name)}" data-k="name"></div>
-  <div class="field"><label>Quantity</label><input type="number" min="0" step=".01" value="${it.qty}" data-k="qty"></div>
+  <div class="field"><label>Quantity</label><input type="number" min="0" step=".01" value="${it.qty??''}" data-k="qty"></div>
   <div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div>
-  <div class="field"><label>Rate</label><input type="number" min="0" step=".01" value="${it.rate}" data-k="rate"></div></div>
+  <div class="field"><label>Rate</label><input type="number" min="0" step=".01" value="${it.rate??''}" data-k="rate"></div></div>
   <p>Amount: <b>₹${money(it.qty*it.rate)}</b></p>
   <div class="row-actions" style="display:flex;justify-content:flex-start">
   <button class="btn-red row-delete" type="button">Delete Item</button>
@@ -902,7 +909,7 @@ function renderQuotationItems(){
   d.querySelectorAll("[data-k]").forEach(el=>{
    el.oninput=()=>{
     const k=el.dataset.k;
-    quotationItems[i][k]=(k==="qty"||k==="rate")?Number(el.value)||0:el.value;
+    quotationItems[i][k]=el.value;
     calculateQuotation();
    };
    el.onchange=()=>{
@@ -1119,22 +1126,22 @@ async function restoreBackup(e){
 function nextInvoiceNumber(){return "INV-"+String(invoices.length+1).padStart(4,"0");}
 function nextReceiptNumber(){return "REC-"+String(receipts.length+1).padStart(4,"0");}
 function newInvoice(){
- currentInvoiceId=null;invoiceItems=[{name:"",qty:1,unit:"Item",rate:0}];
+ currentInvoiceId=null;invoiceItems=[{name:"",qty:"",unit:"Item",rate:""}];
  $("iCustomer").value="";$("iPhone").value="";$("iAddress").value="";
  $("iNumber").value=nextInvoiceNumber();$("iDate").value=today();
  $("iDiscountType").value="percent";$("iDiscountValue").value=0;$("iGstValue").value=0;$("iPaid").value=0;$("iNotes").value="";
  renderInvoiceItems();$("invoicePreview").classList.add("hidden");$("invoicePreview").innerHTML="";showPage("invoice");
 }
 function addInvoiceItem(item){
- invoiceItems.push({name:item?.name||"",qty:Number(item?.qty??1),unit:item?.unit||"Item",rate:Number(item?.rate||0)});
+ invoiceItems.push({name:item?.name||"",qty:item?.qty??"",unit:item?.unit||"Item",rate:item?.rate??""});
  renderInvoiceItems();
 }
 function renderInvoiceItems(){
  $("invoiceItems").innerHTML="";
  invoiceItems.forEach((it,i)=>{
   const d=document.createElement("div");d.className="item-card";
-  d.innerHTML=`<div class="grid"><div class="field"><label>Item / Description</label><input data-k="name" value="${esc(it.name)}"></div><div class="field"><label>Quantity</label><input data-k="qty" type="number" min="0" step=".01" value="${it.qty}"></div><div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div><div class="field"><label>Rate (₹)</label><input data-k="rate" type="number" min="0" step=".01" value="${it.rate}"></div></div><p>Amount: <b>₹${money(it.qty*it.rate)}</b></p><button class="btn-red" type="button">Delete Item</button>`;
-  d.querySelectorAll("[data-k]").forEach(el=>{const update=()=>{const k=el.dataset.k;invoiceItems[i][k]=(k==="qty"||k==="rate")?(Number(el.value)||0):el.value;calculateInvoice();};el.oninput=update;el.onchange=update;});
+  d.innerHTML=`<div class="grid"><div class="field"><label>Item / Description</label><input data-k="name" value="${esc(it.name)}"></div><div class="field"><label>Quantity</label><input data-k="qty" type="number" min="0" step=".01" value="${it.qty??''}"></div><div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div><div class="field"><label>Rate (₹)</label><input data-k="rate" type="number" min="0" step=".01" value="${it.rate??''}"></div></div><p>Amount: <b>₹${money(it.qty*it.rate)}</b></p><button class="btn-red" type="button">Delete Item</button>`;
+  d.querySelectorAll("[data-k]").forEach(el=>{const update=()=>{const k=el.dataset.k;invoiceItems[i][k]=el.value;calculateInvoice();};el.oninput=update;el.onchange=update;});
   d.querySelector("button").onclick=()=>{invoiceItems.splice(i,1);renderInvoiceItems();};
   $("invoiceItems").appendChild(d);
  });calculateInvoice();
@@ -1162,7 +1169,7 @@ function editInvoice(id){
  const d=invoices.find(x=>String(x.id)===String(id));if(!d)return;currentInvoiceId=d.id;
  $("iCustomer").value=d.customer||"";$("iPhone").value=d.phone||"";$("iAddress").value=d.address||"";$("iNumber").value=d.number||nextInvoiceNumber();$("iDate").value=d.date||today();
  $("iDiscountType").value=d.discountType||"percent";$("iDiscountValue").value=d.discountValue||0;$("iGstValue").value=d.gstRate||0;$("iPaid").value=d.paid||0;$("iNotes").value=d.notes||"";
- invoiceItems=JSON.parse(JSON.stringify(d.items||[]));if(!invoiceItems.length)invoiceItems=[{name:"",qty:1,unit:"Item",rate:0}];
+ invoiceItems=JSON.parse(JSON.stringify(d.items||[]));if(!invoiceItems.length)invoiceItems=[{name:"",qty:"",unit:"Item",rate:""}];
  renderInvoiceItems();showPage("invoice");
 }
 function invoiceHTML(d){
@@ -1323,6 +1330,11 @@ function adminPaidChanged(){
   adminTrialDateChanged();
  }
 }
+function normalizeAdminPhone(value){
+ let digits=String(value||"").replace(/\D/g,"");
+ if(digits.startsWith("91")&&digits.length===12)digits=digits.slice(2);
+ return digits.slice(0,10);
+}
 function resetAdminForm(){
  adminEditingEmail=null;
  ["adminEmail","adminPhone","adminTrialStart","adminTrialEnd","adminPaidStart","adminPaidEnd"].forEach(id=>$(id).value="");
@@ -1350,22 +1362,24 @@ function adminUserStatus(u){
   if(!paidEnd)return {key:"paidNoDate",label:"Paid — expiry date not set",cls:"paid"};
   if(paidEnd<=todayValue)return {key:"expired",label:"Annual access expired",cls:"expired"};
   const days=Math.round((Date.parse(paidEnd+"T00:00:00Z")-Date.parse(todayValue+"T00:00:00Z"))/86400000);
+  if(days===1)return {key:"annualExpiresTomorrow",label:"Annual access expires tomorrow",cls:"soon"};
   if(days<=7)return {key:"renewal",label:"Renewal due in "+days+" day(s)",cls:"soon"};
   return {key:"paid",label:"Paid — annual access",cls:"paid"};
  }
  if(!trialEnd)return {key:"trialNoDate",label:"Trial date not set",cls:"trial"};
  if(trialEnd<=todayValue)return {key:"trialExpired",label:"Trial expired",cls:"expired"};
  const days=Math.round((Date.parse(trialEnd+"T00:00:00Z")-Date.parse(todayValue+"T00:00:00Z"))/86400000);
- if(days<=1)return {key:"trialDue",label:days===0?"Trial expires today":"Trial expires tomorrow",cls:"soon"};
+ if(days===1)return {key:"trialExpiresTomorrow",label:"Trial expires tomorrow",cls:"soon"};
+ if(days===0)return {key:"trialDue",label:"Trial expires today",cls:"soon"};
  return {key:"trial",label:"Trial — "+days+" day(s) left",cls:"trial"};
 }
 function setAdminFilter(filter){adminCurrentFilter=filter;renderAuthorizedUsers();}
 function renderAuthorizedUsers(){
  const search=($("adminUserSearch")?.value||"").trim().toLowerCase();
  const enriched=adminUsersCache.map(u=>({u,status:adminUserStatus(u)}));
- const counts={all:enriched.length,trial:enriched.filter(x=>["trial","trialDue","trialNoDate"].includes(x.status.key)).length,trialExpired:enriched.filter(x=>x.status.key==="trialExpired").length,paid:enriched.filter(x=>["paid","paidNoDate"].includes(x.status.key)).length,renewal:enriched.filter(x=>x.status.key==="renewal").length,expired:enriched.filter(x=>x.status.key==="expired").length};
- Object.entries({adminCountAll:counts.all,adminCountTrial:counts.trial,adminCountTrialExpired:counts.trialExpired,adminCountPaid:counts.paid,adminCountRenewal:counts.renewal,adminCountExpired:counts.expired}).forEach(([id,value])=>{if($(id))$(id).textContent=value;});
- const filterKeys={all:null,trial:["trial","trialDue","trialNoDate"],trialExpired:["trialExpired"],paid:["paid","paidNoDate"],renewal:["renewal"],expired:["expired"]};
+ const counts={all:enriched.length,trial:enriched.filter(x=>["trial","trialDue","trialNoDate","trialExpiresTomorrow"].includes(x.status.key)).length,trialExpired:enriched.filter(x=>x.status.key==="trialExpired").length,paid:enriched.filter(x=>["paid","paidNoDate","annualExpiresTomorrow"].includes(x.status.key)).length,renewal:enriched.filter(x=>["renewal","annualExpiresTomorrow"].includes(x.status.key)).length,expiresTomorrow:enriched.filter(x=>["trialExpiresTomorrow","annualExpiresTomorrow"].includes(x.status.key)).length,expired:enriched.filter(x=>["expired","disabled","trialExpired"].includes(x.status.key)).length};
+ Object.entries({adminCountAll:counts.all,adminCountTrial:counts.trial,adminCountTrialExpired:counts.trialExpired,adminCountPaid:counts.paid,adminCountRenewal:counts.renewal,adminCountTomorrow:counts.expiresTomorrow,adminCountExpired:counts.expired}).forEach(([id,value])=>{if($(id))$(id).textContent=value;});
+ const filterKeys={all:null,trial:["trial","trialDue","trialNoDate","trialExpiresTomorrow"],trialExpired:["trialExpired"],paid:["paid","paidNoDate","annualExpiresTomorrow"],renewal:["renewal","annualExpiresTomorrow"],expiresTomorrow:["trialExpiresTomorrow","annualExpiresTomorrow"],expired:["expired","disabled","trialExpired"]};
  const rows=enriched.filter(({u,status})=>{
   if(search&&!(String(u.email||"")+" "+String(u.phone||"")).toLowerCase().includes(search))return false;
   const allowed=filterKeys[adminCurrentFilter];return !allowed||allowed.includes(status.key);
@@ -1385,22 +1399,31 @@ function editAuthorizedUser(email){
  $("adminEmail").value=u.email;$("adminEmail").readOnly=true;
  $("adminPlan").value=u.plan_name||"customer";$("adminPaid").value=String(!!u.is_paid);$("adminActive").value=String(!!u.is_active);
  $("adminAccessType").value=(u.access_type==="annual"||u.is_paid)?"annual":"trial";
- $("adminPhone").value=u.phone||"";
+ $("adminPhone").value=normalizeAdminPhone(u.phone||"");
  $("adminTrialStart").value=String(u.trial_started_at||"").slice(0,10);$("adminTrialEnd").value=String(u.trial_ends_at||"").slice(0,10);
  $("adminPaidStart").value=String(u.paid_started_at||"").slice(0,10);$("adminPaidEnd").value=String(u.paid_expires_at||"").slice(0,10);
  $("adminSaveButton").textContent="Save Changes";$("adminCancelEdit").classList.remove("hidden");
  $("adminMessage").textContent="Editing "+u.email+". Gmail address is locked to protect the sign-in identity.";
  $("adminEmail").scrollIntoView({behavior:"smooth",block:"center"});
 }
+let adminToastTimer=null;
+function showAdminToast(message,success=true){
+ const toast=$("adminToast");if(!toast)return;
+ toast.textContent=message;toast.style.background=success?"#203040":"#a12626";toast.style.display="block";
+ clearTimeout(adminToastTimer);adminToastTimer=setTimeout(()=>{toast.style.display="none";},2200);
+}
 async function copyAuthorizedEmail(email){
- try{await navigator.clipboard.writeText(email);$("adminMessage").textContent="Gmail copied: "+email;}
- catch{const ta=document.createElement("textarea");ta.value=email;document.body.appendChild(ta);ta.select();const ok=document.execCommand("copy");ta.remove();$("adminMessage").textContent=ok?"Gmail copied: "+email:"Copy failed. Please select the Gmail manually.";}
+ let copied=false;
+ try{await navigator.clipboard.writeText(email);copied=true;}
+ catch{try{const ta=document.createElement("textarea");ta.value=email;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();copied=document.execCommand("copy");ta.remove();}catch{copied=false;}}
+ if(copied){$("adminMessage").textContent="Gmail copied: "+email;showAdminToast("Email Copied!",true);}
+ else{$("adminMessage").textContent="Copy failed. Please select the Gmail manually.";showAdminToast("Copy failed. Please try again.",false);}
 }
 function sendRenewalWhatsApp(email){
  const u=adminUsersCache.find(x=>String(x.email).toLowerCase()===String(email).toLowerCase());if(!u)return alert("User was not found.");
  const phone=String(u.phone||"").replace(/\D/g,"");if(!phone)return alert("Add the customer's phone number with country code in Edit before opening WhatsApp.");
  const status=adminUserStatus(u);
- const message=["trial","trialDue","trialExpired"].includes(status.key)?`Hello, your 7-day free trial of Curtain Shop Manager Pro ${status.key==="trialExpired"?"has ended":status.key==="trialDue"?"expires soon":"is ending soon"}. Would you like to continue with the one-year plan? Please reply to let us know.`:`Hello, your Curtain Shop Manager Pro annual access is due for renewal. Would you like to renew for another year? Please reply to let us know.`;
+ const message=(u.access_type!=="annual"&&!u.is_paid)?`Hello, your 7-day free trial of Curtain Shop Manager Pro ${status.key==="trialExpired"?"has ended":(status.key==="trialExpiresTomorrow"||status.key==="annualExpiresTomorrow")?"expires tomorrow":status.key==="trialDue"?"expires today":"is ending soon"}. Would you like to continue with the one-year plan? Please reply to let us know.`:`Hello, your Curtain Shop Manager Pro annual access ${(status.key==="trialExpiresTomorrow"||status.key==="annualExpiresTomorrow")?"expires tomorrow":"is due for renewal"}. Would you like to renew for another year? Please reply to let us know.`;
  window.open("https://wa.me/"+phone+"?text="+encodeURIComponent(message),"_blank","noopener");
 }
 async function saveAuthorizedUser(){
@@ -1409,6 +1432,8 @@ async function saveAuthorizedUser(){
  const email=$("adminEmail").value.trim().toLowerCase();
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return alert("Enter a valid email address.");
  if(email===String(authUser?.email||"").toLowerCase()&&$("adminActive").value!=="true")return alert("You cannot disable your own active administrator account here.");
+ const phoneDigits=normalizeAdminPhone($("adminPhone").value);
+ if($("adminPhone").value.trim() && phoneDigits.length!==10)return alert("Enter a valid 10-digit Indian mobile number.");
  const accessType=$("adminAccessType").value;
  const trialStart=$("adminTrialStart").value||"";
  const paidStart=$("adminPaidStart").value||"";
@@ -1426,7 +1451,7 @@ async function saveAuthorizedUser(){
   paidEnd=adminDateAddYear(paidStart);
   if(!paidEnd)return alert("Could not calculate the annual expiry date.");
  }
- const record={email,is_active:$("adminActive").value==="true",is_paid:paid,plan_name:$("adminPlan").value,access_type:accessType,phone:$("adminPhone").value.trim()||null,trial_started_at:trialStart||null,trial_ends_at:trialEnd||null,paid_started_at:paidStart||null,paid_expires_at:paidEnd||null};
+ const record={email,is_active:$("adminActive").value==="true",is_paid:paid,plan_name:$("adminPlan").value,access_type:accessType,phone:(normalizeAdminPhone($("adminPhone").value).length===10?"91"+normalizeAdminPhone($("adminPhone").value):null),trial_started_at:trialStart||null,trial_ends_at:trialEnd||null,paid_started_at:paidStart||null,paid_expires_at:paidEnd||null};
  $("adminMessage").textContent="Saving user...";
  let result;
  if(adminEditingEmail){
