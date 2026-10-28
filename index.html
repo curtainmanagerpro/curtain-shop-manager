@@ -401,7 +401,7 @@ td input,td select{min-width:80px;padding:8px}
 <section id="admin" class="page">
  <div class="card">
   <h2>Admin Panel — Authorized Users</h2>
-  <div class="notice">Add and manage authorized Google accounts. Only an administrator should manage this list.</div>
+  <div class="notice">Add and manage authorized Google accounts. Only an administrator should manage this list. Trial and annual dates require the Supabase columns listed in the supplied database update script.</div>
   <div class="grid" style="margin-top:14px">
    <div class="field"><label for="adminEmail">Authorized Gmail</label><input id="adminEmail" type="email" placeholder="customer@gmail.com" autocomplete="off"></div>
    <div class="field"><label for="adminPhone">Phone / WhatsApp (include country code)</label><input id="adminPhone" type="tel" placeholder="91XXXXXXXXXX"></div>
@@ -1356,15 +1356,16 @@ function adminUserStatus(u){
  if(!trialEnd)return {key:"trialNoDate",label:"Trial date not set",cls:"trial"};
  if(trialEnd<=todayValue)return {key:"trialExpired",label:"Trial expired",cls:"expired"};
  const days=Math.round((Date.parse(trialEnd+"T00:00:00Z")-Date.parse(todayValue+"T00:00:00Z"))/86400000);
- return {key:"trial",label:days===0?"Trial ends today":"Trial — "+days+" day(s) left",cls:"trial"};
+ if(days<=1)return {key:"trialDue",label:days===0?"Trial expires today":"Trial expires tomorrow",cls:"soon"};
+ return {key:"trial",label:"Trial — "+days+" day(s) left",cls:"trial"};
 }
 function setAdminFilter(filter){adminCurrentFilter=filter;renderAuthorizedUsers();}
 function renderAuthorizedUsers(){
  const search=($("adminUserSearch")?.value||"").trim().toLowerCase();
  const enriched=adminUsersCache.map(u=>({u,status:adminUserStatus(u)}));
- const counts={all:enriched.length,trial:enriched.filter(x=>["trial","trialNoDate"].includes(x.status.key)).length,trialExpired:enriched.filter(x=>x.status.key==="trialExpired").length,paid:enriched.filter(x=>["paid","paidNoDate"].includes(x.status.key)).length,renewal:enriched.filter(x=>x.status.key==="renewal").length,expired:enriched.filter(x=>x.status.key==="expired").length};
+ const counts={all:enriched.length,trial:enriched.filter(x=>["trial","trialDue","trialNoDate"].includes(x.status.key)).length,trialExpired:enriched.filter(x=>x.status.key==="trialExpired").length,paid:enriched.filter(x=>["paid","paidNoDate"].includes(x.status.key)).length,renewal:enriched.filter(x=>x.status.key==="renewal").length,expired:enriched.filter(x=>x.status.key==="expired").length};
  Object.entries({adminCountAll:counts.all,adminCountTrial:counts.trial,adminCountTrialExpired:counts.trialExpired,adminCountPaid:counts.paid,adminCountRenewal:counts.renewal,adminCountExpired:counts.expired}).forEach(([id,value])=>{if($(id))$(id).textContent=value;});
- const filterKeys={all:null,trial:["trial","trialNoDate"],trialExpired:["trialExpired"],paid:["paid","paidNoDate"],renewal:["renewal"],expired:["expired"]};
+ const filterKeys={all:null,trial:["trial","trialDue","trialNoDate"],trialExpired:["trialExpired"],paid:["paid","paidNoDate"],renewal:["renewal"],expired:["expired"]};
  const rows=enriched.filter(({u,status})=>{
   if(search&&!(String(u.email||"")+" "+String(u.phone||"")).toLowerCase().includes(search))return false;
   const allowed=filterKeys[adminCurrentFilter];return !allowed||allowed.includes(status.key);
@@ -1374,7 +1375,7 @@ function renderAuthorizedUsers(){
   const trialStart=formatDateDMY(u.trial_started_at),trialEnd=formatDateDMY(u.trial_ends_at),paidStart=formatDateDMY(u.paid_started_at),paidEnd=formatDateDMY(u.paid_expires_at);
   const accessLabel=(u.access_type==="annual"||u.is_paid)?"Annual — 1 Year":"Free Trial — 7 Days";
   const phone=String(u.phone||"");
-  return `<div class="customer-card"><b style="font-size:17px;overflow-wrap:anywhere">${esc(email)}</b><p class="small">Plan: ${esc(u.plan_name||"customer")} · Paid: ${u.is_paid?"Yes":"No"} · Active: ${u.is_active?"Yes":"No"}</p><span class="admin-state ${status.cls}">${esc(status.label)}</span><div class="admin-user-meta"><div><b>Access type</b><br>${esc(accessLabel)}</div><div><b>Phone / WhatsApp</b><br>${esc(phone||"Not added")}</div><div><b>Trial start</b><br>${esc(trialStart||"Not set")}</div><div><b>Trial expiry</b><br>${esc(trialEnd||"Not set")}</div><div><b>Payment date</b><br>${esc(paidStart||"Not set")}</div><div><b>Annual expiry</b><br>${esc(paidEnd||"Not set")}</div></div><div class="admin-user-actions"><button class="btn-blue" onclick="editAuthorizedUser('${esc(email)}')">Edit</button><button class="btn-light" onclick="copyAuthorizedEmail('${esc(email)}')">Copy Gmail</button><button class="btn-green" onclick="sendRenewalWhatsApp('${esc(email)}')">WhatsApp Message</button><button class="btn-red" onclick="disableAuthorizedUser('${esc(email)}')">Disable</button><button class="btn-red" onclick="deleteAuthorizedUser('${esc(email)}')">Delete</button></div></div>`;
+  return `<div class="customer-card"><b style="font-size:17px;overflow-wrap:anywhere">${esc(email)}</b><p class="small">Plan: ${esc(u.plan_name||"customer")} · Paid: ${u.is_paid?"Yes":"No"} · Active: ${u.is_active?"Yes":"No"}</p><span class="admin-state ${status.cls}">${esc(status.label)}</span><div class="admin-user-meta"><div><b>Access type</b><br>${esc(accessLabel)}</div><div><b>Phone / WhatsApp</b><br>${esc(phone||"Not added")}</div><div><b>Trial start</b><br>${esc(trialStart||"Not set")}</div><div><b>Trial expiry</b><br>${esc(trialEnd||"Not set")}</div><div><b>Payment date</b><br>${esc(paidStart||"Not set")}</div><div><b>Annual expiry</b><br>${esc(paidEnd||"Not set")}</div></div><div class="admin-user-actions"><button class="btn-blue" onclick="editAuthorizedUser('${esc(email)}')">Edit</button><button class="btn-light" onclick="copyAuthorizedEmail('${esc(email)}')">Copy Email</button><button class="btn-green" onclick="sendRenewalWhatsApp('${esc(email)}')">WhatsApp Message</button><button class="btn-red" onclick="disableAuthorizedUser('${esc(email)}')">Disable</button><button class="btn-red" onclick="deleteAuthorizedUser('${esc(email)}')">Delete</button></div></div>`;
  }).join("")||'<div class="card empty">No users match this filter.</div>';
 }
 function editAuthorizedUser(email){
@@ -1399,7 +1400,7 @@ function sendRenewalWhatsApp(email){
  const u=adminUsersCache.find(x=>String(x.email).toLowerCase()===String(email).toLowerCase());if(!u)return alert("User was not found.");
  const phone=String(u.phone||"").replace(/\D/g,"");if(!phone)return alert("Add the customer's phone number with country code in Edit before opening WhatsApp.");
  const status=adminUserStatus(u);
- const message=status.key==="trial"||status.key==="trialExpired"?`Hello, your 7-day free trial of Curtain Shop Manager Pro ${status.key==="trialExpired"?"has ended":"is ending soon"}. Would you like to continue with the one-year plan? Please reply to let us know.`:`Hello, your Curtain Shop Manager Pro annual access is due for renewal. Would you like to renew for another year? Please reply to let us know.`;
+ const message=["trial","trialDue","trialExpired"].includes(status.key)?`Hello, your 7-day free trial of Curtain Shop Manager Pro ${status.key==="trialExpired"?"has ended":status.key==="trialDue"?"expires soon":"is ending soon"}. Would you like to continue with the one-year plan? Please reply to let us know.`:`Hello, your Curtain Shop Manager Pro annual access is due for renewal. Would you like to renew for another year? Please reply to let us know.`;
  window.open("https://wa.me/"+phone+"?text="+encodeURIComponent(message),"_blank","noopener");
 }
 async function saveAuthorizedUser(){
@@ -1448,8 +1449,9 @@ async function deleteAuthorizedUser(email){
  if(!adminOnly())return alert("Administrator access required.");
  if(String(email).toLowerCase()===String(authUser?.email||"").toLowerCase())return alert("You cannot delete your own administrator account.");
  if(!confirm("Delete the authorization record for "+email+"? This removes access-list entry only. Saved customer data in the separate customer_data table will not be deleted."))return;
- const {error}=await sb.from("authorized_users").delete().eq("email",email);
- if(error){$("adminMessage").textContent="Delete failed: "+error.message+". Supabase table permissions may need to allow administrators to delete authorization records.";return;}
+ const {data,error}=await sb.from("authorized_users").delete().eq("email",email).select("email");
+ if(error){$("adminMessage").textContent="Delete failed: "+error.message+". Supabase RLS/delete permission must allow the administrator to remove this record.";return;}
+ if(!data||data.length===0){$("adminMessage").textContent="Delete was not completed: Supabase did not return a deleted row. Check the authorized_users DELETE policy and administrator permissions.";return;}
  if(adminEditingEmail===email)resetAdminForm();
  $("adminMessage").textContent="Authorization record deleted for "+email;await loadAuthorizedUsers();
 }
