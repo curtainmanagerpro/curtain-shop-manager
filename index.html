@@ -148,6 +148,33 @@ td input,td select{min-width:80px;padding:8px}
 .app-header-top h1{flex:1;min-width:0}
 .header-home-btn{background:#fff;color:#24445c;border-radius:10px;padding:10px 14px;margin:0;white-space:nowrap;font-size:15px}
 @media(max-width:480px){.app-header-top h1{font-size:19px}.header-home-btn{padding:9px 10px;font-size:14px}}
+
+
+/* Measurement sheet: horizontal seven-shaped dimensions and grouped rooms */
+.m-custom-type{display:none}
+.measurement-print{background:#fff;color:#203040;padding:22px;max-width:100%;font-family:Arial,sans-serif}
+.measurement-print-head{text-align:center;border-bottom:2px solid #24445c;padding-bottom:10px;margin-bottom:12px}
+.measurement-print-head h2{margin:5px 0}
+.measurement-print-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin:10px 0 14px}
+.measurement-room{display:grid;grid-template-columns:105px minmax(0,1fr) 95px 85px;gap:8px;align-items:stretch;border-top:1.5px solid #647586;padding:12px 4px}
+.measurement-room-name{font-weight:bold;overflow-wrap:anywhere;padding-top:8px}
+.measurement-window-list{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-start}
+.measurement-window{width:112px;min-height:120px;display:flex;flex-direction:column;align-items:flex-start}
+.measurement-seven{position:relative;width:88px;height:66px;margin:8px 0 4px 4px}
+.measurement-seven:before{content:"";position:absolute;left:0;top:0;width:76px;border-top:2px solid #243c55}
+.measurement-seven:after{content:"";position:absolute;right:10px;top:0;height:58px;border-right:2px solid #243c55}
+.measurement-width{position:absolute;left:0;top:-23px;font-weight:bold;font-size:13px}
+.measurement-height{position:absolute;left:80px;top:37px;font-weight:bold;font-size:13px;white-space:nowrap}
+.measurement-window-detail{font-size:11px;line-height:1.35;margin-top:5px;overflow-wrap:anywhere}
+.measurement-room-total{font-weight:bold;text-align:right;padding-top:8px}
+.measurement-shade{font-size:11px;font-weight:bold;margin-top:2px;overflow-wrap:anywhere}
+.measurement-grand{border-top:2px solid #24445c;margin-top:10px;padding-top:10px;text-align:right;font-weight:bold}
+@media(max-width:600px){
+ .measurement-room{grid-template-columns:78px minmax(0,1fr) 65px;gap:4px}
+ .measurement-room-total{font-size:12px}
+ .measurement-window-list{gap:12px}
+}
+@media print{.measurement-print{padding:0}}
 </style>
  <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#24445c">
@@ -208,7 +235,8 @@ td input,td select{min-width:80px;padding:8px}
 
 
  
-  <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Type</th><th>Width</th><th>Height</th><th>Unit</th><th>Qty</th><th>Sq.Ft</th><th>Delete</th></tr></thead><tbody id="measurementBody"></tbody></table></div>
+  <div class="notice" style="margin-bottom:10px">ഒരേ റൂമിലെ ഓരോ വിൻഡോയ്ക്കും ഓരോ വരി ചേർക്കുക. Room / Area ഒരേ പേരിൽ നൽകിയാൽ PDF-ൽ അവ ഒരുമിച്ച് വരും.</div>
+  <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Type</th><th>Custom Type</th><th>Width</th><th>Height</th><th>Shade No.</th><th>Unit</th><th>Qty</th><th>Value</th><th>Delete</th></tr></thead><tbody id="measurementBody"></tbody></table></div>
 
   <div class="row-add-bottom" style="display:flex;justify-content:flex-end;margin-top:10px">
     <button class="btn-blue" type="button" onclick="addMeasurementRow()">＋ Add Row</button>
@@ -219,9 +247,12 @@ td input,td select{min-width:80px;padding:8px}
    <div class="summary-row"><span>Total RFT</span><strong id="measurementRft">0.00</strong></div>
   </div>
   <button class="btn-green" onclick="saveMeasurement()">Save Measurement</button>
+  <button class="btn-blue" onclick="previewMeasurementSheet()">Preview Measurement Sheet</button>
+  <button class="btn-dark" onclick="downloadMeasurementPDF()">Download / Share PDF</button>
   <button class="btn-blue" onclick="measurementToQuotation()">Create Quotation</button>
   <button class="btn-light" onclick="clearMeasurement()">Clear</button>
   <button class="btn-light" onclick="showPage('savedMeasurements')">View Saved Measurements</button>
+  <div id="measurementPreview" class="preview hidden" style="margin-top:16px"></div>
  </div>
 </section>
 
@@ -468,8 +499,8 @@ let currentInvoiceId=null,currentReceiptId=null,invoiceItems=[];
 const DATA_KEY="curtain_manager_data_v4";
 const SETTINGS_KEY="curtain_manager_settings_v4";
 function settingsStorageKey(){return authUser?.id?SETTINGS_KEY+"_"+authUser.id:SETTINGS_KEY;}
-const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Blackout Curtain","Zebra Blind","Roman Blind","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Other"];
-const rftTypes=["Cloth Curtain","Eyelet Curtain","Ripple Curtain"];
+const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Blackout Curtain","Zebra Blind","Roman Blind","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Other"];
+const rftTypes=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain"];
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 const money=n=>Number(n||0).toFixed(2);
@@ -751,46 +782,54 @@ function newMeasurement(){
  currentMeasurementId=null;
  ["mCustomer","mPhone","mAddress"].forEach(id=>$(id).value="");
  $("mDate").value=today();$("mUnit").value="cm";$("measurementBody").innerHTML="";
+ $("measurementPreview").innerHTML="";$("measurementPreview").classList.add("hidden");
  addMeasurementRow();showPage("measurement");
 }
-function isRFT(type){return rftTypes.includes(type);}
+function isRFT(type,customUnit){
+ return rftTypes.includes(type)||(type==="Other"&&customUnit==="RFT");
+}
 function addMeasurementRow(data){
  const tr=document.createElement("tr");
-
-tr.innerHTML=`<td class="rowNo" data-label="No."></td>
- <td data-label="Room / Area"><input class="mArea" placeholder="Hall / Bedroom"></td>
- <td data-label="Type"><select class="mType">${types.map(t=>`<option>${esc(t)}</option>`).join("")}</select></td>
- <td data-label="Width"><input class="mWidth" type="number" min="0" step=".01"></td>
- <td data-label="Height"><input class="mHeight" type="number" min="0" step=".01"></td>
- <td class="mUnitCell" data-label="Unit">Sq.Ft</td>
- <td data-label="Qty"><input class="mQty" type="number" min="1" value="1"></td>
- <td class="mAreaCell" data-label="Sq.Ft">0.00</td>
- 
-<td data-label="Delete"><button class="btn-red" type="button" style="padding:5px 9px;font-size:12px;margin:0">Delete</button></td>
-`;
-
+ tr.innerHTML=`<td class="rowNo" data-label="No."></td>
+  <td data-label="Room / Area"><input class="mArea" placeholder="Hall / Bedroom"></td>
+  <td data-label="Type"><select class="mType">${types.map(t=>`<option>${esc(t)}</option>`).join("")}</select></td>
+  <td data-label="Custom Type"><div><input class="mCustomType" placeholder="Type name" style="display:none"><select class="mCustomUnit" style="display:none;margin-top:5px"><option value="Sq.Ft">Square Feet</option><option value="RFT">Running Feet</option></select></div></td>
+  <td data-label="Width"><input class="mWidth" type="number" min="0" step=".01"></td>
+  <td data-label="Height"><input class="mHeight" type="number" min="0" step=".01"></td>
+  <td data-label="Shade No."><input class="mShade" placeholder="Optional"></td>
+  <td class="mUnitCell" data-label="Unit">Sq.Ft</td>
+  <td data-label="Qty"><input class="mQty" type="number" min="1" value="1"></td>
+  <td class="mAreaCell" data-label="Value">0.00</td>
+  <td data-label="Delete"><button class="btn-red" type="button" style="padding:5px 9px;font-size:12px;margin:0">Delete</button></td>`;
  $("measurementBody").appendChild(tr);
- tr.querySelector(".mType").onchange=recalculateMeasurements;
+ const typeSelect=tr.querySelector(".mType");
+ const customInput=tr.querySelector(".mCustomType");
+ const customUnit=tr.querySelector(".mCustomUnit");
+ function updateCustom(){
+  const other=typeSelect.value==="Other";
+  customInput.style.display=other?"block":"none";
+  customUnit.style.display=other?"block":"none";
+  recalculateMeasurements();
+ }
+ typeSelect.onchange=updateCustom;
+ customUnit.onchange=recalculateMeasurements;
  tr.querySelectorAll("input").forEach(i=>i.oninput=recalculateMeasurements);
- const deleteButton = tr.querySelector("button");
-if (deleteButton) {
-  deleteButton.onclick = () => {
-    tr.remove();
-    recalculateMeasurements();
-  };
-}
+ tr.querySelector("button").onclick=()=>{tr.remove();recalculateMeasurements();};
  if(data){
   tr.querySelector(".mArea").value=data.area||"";
-  tr.querySelector(".mType").value=data.type||types[0];
+  typeSelect.value=data.type||types[0];
+  customInput.value=data.customType||"";
+  customUnit.value=data.customUnit||"Sq.Ft";
   tr.querySelector(".mHeight").value=data.height??"";
   tr.querySelector(".mWidth").value=data.width??"";
   tr.querySelector(".mQty").value=data.qty||1;
+  tr.querySelector(".mShade").value=data.shade||"";
  }
- renumberRows();recalculateMeasurements();
+ updateCustom();
 }
 function renumberRows(){document.querySelectorAll("#measurementBody tr").forEach((r,i)=>r.querySelector(".rowNo").textContent=i+1);}
-function getRowCalc(h,w,unit,type,qty,rate){
- const rft=isRFT(type);
+function getRowCalc(h,w,unit,type,qty,rate,customUnit){
+ const rft=isRFT(type,customUnit);
  const widthFeet=unit==="cm"?w/30.48:w/12;
  const sqft=unit==="cm"?(h*w)/929.0304:(h*w)/144;
  const area=rft?widthFeet*qty:sqft*qty;
@@ -800,10 +839,11 @@ function recalculateMeasurements(){
  let totalSqft=0,totalRft=0;
  document.querySelectorAll("#measurementBody tr").forEach(tr=>{
   const type=tr.querySelector(".mType").value;
+  const customUnit=tr.querySelector(".mCustomUnit").value;
   const h=Number(tr.querySelector(".mHeight").value)||0;
   const w=Number(tr.querySelector(".mWidth").value)||0;
   const qty=Math.max(1,Number(tr.querySelector(".mQty").value)||1);
-  const c=getRowCalc(h,w,$("mUnit").value,type,qty,0);
+  const c=getRowCalc(h,w,$("mUnit").value,type,qty,0,customUnit);
   tr.querySelector(".mUnitCell").textContent=c.unit;
   tr.querySelector(".mAreaCell").textContent=money(c.area);
   totalSqft+=c.sqft;totalRft+=c.rft;
@@ -818,9 +858,12 @@ function getMeasurementForm(){
   const h=Number(tr.querySelector(".mHeight").value)||0;
   const w=Number(tr.querySelector(".mWidth").value)||0;
   if(h<=0||w<=0)return;
-  const type=tr.querySelector(".mType").value,qty=Math.max(1,Number(tr.querySelector(".mQty").value)||1),rate=0;
-  const c=getRowCalc(h,w,$("mUnit").value,type,qty,rate);
-  rows.push({area:tr.querySelector(".mArea").value.trim(),type,height:h,width:w,qty,rate,unit:c.unit,areaValue:c.area,amount:c.amount,sqft:c.sqft,rft:c.rft});
+  const type=tr.querySelector(".mType").value;
+  const customType=tr.querySelector(".mCustomType").value.trim();
+  const customUnit=tr.querySelector(".mCustomUnit").value;
+  const qty=Math.max(1,Number(tr.querySelector(".mQty").value)||1),rate=0;
+  const c=getRowCalc(h,w,$("mUnit").value,type,qty,rate,customUnit);
+  rows.push({area:tr.querySelector(".mArea").value.trim(),type,customType,customUnit,shade:tr.querySelector(".mShade").value.trim(),height:h,width:w,qty,rate,unit:c.unit,areaValue:c.area,amount:c.amount,sqft:c.sqft,rft:c.rft});
  });
  return {id:currentMeasurementId||newId(),customer:$("mCustomer").value.trim(),phone:$("mPhone").value.trim(),address:$("mAddress").value.trim(),date:$("mDate").value,unit:$("mUnit").value,rows};
 }
@@ -828,6 +871,7 @@ function saveMeasurement(){
  const m=getMeasurementForm();
  if(!m.customer)return alert("Please enter Customer Name.");
  if(!m.rows.length)return alert("Enter at least one valid width and height.");
+ if(m.rows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
  const i=measurements.findIndex(x=>x.id===m.id);
  if(i>=0)measurements[i]=m;else measurements.push(m);
  currentMeasurementId=m.id;saveStorage();alert("Measurement saved successfully.");showPage("savedMeasurements");
@@ -837,7 +881,7 @@ function viewMeasurement(id){
  const m=measurements.find(x=>x.id===id);if(!m)return;
  currentMeasurementId=m.id;$("mCustomer").value=m.customer;$("mPhone").value=m.phone||"";
  $("mAddress").value=m.address||"";$("mDate").value=m.date||today();$("mUnit").value=m.unit||"cm";
- $("measurementBody").innerHTML="";m.rows.forEach(r=>addMeasurementRow(r));showPage("measurement");
+ $("measurementBody").innerHTML="";$("measurementPreview").innerHTML="";$("measurementPreview").classList.add("hidden");m.rows.forEach(r=>addMeasurementRow(r));showPage("measurement");
 }
 function editMeasurement(id){viewMeasurement(id);}
 function deleteMeasurement(id){
@@ -850,118 +894,84 @@ function renderMeasurements(){
  $("measurementList").innerHTML=list.slice().reverse().map(m=>{
   const sqft=m.rows.reduce((a,r)=>a+Number(r.sqft||0),0);
   const rft=m.rows.reduce((a,r)=>a+Number(r.rft||0),0);
-  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(formatDateDMY(m.date))}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></p><button class="btn-blue" onclick="viewMeasurement(${m.id})">View</button><button class="btn-green" onclick="editMeasurement(${m.id})">Edit</button><button class="btn-red" onclick="deleteMeasurement(${m.id})">Delete</button></div>`;
+  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(formatDateDMY(m.date))}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></p><button class="btn-blue" onclick="viewMeasurement(${m.id})">View</button><button class="btn-green" onclick="editMeasurement(${m.id})">Edit</button><button class="btn-dark" onclick="downloadSavedMeasurementPDF(${m.id})">PDF</button><button class="btn-red" onclick="deleteMeasurement(${m.id})">Delete</button></div>`;
  }).join("")||'<div class="card empty">No saved measurements found.</div>';
 }
-function renderCustomers(){
- const s=($("customerSearch")?.value||"").toLowerCase();
- const grouped={};
- measurements.forEach(m=>{const k=(m.customer||"").toLowerCase();if(k)grouped[k]=m;});
- const list=Object.values(grouped).filter(m=>(m.customer+" "+m.phone).toLowerCase().includes(s));
- $("customerList").innerHTML=list.map(m=>`<div class="customer-card"><h3>${esc(m.customer)}</h3><p>${esc(m.phone||"No phone")}<br>${esc(m.address||"")}</p><button class="btn-blue" onclick="showPage('savedMeasurements');$('measurementSearch').value='${esc(m.customer)}';renderMeasurements()">View Measurements</button></div>`).join("")||'<div class="card empty">No customers saved yet.</div>';
-}
-
-function nextQuoteNumber(){return "QT-"+String(quotations.length+1).padStart(4,"0");}
-
-function newQuotation(){
- currentQuotationId=null;
- quotationItems=[{name:"",qty:"",unit:"Sq.Ft",rate:""}];
- $("qCustomer").value="";
- $("qPhone").value="";
- $("qAddress").value="";
- $("qNumber").value=nextQuoteNumber();
- $("qDate").value=today();
- $("discountType").value="percent";
- $("discountValue").value=0;
- $("gstValue").value=0;
- $("qTerms").value="Quotation validity: "+(settings.validity||"15 Days");
- renderQuotationItems();
- showPage("quotation");
-}
-
-function addQuotationItem(item){
- quotationItems.push({
-  name:item?.name||"",
-  qty:item?.qty??"",
-  unit:item?.unit||"Sq.Ft",
-  rate:item?.rate??""
+function measurementSheetHTML(m){
+ const groups=new Map();
+ (m.rows||[]).forEach(r=>{
+  const room=String(r.area||"Unassigned Area").trim()||"Unassigned Area";
+  const key=room.toLocaleLowerCase();
+  if(!groups.has(key))groups.set(key,{name:room,rows:[],sqft:0,rft:0});
+  const g=groups.get(key);g.rows.push(r);g.sqft+=Number(r.sqft||0);g.rft+=Number(r.rft||0);
  });
- renderQuotationItems();
-}
-
-function renderQuotationItems(){
- $("quotationItems").innerHTML="";
-
- quotationItems.forEach((it,i)=>{
-  const d=document.createElement("div");
-  d.className="item-card";
-
-  d.innerHTML=`<div class="grid">
-  <div class="field"><label>Item / Type</label><input value="${esc(it.name)}" data-k="name"></div>
-  <div class="field"><label>Quantity</label><input type="number" min="0" step=".01" value="${it.qty??''}" data-k="qty"></div>
-  <div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div>
-  <div class="field"><label>Rate</label><input type="number" min="0" step=".01" value="${it.rate??''}" data-k="rate"></div></div>
-  <p>Amount: <b>₹${money(it.qty*it.rate)}</b></p>
-  <div class="row-actions" style="display:flex;justify-content:flex-start">
-  <button class="btn-red row-delete" type="button">Delete Item</button>
+ const roomBlocks=[...groups.values()].map(g=>{
+  const windows=g.rows.map(r=>{
+   const typeName=r.type==="Other"?(r.customType||"Other"):r.type;
+   const dimUnit=m.unit==="cm"?"cm":"inch";
+   const shade=r.shade?`<div class="measurement-shade">Shade No: ${esc(r.shade)}</div>`:"";
+   return `<div class="measurement-window">
+    <div class="measurement-seven"><span class="measurement-width">${esc(r.width)} ${dimUnit}</span><span class="measurement-height">${esc(r.height)}</span></div>
+    <div class="measurement-window-detail"><b>${esc(typeName)}</b><br>${esc(r.unit||"Sq.Ft")}${Number(r.qty||1)>1?` · Qty ${esc(r.qty)}`:""}${shade}</div>
+   </div>`;
+  }).join("");
+  return `<div class="measurement-room">
+   <div class="measurement-room-name">${esc(g.name)}</div>
+   <div class="measurement-window-list">${windows}</div>
+   <div class="measurement-room-total">${g.sqft?`Sq.Ft<br>${money(g.sqft)}`:""}${g.sqft&&g.rft?"<br><br>":""}${g.rft?`RFT<br>${money(g.rft)}`:""}</div>
+   <div class="measurement-room-total">${g.rows.length} Window${g.rows.length===1?"":"s"}</div>
   </div>`;
-
-  d.querySelectorAll("[data-k]").forEach(el=>{
-   el.oninput=()=>{
-    const k=el.dataset.k;
-    quotationItems[i][k]=el.value;
-    calculateQuotation();
-   };
-   el.onchange=()=>{
-    const k=el.dataset.k;
-    quotationItems[i][k]=el.value;
-    calculateQuotation();
-   };
-  });
-
-  d.querySelector(".row-delete").onclick=()=>{
-   quotationItems.splice(i,1);
-   renderQuotationItems();
-  };
-
-  $("quotationItems").appendChild(d);
- });
-
- calculateQuotation();
+ }).join("");
+ const totalSqft=(m.rows||[]).reduce((a,r)=>a+Number(r.sqft||0),0);
+ const totalRft=(m.rows||[]).reduce((a,r)=>a+Number(r.rft||0),0);
+ const business=settings.name||"Home Style Curtains";
+ return `<div class="measurement-print">
+  <div class="measurement-print-head"><h2>${esc(business)}</h2><div>${esc(settings.address||"")}</div><div>${esc(settings.phone||"")}</div><h3 style="margin:8px 0 0">MEASUREMENT SHEET</h3></div>
+  <div class="measurement-print-meta"><div><b>Customer:</b> ${esc(m.customer||"")}</div><div><b>Phone:</b> ${esc(m.phone||"")}</div><div><b>Date:</b> ${esc(formatDateDMY(m.date))}</div></div>
+  ${m.address?`<div style="margin-bottom:10px"><b>Address:</b> ${esc(m.address)}</div>`:""}
+  <div style="display:grid;grid-template-columns:105px minmax(0,1fr) 95px 85px;gap:8px;background:#eaf0f5;padding:8px 4px;font-weight:bold;font-size:12px"><div>Area</div><div>Measurements (Width / Height)</div><div style="text-align:right">Total</div><div style="text-align:right">Items</div></div>
+  ${roomBlocks}
+  <div class="measurement-grand">Total Sq.Ft: ${money(totalSqft)} &nbsp;&nbsp; Total Running Feet: ${money(totalRft)}</div>
+ </div>`;
 }
-
-function calculateQuotation(){
- const subtotal=quotationItems.reduce((s,i)=>s+(Number(i.qty)||0)*(Number(i.rate)||0),0);
- let discount=$("discountType").value==="percent"?subtotal*(Number($("discountValue").value)||0)/100:(Number($("discountValue").value)||0);
- discount=Math.min(subtotal,Math.max(0,discount));
- const gst=(subtotal-discount)*Math.max(0,Number($("gstValue").value)||0)/100;
- const grand=subtotal-discount+gst;
- $("qSubtotal").textContent=money(subtotal);$("qDiscount").textContent=money(discount);$("qGST").textContent=money(gst);$("qGrandTotal").textContent=money(grand);
- return {subtotal,discount,gst,grand};
+function previewMeasurementSheet(){
+ const m=getMeasurementForm();
+ if(!m.rows.length)return alert("Enter at least one valid width and height.");
+ if(m.rows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
+ const el=$("measurementPreview");el.innerHTML=measurementSheetHTML(m);el.classList.remove("hidden");
+ el.scrollIntoView({behavior:"smooth",block:"start"});
 }
-function currentQuote(){
- const c=calculateQuotation();
- return {id:currentQuotationId||newId(),number:$("qNumber").value||nextQuoteNumber(),date:$("qDate").value,customer:$("qCustomer").value.trim(),phone:$("qPhone").value,address:$("qAddress").value,items:JSON.parse(JSON.stringify(quotationItems)),discountType:$("discountType").value,discountValue:Number($("discountValue").value)||0,gstRate:Number($("gstValue").value)||0,subtotal:c.subtotal,discount:c.discount,gst:c.gst,grand:c.grand,terms:$("qTerms").value};
+async function createMeasurementPDF(m){
+ if(!m.rows||!m.rows.length)return alert("Enter at least one measurement.");
+ if(!window.jspdf||!window.html2canvas)return alert("PDF libraries did not load. Check your internet connection.");
+ const host=$("pdfSheet");host.innerHTML=measurementSheetHTML(m);host.style.width="1000px";host.style.left="-10000px";
+ try{
+  const preview=host.querySelector(".measurement-print");
+  const canvas=await html2canvas(preview,{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false});
+  const {jsPDF}=window.jspdf;const pdf=new jsPDF("p","mm","a4");
+  const pageWidth=pdf.internal.pageSize.getWidth(),pageHeight=pdf.internal.pageSize.getHeight(),margin=8;
+  const imgWidth=pageWidth-2*margin,imgHeight=canvas.height*imgWidth/canvas.width,imgData=canvas.toDataURL("image/jpeg",0.95);
+  let remaining=imgHeight,position=margin;
+  pdf.addImage(imgData,"JPEG",margin,position,imgWidth,imgHeight);
+  remaining-=pageHeight-2*margin;
+  while(remaining>0){position=margin-(imgHeight-remaining);pdf.addPage();pdf.addImage(imgData,"JPEG",margin,position,imgWidth,imgHeight);remaining-=pageHeight-2*margin;}
+  const blob=pdf.output("blob"),safeName=String(m.customer||"Customer").replace(/[^a-z0-9-_]/gi,"-");
+  const filename="Measurement-"+safeName+".pdf",file=new File([blob],filename,{type:"application/pdf"});
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+   try{await navigator.share({title:"Measurement Sheet",text:"Measurement sheet - "+(m.customer||""),files:[file]});return;}
+   catch(e){if(e&&e.name==="AbortError")return;}
+  }
+  const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+ }catch(e){alert("PDF Error: "+(e.message||e.name||"Unknown error"));}
+ finally{host.innerHTML="";}
 }
-function saveQuotation(){
- const q=currentQuote();
- if(!q.customer)return alert("Please enter Customer Name.");
- if(!q.items.length||!q.items.some(i=>String(i.name||"").trim()))return alert("Add at least one item with a description.");
- const i=quotations.findIndex(x=>String(x.id)===String(q.id));
- if(i>=0)quotations[i]=q;else quotations.push(q);
- currentQuotationId=q.id;
- const saved=saveStorage();
- renderSavedQuotes();
- if(saved){
-   alert("Quotation saved on this device. Cloud sync will run in the background.");
-   showPage("savedQuotes");
- }
-}
+async function downloadMeasurementPDF(){const m=getMeasurementForm();if(!m.customer)return alert("Please enter Customer Name.");await createMeasurementPDF(m);}
+async function downloadSavedMeasurementPDF(id){const m=measurements.find(x=>String(x.id)===String(id));if(m)await createMeasurementPDF(m);}
 function measurementToQuotation(){
  const m=getMeasurementForm();if(!m.customer||!m.rows.length)return alert("Enter a customer and valid measurements first.");
  const i=measurements.findIndex(x=>x.id===m.id);if(i>=0)measurements[i]=m;else measurements.push(m);saveStorage();
  newQuotation();$("qCustomer").value=m.customer;$("qPhone").value=m.phone;$("qAddress").value=m.address;
- const grouped={};m.rows.forEach(r=>{const key=r.type+"|"+r.unit;if(!grouped[key])grouped[key]={qty:0,rate:r.rate,unit:r.unit,name:r.type};grouped[key].qty+=r.areaValue;});
+ const grouped={};m.rows.forEach(r=>{const itemName=r.type==="Other"?(r.customType||"Other"):r.type;const key=itemName+"|"+r.unit;if(!grouped[key])grouped[key]={qty:0,rate:r.rate,unit:r.unit,name:itemName};grouped[key].qty+=r.areaValue;});
  quotationItems=Object.values(grouped).map(g=>({name:g.name,qty:Number(g.qty.toFixed(2)),rate:g.rate,unit:g.unit}));
  renderQuotationItems();
 }
