@@ -912,7 +912,7 @@ function measurementSheetHTML(m){
    const shade=r.shade?`<div class="measurement-shade">Shade No: ${esc(r.shade)}</div>`:"";
    return `<div class="measurement-window">
     <div class="measurement-seven"><span class="measurement-width">${esc(r.width)} ${dimUnit}</span><span class="measurement-height">${esc(r.height)}</span></div>
-    <div class="measurement-window-detail"><b>${esc(typeName)}</b><br>${esc(r.unit||"Sq.Ft")}${Number(r.qty||1)>1?` · Qty ${esc(r.qty)}`:""}${shade}</div>
+    <div class="measurement-window-detail"><b>${esc(typeName)}</b>${shade}</div>
    </div>`;
   }).join("");
   return `<div class="measurement-room">
@@ -975,6 +975,70 @@ function measurementToQuotation(){
  quotationItems=Object.values(grouped).map(g=>({name:g.name,qty:Number(g.qty.toFixed(2)),rate:g.rate,unit:g.unit}));
  renderQuotationItems();
 }
+
+/* Quotation functions — restored so the Home page New Quotation button works. */
+function nextQuotationNumber(){return "QT-"+String(quotations.length+1).padStart(4,"0");}
+function newQuotation(){
+ currentQuotationId=null;
+ quotationItems=[{name:"",qty:"",unit:"Item",rate:""}];
+ $("qCustomer").value="";$("qPhone").value="";$("qAddress").value="";
+ $("qNumber").value=nextQuotationNumber();$("qDate").value=today();
+ $("discountType").value="percent";$("discountValue").value=0;$("gstValue").value=0;$("qTerms").value="";
+ renderQuotationItems();
+ showPage("quotation");
+}
+function addQuotationItem(item){
+ quotationItems.push({name:item?.name||"",qty:item?.qty??"",unit:item?.unit||"Item",rate:item?.rate??""});
+ renderQuotationItems();
+}
+function renderQuotationItems(){
+ $("quotationItems").innerHTML="";
+ quotationItems.forEach((it,i)=>{
+  const d=document.createElement("div");d.className="item-card";
+  d.innerHTML=`<div class="grid">
+   <div class="field"><label>Item / Description</label><input data-k="name" value="${esc(it.name)}"></div>
+   <div class="field"><label>Quantity</label><input data-k="qty" type="number" min="0" step=".01" value="${it.qty??""}"></div>
+   <div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option value="${u}" ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div>
+   <div class="field"><label>Rate (₹)</label><input data-k="rate" type="number" min="0" step=".01" value="${it.rate??""}"></div>
+  </div><p>Amount: <b>₹${money((Number(it.qty)||0)*(Number(it.rate)||0))}</b></p><button class="btn-red" type="button">Delete Item</button>`;
+  d.querySelectorAll("[data-k]").forEach(el=>{
+   const update=()=>{quotationItems[i][el.dataset.k]=el.value;calculateQuotation();};
+   el.oninput=update;el.onchange=update;
+  });
+  d.querySelector("button").onclick=()=>{quotationItems.splice(i,1);renderQuotationItems();};
+  $("quotationItems").appendChild(d);
+ });
+ calculateQuotation();
+}
+function calculateQuotation(){
+ if(!$("qSubtotal"))return {subtotal:0,discount:0,gst:0,grand:0};
+ const subtotal=quotationItems.reduce((a,x)=>a+(Number(x.qty)||0)*(Number(x.rate)||0),0);
+ let discount=$("discountType").value==="percent"?subtotal*(Number($("discountValue").value)||0)/100:(Number($("discountValue").value)||0);
+ discount=Math.min(subtotal,Math.max(0,discount));
+ const gst=(subtotal-discount)*Math.max(0,Number($("gstValue").value)||0)/100;
+ const grand=subtotal-discount+gst;
+ $("qSubtotal").textContent=money(subtotal);$("qDiscount").textContent=money(discount);
+ $("qGST").textContent=money(gst);$("qGrandTotal").textContent=money(grand);
+ return {subtotal,discount,gst,grand};
+}
+function currentQuote(){
+ const c=calculateQuotation();
+ return {id:currentQuotationId||newId(),number:$("qNumber").value||nextQuotationNumber(),
+  date:$("qDate").value||today(),customer:$("qCustomer").value.trim(),
+  phone:$("qPhone").value.trim(),address:$("qAddress").value.trim(),
+  items:JSON.parse(JSON.stringify(quotationItems)),discountType:$("discountType").value,
+  discountValue:Number($("discountValue").value)||0,gstRate:Number($("gstValue").value)||0,
+  subtotal:c.subtotal,discount:c.discount,gst:c.gst,grand:c.grand,terms:$("qTerms").value.trim()};
+}
+function saveQuotation(){
+ const q=currentQuote();
+ if(!q.customer)return alert("Please enter Customer Name.");
+ if(!q.items.length||!q.items.some(x=>String(x.name||"").trim()))return alert("Add at least one item with a description.");
+ const i=quotations.findIndex(x=>String(x.id)===String(q.id));
+ if(i>=0)quotations[i]=q;else quotations.push(q);
+ currentQuotationId=q.id;saveStorage();renderSavedQuotes();alert("Quotation saved.");showPage("savedQuotes");
+}
+
 function renderSavedQuotes(){
  if(!$("savedQuoteList"))return;
  $("savedQuoteList").innerHTML=quotations.slice().reverse().map(q=>`
