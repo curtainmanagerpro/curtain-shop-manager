@@ -21,6 +21,7 @@ button{border:0;border-radius:9px;padding:11px 14px;margin:4px;font-size:14px;fo
 .btn-dark{background:var(--primary-dark);color:white}.btn-blue{background:#3277d5;color:white}
 .btn-green{background:var(--accent);color:white}.btn-red{background:#c94343;color:white}
 .btn-light{background:#e6edf2;color:var(--text)}
+.customer-card .measurement-open-btn{min-width:82px;padding-left:18px;padding-right:18px}
 .page{display:none}.page.active{display:block}
 .card,.customer-card,.quote-card{background:white;border-radius:15px;padding:17px;margin-bottom:13px;box-shadow:0 3px 12px #172b3b0b}
 h2{margin-top:0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -932,13 +933,31 @@ function deleteMeasurement(id){
  if(!confirm("Delete this measurement sheet?"))return;
  measurements=measurements.filter(m=>m.id!==id);saveStorage();renderMeasurements();
 }
+function renderCustomers(){
+ const search=($("customerSearch")?.value||"").trim().toLowerCase();
+ // Build a customer directory from saved measurement sheets; use name + phone to distinguish customers.
+ const byKey=new Map();
+ measurements.forEach(m=>{
+  const name=String(m.customer||"").trim();
+  if(!name)return;
+  const phone=String(m.phone||"").trim();
+  const key=(name.toLowerCase()+"|"+phone.replace(/\D/g,"")).trim();
+  const prev=byKey.get(key);
+  if(!prev)byKey.set(key,{name,phone,address:String(m.address||""),date:String(m.date||""),count:1});
+  else {prev.count++;if(String(m.date||"")>=String(prev.date||"")){prev.date=String(m.date||"");prev.address=String(m.address||prev.address||"");}}
+ });
+ const list=[...byKey.values()].filter(c=>(c.name+" "+c.phone+" "+c.address).toLowerCase().includes(search))
+  .sort((a,b)=>a.name.localeCompare(b.name));
+ $("customerList").innerHTML=list.map(c=>`<div class="customer-card"><h3>${esc(c.name)}</h3><div class="small">${esc(c.phone||"Phone not provided")}</div>${c.address?`<p>${esc(c.address)}</p>`:""}<p class="small">Saved measurement sheets: <b>${c.count}</b>${c.date?" · Latest: "+esc(formatDateDMY(c.date)):""}</p></div>`).join("")||'<div class="card empty">No customers found. Save a measurement sheet to add a customer here.</div>';
+}
+
 function renderMeasurements(){
  const s=($("measurementSearch")?.value||"").toLowerCase();
  const list=measurements.filter(m=>(m.customer+" "+m.phone+" "+m.date).toLowerCase().includes(s));
  $("measurementList").innerHTML=list.slice().reverse().map(m=>{
   const sqft=m.rows.reduce((a,r)=>a+Number(r.sqft||0),0);
   const rft=m.rows.reduce((a,r)=>a+Number(r.rft||0),0);
-  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(formatDateDMY(m.date))}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></p><button class="btn-blue" onclick="viewMeasurement(${m.id})">View</button><button class="btn-green" onclick="editMeasurement(${m.id})">Edit</button><button class="btn-dark" onclick="downloadSavedMeasurementPDF(${m.id})">Share PDF</button><button class="btn-blue" onclick="measurementToQuotationSaved(${m.id})">Create Quotation</button><button class="btn-green" onclick="measurementToInvoice(${m.id})">Create Invoice</button><button class="btn-blue" onclick="measurementToBlindOrder(${m.id})">Create Blind Order</button><button class="btn-red" onclick="deleteMeasurement(${m.id})">Delete</button></div>`;
+  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(formatDateDMY(m.date))}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></p><button class="btn-blue measurement-open-btn" onclick="viewMeasurement(${m.id})">View</button><button class="btn-green measurement-open-btn" onclick="editMeasurement(${m.id})">Edit</button><button class="btn-dark" onclick="downloadSavedMeasurementPDF(${m.id})">Share PDF</button><button class="btn-blue" onclick="measurementToQuotationSaved(${m.id})">Create Quotation</button><button class="btn-green" onclick="measurementToInvoice(${m.id})">Create Invoice</button><button class="btn-blue" onclick="measurementToBlindOrder(${m.id})">Create Blind Order</button><button class="btn-red" onclick="deleteMeasurement(${m.id})">Delete</button></div>`;
  }).join("")||'<div class="card empty">No saved measurements found.</div>';
 }
 function measurementSheetHTML(m){
