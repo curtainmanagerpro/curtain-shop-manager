@@ -45,7 +45,7 @@ td input,td select{min-width:80px;padding:8px}
 .login-wrap{min-height:95vh;display:grid;place-items:center}
 .login-card{width:min(440px,100%);background:white;border-radius:16px;padding:25px;box-shadow:0 4px 20px #1232}
 .login-card button{width:100%;margin:12px 0}
-#mainApp:not(.hidden) ~ #loginScreen{display:none!important}\n.hidden{display:none!important}.notice{padding:12px;background:#eef7f8;border-radius:9px;font-size:13px;line-height:1.5}
+.hidden{display:none!important}.notice{padding:12px;background:#eef7f8;border-radius:9px;font-size:13px;line-height:1.5}
 @media(max-width:700px){.app{padding:8px}.grid,.home-buttons{grid-template-columns:1fr}.nav{grid-template-columns:repeat(2,minmax(0,1fr))}header h1{font-size:20px}.nav button{font-size:12px;padding:10px 3px}.quote-info{flex-direction:column}.preview{padding:12px}.quote-total{width:100%}}
 
 .bo-input{width:100%;min-width:0!important;padding:7px 4px!important;font-size:12px!important;border-radius:6px!important}
@@ -577,12 +577,17 @@ async function boot(){
  sb.auth.onAuthStateChange((event,session)=>{
   if(event==="SIGNED_IN"&&session?.user)setTimeout(()=>verifyUser(session.user),0);
   if(event==="SIGNED_OUT"){
+   authUser=null;authRecord=null;accessCheckInProgress=false;
    $("mainApp").classList.add("hidden");$("loginScreen").classList.remove("hidden");
    $("loginMessage").textContent="Signed out.";
   }
  });
 }
-async function signOut(){if(sb)await sb.auth.signOut();}
+async function signOut(){
+ if(!sb)return;
+ const {error}=await sb.auth.signOut();
+ if(error){console.error("Sign-out failed:",error.message);alert("Sign out failed. Please try again.");}
+}
 
 
 
