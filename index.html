@@ -922,7 +922,12 @@ function viewMeasurement(id){
  const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;
  showSavedDocumentPreview("Measurement Sheet · "+(m.customer||""),measurementSheetHTML(m));
 }
-function editMeasurement(id){viewMeasurement(id);}
+function editMeasurement(id){
+ const m=measurements.find(x=>String(x.id)===String(id));
+ if(!m)return;
+ loadMeasurementIntoForm(m);
+ showPage("measurement");
+}
 function deleteMeasurement(id){
  if(!confirm("Delete this measurement sheet?"))return;
  measurements=measurements.filter(m=>m.id!==id);saveStorage();renderMeasurements();
