@@ -525,33 +525,50 @@ $("loginBtn").onclick=async()=>{
  if(error)$("loginMessage").textContent="Login failed: "+error.message;
 };
 
+let accessCheckInProgress=false;
 async function verifyUser(user){
+ if(accessCheckInProgress)return;
+ accessCheckInProgress=true;
  authUser=user;
  $("loginMessage").textContent="Checking access...";
- const {data,error}=await sb.from("authorized_users").select("*").eq("email",user.email).maybeSingle();
- if(error){$("loginMessage").textContent="Authorization check failed. Check table permissions.";return;}
- if(!data||data.is_active!==true){
-  $("loginMessage").textContent="This Google account is not authorized.";
-  await sb.auth.signOut();return;
+ try{
+  const accessQuery=sb.from("authorized_users").select("*").eq("email",user.email).maybeSingle();
+  const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error("ACCESS_CHECK_TIMEOUT")),15000));
+  const {data,error}=await Promise.race([accessQuery,timeout]);
+  if(error){
+   console.error("Authorization check failed:",error.message);
+   $("loginMessage").textContent="Authorization check failed. Please check internet connection and Supabase table permissions, then reload.";
+   return;
+  }
+  if(!data||data.is_active!==true){
+   $("loginMessage").textContent="This Google account is not authorized.";
+   await sb.auth.signOut();return;
+  }
+  const admin=String(data.plan_name||"").toLowerCase()==="admin";
+  const paid=data.is_paid===true;
+  const trial=data.trial_ends_at&&String(data.trial_ends_at).slice(0,10)>today();
+  if(!admin&&!paid&&!trial){
+   $("loginMessage").textContent="Account access is not active. Contact the administrator.";
+   await sb.auth.signOut();return;
+  }
+  authRecord=data;
+  $("loginScreen").classList.add("hidden");
+  $("mainApp").classList.remove("hidden");
+  $("accountInfo").textContent=user.email+(admin?" · Administrator":" · Authorized User");
+  if($("homeAdminButton"))$("homeAdminButton").classList.toggle("hidden",!admin);
+  await loadCloudData();
+  loadSettings();
+  if($("homeAdminButton"))$("homeAdminButton").classList.toggle("hidden",String(authRecord?.plan_name||"").toLowerCase()!=="admin");
+  updateHome();
+  showPage("home");
+ }catch(error){
+  console.error("Access verification error:",error);
+  $("loginMessage").textContent=error?.message==="ACCESS_CHECK_TIMEOUT"
+   ?"Access check timed out. Please reload and check Supabase connection / authorized_users table."
+   :"Unable to verify access. Please reload and try again.";
+ }finally{
+  accessCheckInProgress=false;
  }
- const admin=String(data.plan_name||"").toLowerCase()==="admin";
- const paid=data.is_paid===true;
- const trial=data.trial_ends_at&&String(data.trial_ends_at).slice(0,10)>today();
- if(!admin&&!paid&&!trial){
-  $("loginMessage").textContent="Account access is not active. Contact the administrator.";
-  await sb.auth.signOut();return;
- }
- authRecord=data;
- $("loginScreen").classList.add("hidden");
- $("mainApp").classList.remove("hidden");
- $("accountInfo").textContent=user.email+(admin?" · Administrator":" · Authorized User");
- if($("homeAdminButton"))$("homeAdminButton").classList.toggle("hidden",!admin);
-
-await loadCloudData();
-loadSettings();
-if($("homeAdminButton"))$("homeAdminButton").classList.toggle("hidden",String(authRecord?.plan_name||"").toLowerCase()!=="admin");
- updateHome();
- showPage("home");
 }
 async function boot(){
  if(!initSupabase())return;
