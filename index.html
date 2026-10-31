@@ -45,7 +45,7 @@ td input,td select{min-width:80px;padding:8px}
 .login-wrap{min-height:95vh;display:grid;place-items:center}
 .login-card{width:min(440px,100%);background:white;border-radius:16px;padding:25px;box-shadow:0 4px 20px #1232}
 .login-card button{width:100%;margin:12px 0}
-.hidden{display:none!important}#loginScreen.hidden{display:none!important}.notice{padding:12px;background:#eef7f8;border-radius:9px;font-size:13px;line-height:1.5}
+.hidden{display:none!important}#loginScreen.hidden{display:none!important}#loginScreen:not(.hidden){display:grid!important}.notice{padding:12px;background:#eef7f8;border-radius:9px;font-size:13px;line-height:1.5}
 @media(max-width:700px){.app{padding:8px}.grid,.home-buttons{grid-template-columns:1fr}.nav{grid-template-columns:repeat(2,minmax(0,1fr))}header h1{font-size:20px}.nav button{font-size:12px;padding:10px 3px}.quote-info{flex-direction:column}.preview{padding:12px}.quote-total{width:100%}}
 
 .bo-input{width:100%;min-width:0!important;padding:7px 4px!important;font-size:12px!important;border-radius:6px!important}
@@ -919,10 +919,8 @@ function saveMeasurement(){
 }
 function clearMeasurement(){newMeasurement();}
 function viewMeasurement(id){
- const m=measurements.find(x=>x.id===id);if(!m)return;
- currentMeasurementId=m.id;$("mCustomer").value=m.customer;$("mPhone").value=m.phone||"";
- $("mAddress").value=m.address||"";$("mDate").value=m.date||today();$("mUnit").value=m.unit||"cm";
- $("measurementBody").innerHTML="";$("measurementPreview").innerHTML="";$("measurementPreview").classList.add("hidden");m.rows.forEach(r=>addMeasurementRow(r));showPage("measurement");
+ const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;
+ showSavedDocumentPreview("Measurement Sheet · "+(m.customer||""),measurementSheetHTML(m));
 }
 function editMeasurement(id){viewMeasurement(id);}
 function deleteMeasurement(id){
