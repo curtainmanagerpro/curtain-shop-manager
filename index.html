@@ -248,7 +248,7 @@ td input,td select{min-width:80px;padding:8px}
   <button class="btn-green" onclick="saveMeasurement()">Save Measurement</button>
   <button class="btn-blue" onclick="previewMeasurementSheet()">Preview Measurement Sheet</button>
   <button class="btn-dark" onclick="downloadMeasurementPDF()">Download / Share PDF</button>
-  <button class="btn-blue" onclick="measurementToQuotation()">Create Quotation</button><button class="btn-green" onclick="saveMeasurementJPG()">Save as JPG</button>
+  <button class="btn-blue" onclick="measurementToQuotation()">Create Quotation</button><button class="btn-blue" onclick="createBlindOrderFromCurrentMeasurement()">Create Blind Order</button><button class="btn-green" onclick="saveMeasurementJPG()">Save as JPG</button>
   <button class="btn-light" onclick="clearMeasurement()">Clear</button>
   <button class="btn-light" onclick="showPage('savedMeasurements')">View Saved Measurements</button>
   <div id="measurementPreview" class="preview hidden" style="margin-top:16px"></div>
@@ -1001,7 +1001,31 @@ function measurementToQuotation(){
 function measurementToQuotationSaved(id){const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;loadMeasurementIntoForm(m);measurementToQuotation();}
 function loadMeasurementIntoForm(m){currentMeasurementId=m.id;$ ("mCustomer").value=m.customer||"";$("mPhone").value=m.phone||"";$("mAddress").value=m.address||"";$("mDate").value=m.date||today();$("mUnit").value=m.unit||"cm";$ ("measurementBody").innerHTML="";(m.rows||[]).forEach(r=>addMeasurementRow(r));}
 function measurementToInvoice(id){const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;newInvoice();$("iCustomer").value=m.customer||"";$("iPhone").value=m.phone||"";$("iAddress").value=m.address||"";invoiceItems=(m.rows||[]).map(r=>({name:(r.type==="Other"?(r.customType||"Other"):r.type)+" — "+r.width+" × "+r.height+" "+(m.unit||"cm"),qty:Number(r.qty||1),unit:"Nos",rate:""}));if(!invoiceItems.length)invoiceItems=[{name:"",qty:"",unit:"Item",rate:""}];renderInvoiceItems();}
-function measurementToBlindOrder(id){const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;newBlindOrder();$("boCustomerName").value=m.customer||"";$("boCustomerPhone").value=m.phone||"";$("boCustomerPlace").value=m.address||"";$("boUnit").value=m.unit||"cm";$ ("blindOrderBody").innerHTML="";(m.rows||[]).forEach(r=>addBlindOrderRow({width:r.width,height:r.height,unit:m.unit,type:["Zebra","Roman","Roller","Venetian","Wooden","Bamboo","Honeycomb"].includes(r.type)?r.type:"Other",shade:r.shade||""}));if(!(m.rows||[]).length)addBlindOrderRow();updateBlindUnitLabels();}
+function measurementToBlindOrder(id){
+ const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;
+ newBlindOrder();
+ $("boCustomerName").value=m.customer||"";
+ $("boCustomerPhone").value=m.phone||"";
+ $("boCustomerPlace").value=m.address||"";
+ $("boUnit").value=m.unit||"cm";
+ $("blindOrderBody").innerHTML="";
+ (m.rows||[]).forEach(r=>{
+  const savedType=String(r.type||"").trim();
+  const typeName=savedType==="Other"?(String(r.customType||"Other").trim()||"Other"):savedType;
+  addBlindOrderRow({width:r.width,height:r.height,unit:m.unit,type:typeName,shade:r.shade||""});
+ });
+ if(!(m.rows||[]).length)addBlindOrderRow();
+ updateBlindUnitLabels();
+}
+function createBlindOrderFromCurrentMeasurement(){
+ const m=getMeasurementForm();
+ if(!m.customer)return alert("Please enter Customer Name.");
+ if(!m.rows.length)return alert("Enter at least one valid width and height.");
+ if(m.rows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
+ const existing=measurements.findIndex(x=>String(x.id)===String(m.id));
+ if(existing>=0)measurements[existing]=m;else measurements.push(m);
+ saveStorage();measurementToBlindOrder(m.id);
+}
 async function saveMeasurementJPG(){
  const source=$("measurementPreview").querySelector(".measurement-print");
  if(!source||$("measurementPreview").classList.contains("hidden"))return alert("ആദ്യം Preview Measurement Sheet തുറക്കുക.");
@@ -1629,7 +1653,12 @@ $("blindOrderBody").appendChild(tr);
 
 tr.querySelector(".bo-width").value=data.width??"";
 tr.querySelector(".bo-height").value=data.height??"";
-tr.querySelector(".bo-type").value=data.type||"Zebra";
+const typeSelect=tr.querySelector(".bo-type");
+const requestedType=String(data.type||"Zebra");
+if(!Array.from(typeSelect.options).some(o=>o.value===requestedType)){
+ const customOption=document.createElement("option");customOption.value=requestedType;customOption.textContent=requestedType;typeSelect.appendChild(customOption);
+}
+typeSelect.value=requestedType;
 tr.querySelector(".bo-shade").value=data.shade||"";
 
 tr.querySelector(".row-delete").onclick=()=>{
