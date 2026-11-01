@@ -21,7 +21,10 @@ button{border:0;border-radius:9px;padding:11px 14px;margin:4px;font-size:14px;fo
 .btn-dark{background:var(--primary-dark);color:white}.btn-blue{background:#3277d5;color:white}
 .btn-green{background:var(--accent);color:white}.btn-red{background:#c94343;color:white}
 .btn-light{background:#e6edf2;color:var(--text)}
-.customer-card .measurement-open-btn{min-width:82px;padding-left:18px;padding-right:18px}
+.customer-card .measurement-open-btn{min-width:0;padding:11px 8px}
+.measurement-action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}
+.measurement-action-grid button{width:100%;min-height:44px;margin:0;padding:9px 6px;font-size:13px}
+@media(min-width:700px){.measurement-action-grid{grid-template-columns:repeat(2,minmax(140px,1fr))}}
 .page{display:none}.page.active{display:block}
 .card,.customer-card,.quote-card{background:white;border-radius:15px;padding:17px;margin-bottom:13px;box-shadow:0 3px 12px #172b3b0b}
 h2{margin-top:0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -163,8 +166,8 @@ td input,td select{min-width:80px;padding:8px}
 .measurement-window{width:112px;min-height:120px;display:flex;flex-direction:column;align-items:flex-start}
 .measurement-seven{position:relative;width:max-content;height:58px;margin:8px 0 4px 4px}
 .measurement-seven:after{content:"";position:absolute;left:100%;top:22px;height:32px;border-right:2px solid #243c55}
-.measurement-width{position:relative;display:inline-block;left:auto;top:auto;font-weight:bold;font-size:13px;white-space:nowrap;padding-bottom:4px;border-bottom:2px solid #243c55}
-.measurement-height{position:absolute;left:calc(100% + 5px);top:42px;font-weight:bold;font-size:13px;white-space:nowrap}
+.measurement-width{position:relative;display:inline-block;left:auto;top:auto;font-weight:800;font-size:17px;white-space:nowrap;padding-bottom:2px;border-bottom:2px solid #243c55}
+.measurement-height{position:absolute;left:calc(100% + 4px);top:35px;font-weight:800;font-size:17px;white-space:nowrap}
 .measurement-window-detail{font-size:11px;line-height:1.35;margin-top:5px;overflow-wrap:anywhere}
 .measurement-room-total{font-weight:bold;text-align:right;padding-top:8px}
 .measurement-shade{font-size:11px;font-weight:bold;margin-top:2px;overflow-wrap:anywhere}
@@ -957,7 +960,7 @@ function renderMeasurements(){
  $("measurementList").innerHTML=list.slice().reverse().map(m=>{
   const sqft=m.rows.reduce((a,r)=>a+Number(r.sqft||0),0);
   const rft=m.rows.reduce((a,r)=>a+Number(r.rft||0),0);
-  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(formatDateDMY(m.date))}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></p><button class="btn-blue measurement-open-btn" onclick="viewMeasurement(${m.id})">View</button><button class="btn-green measurement-open-btn" onclick="editMeasurement(${m.id})">Edit</button><button class="btn-dark" onclick="downloadSavedMeasurementPDF(${m.id})">Share PDF</button><button class="btn-blue" onclick="measurementToQuotationSaved(${m.id})">Create Quotation</button><button class="btn-green" onclick="measurementToInvoice(${m.id})">Create Invoice</button><button class="btn-blue" onclick="measurementToBlindOrder(${m.id})">Create Blind Order</button><button class="btn-red" onclick="deleteMeasurement(${m.id})">Delete</button></div>`;
+  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(formatDateDMY(m.date))}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></p><div class="measurement-action-grid"><button class="btn-blue" onclick="viewMeasurement(${m.id})">View</button><button class="btn-green" onclick="editMeasurement(${m.id})">Edit</button><button class="btn-dark" onclick="downloadSavedMeasurementPDF(${m.id})">Share PDF</button><button class="btn-green" onclick="saveSavedMeasurementJPG(${m.id})">Save as JPG</button><button class="btn-blue" onclick="measurementToQuotationSaved(${m.id})">Create Quotation</button><button class="btn-green" onclick="measurementToInvoice(${m.id})">Create Invoice</button><button class="btn-blue" onclick="measurementToBlindOrder(${m.id})">Create Blind Order</button><button class="btn-red" onclick="deleteMeasurement(${m.id})">Delete</button></div></div>`;
  }).join("")||'<div class="card empty">No saved measurements found.</div>';
 }
 function measurementSheetHTML(m){
@@ -975,7 +978,7 @@ function measurementSheetHTML(m){
    const shade=r.shade?`<div class="measurement-shade">Shade No: ${esc(r.shade)}</div>`:"";
    return `<div class="measurement-window">
     <div class="measurement-seven"><span class="measurement-width">${esc(r.width)} ${dimUnit}</span><span class="measurement-height">${esc(r.height)}</span></div>
-    <div class="measurement-window-detail"><b>${esc(typeName)}</b>${shade}</div>
+    <div class="measurement-window-detail"><b style="font-size:17px;font-weight:800">${esc(typeName)}</b>${shade?shade.replace('class="measurement-shade"','class="measurement-shade" style="font-size:16px;font-weight:800"'):''}</div>
    </div>`;
   }).join("");
   return `<div class="measurement-room">
@@ -1094,6 +1097,21 @@ async function saveMeasurementJPG(){
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
  }catch(e){alert("JPG Error: "+(e.message||e.name||"Unknown error"));}
  finally{if(capture?.parentNode)capture.remove();}
+}
+
+async function saveSavedMeasurementJPG(id){
+ const m=measurements.find(x=>String(x.id)===String(id));if(!m)return alert("Saved measurement not found.");
+ if(!window.html2canvas)return alert("JPG export library load ആയിട്ടില്ല. Internet പരിശോധിക്കുക.");
+ let capture=null;
+ try{
+  capture=document.createElement("div");capture.innerHTML=measurementSheetHTML(m);
+  capture.style.cssText="position:fixed;left:-100000px;top:0;width:1100px;max-width:none;height:auto;overflow:visible;background:#fff;padding:24px;z-index:-1;";
+  const sheet=capture.querySelector(".measurement-print");if(sheet){sheet.style.width="1050px";sheet.style.maxWidth="none";sheet.style.background="#fff";}
+  document.body.appendChild(capture);await waitForImages(capture);
+  const canvas=await html2canvas(capture,{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,windowWidth:1200,scrollX:0,scrollY:0});
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.95));if(!blob)throw new Error("JPG export failed");
+  const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="Measurement-"+((m.customer||"Customer").replace(/[^a-z0-9-_]/gi,"-"))+".jpg";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
+ }catch(e){alert("JPG Error: "+(e.message||e.name||"Unknown error"));}finally{if(capture?.parentNode)capture.remove();}
 }
 
 /* Quotation functions — restored so the Home page New Quotation button works. */
@@ -1804,7 +1822,7 @@ function blindOrderHTML(d){
   if(!groupMap.has(key)){const g={type,shade,rows:[]};groupMap.set(key,g);groups.push(g);}
   groupMap.get(key).rows.push({...r,originalNo:i+1});
  });
- const groupsHTML=groups.map(g=>`<section class="bo-shade-group" style="border:1.5px solid #7b8794;border-radius:8px;overflow:hidden;margin:14px 0;page-break-inside:avoid;break-inside:avoid"><div class="bo-group-heading" style="padding:10px 12px;background:#eef2f7;border-bottom:1px solid #7b8794"><div style="font-size:18px;font-weight:800;color:#203040">${esc(g.type)}</div><div style="font-size:15px;font-weight:700;margin-top:4px;color:#203040">Shade No.: ${esc(g.shade)}</div></div><table class="bo-print-table" style="margin:0;border:0"><thead><tr>${d.showNumbers?"<th>No.</th>":""}<th>Width</th><th>Height</th></tr></thead><tbody>${g.rows.map(r=>`<tr>${d.showNumbers?`<td>${r.originalNo}</td>`:""}<td>${esc(r.width)} ${esc(r.unit)}</td><td>${esc(r.height)} ${esc(r.unit)}</td></tr>`).join("")}</tbody></table></section>`).join("");
+ const groupsHTML=groups.map(g=>`<section class="bo-shade-group" style="border:1.5px solid #7b8794;border-radius:8px;overflow:hidden;margin:14px 0;page-break-inside:avoid;break-inside:avoid"><div class="bo-group-heading" style="padding:10px 12px;background:#eef2f7;border-bottom:1px solid #7b8794"><div style="display:flex;justify-content:center"><div style="display:grid;grid-template-columns:max-content 12px max-content;column-gap:5px;align-items:baseline;text-align:left;color:#203040;font-size:18px;font-weight:800"><span>Type</span><span>:</span><span style="font-size:20px;font-weight:900">${esc(g.type)}</span><span>Shade No.</span><span>:</span><span style="font-size:20px;font-weight:900">${esc(g.shade)}</span></div></div></div><table class="bo-print-table" style="margin:0;border:0"><thead><tr>${d.showNumbers?"<th>No.</th>":""}<th>Width</th><th>Height</th></tr></thead><tbody>${g.rows.map(r=>`<tr>${d.showNumbers?`<td>${r.originalNo}</td>`:""}<td>${esc(r.width)} ${esc(r.unit)}</td><td>${esc(r.height)} ${esc(r.unit)}</td></tr>`).join("")}</tbody></table></section>`).join("");
  return `<div class="preview"><div class="bo-preview-header">${logo}<h2 style="margin:8px 0">${esc(d.shopName||"Curtain Shop")}</h2><div>${esc(d.address||"")}</div><div>${esc(d.phone||"")}</div></div><h3 style="text-align:center">BLINDS ORDER</h3><div style="text-align:right;margin-bottom:12px"><b>Order Date:</b> ${esc(formatDateDMY(d.date))}</div>${groupsHTML||`<p>No measurements entered</p>`}<div style="margin-top:18px"><b>Description / Special Instructions</b><div style="margin-top:6px;border:1.5px solid #8b969f;border-radius:5px;padding:10px 12px;min-height:38px;font-size:20px;font-weight:700;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;color:#203040">${esc(d.description||"")}</div></div></div>`;
 }
 function previewBlindOrder(){const d=getBlindOrderData();if(!d.rows.length)return alert("Enter at least one measurement row.");const el=$("blindOrderPreview");el.innerHTML=blindOrderHTML(d);el.classList.remove("hidden");el.scrollIntoView({behavior:"smooth",block:"start"});}
