@@ -819,6 +819,7 @@ function showPage(page){
   if(page==="blindOrder"){updateBlindUnitLabels();updateBlindBusinessInfo();}
   if(page==="savedBlindOrders")renderBlindOrders();
  if(page==="admin")loadAuthorizedUsers();
+ if(page==="settings")window.scrollTo({top:0,behavior:"auto"});
 }
 
 function newMeasurement(){
@@ -960,7 +961,7 @@ function renderMeasurements(){
  $("measurementList").innerHTML=list.slice().reverse().map(m=>{
   const sqft=m.rows.reduce((a,r)=>a+Number(r.sqft||0),0);
   const rft=m.rows.reduce((a,r)=>a+Number(r.rft||0),0);
-  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(formatDateDMY(m.date))}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></p><div class="measurement-action-grid"><button class="btn-blue" onclick="viewMeasurement(${m.id})">View</button><button class="btn-green" onclick="editMeasurement(${m.id})">Edit</button><button class="btn-dark" onclick="downloadSavedMeasurementPDF(${m.id})">Share PDF</button><button class="btn-green" onclick="saveSavedMeasurementJPG(${m.id})">Save as JPG</button><button class="btn-blue" onclick="measurementToQuotationSaved(${m.id})">Create Quotation</button><button class="btn-green" onclick="measurementToInvoice(${m.id})">Create Invoice</button><button class="btn-blue" onclick="measurementToBlindOrder(${m.id})">Create Blind Order</button><button class="btn-red" onclick="deleteMeasurement(${m.id})">Delete</button></div></div>`;
+  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(formatDateDMY(m.date))}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></p><div class="measurement-action-grid"><button class="btn-blue" onclick="viewMeasurement(${m.id})">View</button><button class="btn-green" onclick="editMeasurement(${m.id})">Edit</button><button class="btn-dark" onclick="downloadSavedMeasurementPDF(${m.id})">Share PDF</button><button class="btn-green" onclick="saveSavedMeasurementJPG(${m.id})">Save as JPG</button><button class="btn-blue" onclick="measurementToQuotationSaved(${m.id})">Create Quotation</button><button class="btn-green" onclick="measurementToInvoice(${m.id})">Create Invoice</button><button class="btn-blue" onclick="measurementToBlindOrder(${m.id})">Create Blind Order</button><button class="btn-dark" onclick="measurementToReceipt(${m.id})">Create Receipt</button><button class="btn-red" onclick="deleteMeasurement(${m.id})">Delete</button></div></div>`;
  }).join("")||'<div class="card empty">No saved measurements found.</div>';
 }
 function measurementSheetHTML(m){
@@ -1398,6 +1399,11 @@ function deleteInvoice(id){if(!confirm("Delete this invoice?"))return;invoices=i
 function newReceipt(){
  currentReceiptId=null;$("rCustomer").value="";$("rPhone").value="";$("rAddress").value="";$("rNumber").value=nextReceiptNumber();$("rDate").value=today();$("rReference").value="";$("rTotal").value="";$("rReceived").value="";$("rMethod").value="Cash";$("rNote").value="";
  calculateReceipt();$("receiptPreview").classList.add("hidden");$("receiptPreview").innerHTML="";showPage("receipt");
+}
+function measurementToReceipt(id){
+ const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;
+ newReceipt();
+ $("rCustomer").value=m.customer||"";$("rPhone").value=m.phone||"";$("rAddress").value=m.address||"";
 }
 function calculateReceipt(){
  const total=Math.max(0,Number($("rTotal").value)||0),received=Math.max(0,Number($("rReceived").value)||0),balance=Math.max(0,total-received);
