@@ -23,7 +23,7 @@ button{border:0;border-radius:9px;padding:11px 14px;margin:4px;font-size:14px;fo
 .btn-light{background:#e6edf2;color:var(--text)}
 .customer-card .measurement-open-btn{min-width:0;padding:11px 8px}
 .measurement-action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}
-.measurement-action-grid button{width:100%;min-height:44px;margin:0;padding:9px 6px;font-size:13px}
+.measurement-action-grid button{width:100%;min-height:44px;margin:0;padding:9px 6px;font-size:15px}
 @media(min-width:700px){.measurement-action-grid{grid-template-columns:repeat(2,minmax(140px,1fr))}}
 .page{display:none}.page.active{display:block}
 .card,.customer-card,.quote-card{background:white;border-radius:15px;padding:17px;margin-bottom:13px;box-shadow:0 3px 12px #172b3b0b}
@@ -406,8 +406,8 @@ td input,td select{min-width:80px;padding:8px}
 <div class="field" style="margin-top:12px"><label>Notes / Terms</label><textarea id="iNotes"></textarea></div><button class="btn-green" onclick="saveInvoice()">Save Invoice</button><button class="btn-blue" onclick="previewInvoice()">Preview</button><button class="btn-dark" onclick="shareInvoicePDF()">Download / Share PDF</button></div><div id="invoicePreview" class="preview hidden"></div></section>
 <section id="savedInvoices" class="page"><div class="card"><h2>Saved Invoices</h2><button class="btn-green" onclick="newInvoice()">＋ New Invoice</button><input id="invoiceSearch" placeholder="Search invoice or customer..." oninput="renderInvoices()"></div><div id="invoiceList"></div></section>
 <section id="receipt" class="page"><div class="card"><h2>New Payment Receipt</h2><div class="grid">
-<div class="field"><label>Customer Name *</label><input id="rCustomer"></div><div class="field"><label>Phone / WhatsApp</label><input id="rPhone" type="tel"></div><div class="field"><label>Address / Place</label><textarea id="rAddress"></textarea></div><div class="field"><label>Receipt Number</label><input id="rNumber"></div><div class="field"><label>Date</label><input id="rDate" type="date"></div><div class="field"><label>Invoice / Job Reference (optional)</label><input id="rReference"></div><div class="field"><label>Total Job Amount (₹) *</label><input id="rTotal" type="number" min="0" step="0.01" oninput="calculateReceipt()"></div><div class="field"><label>Amount Received Now (₹) *</label><input id="rReceived" type="number" min="0" step="0.01" oninput="calculateReceipt()"></div></div>
-<div class="summary"><div class="summary-row"><span>Total Job Amount</span><b>₹<span id="rTotalShow">0.00</span></b></div><div class="summary-row"><span>Amount Received</span><b>₹<span id="rReceivedShow">0.00</span></b></div><div class="summary-row grand"><span>Balance Due</span><b>₹<span id="rBalance">0.00</span></b></div></div><div class="grid" style="margin-top:12px"><div class="field"><label>Payment Method</label><select id="rMethod"><option value="Cash">Cash</option><option value="UPI">UPI</option><option value="Bank Transfer">Bank Transfer</option><option value="Other">Other</option></select></div><div class="field"><label>Notes (optional)</label><input id="rNote" placeholder="Additional note"></div></div><button class="btn-green" onclick="saveReceipt()">Save Receipt</button><button class="btn-blue" onclick="previewReceipt()">Preview</button><button class="btn-dark" onclick="shareReceiptPDF()">Download / Share PDF</button></div><div id="receiptPreview" class="preview hidden"></div></section>
+<div class="field"><label>Customer Name *</label><input id="rCustomer"></div><div class="field"><label>Phone / WhatsApp</label><input id="rPhone" type="tel"></div><div class="field"><label>Address / Place</label><textarea id="rAddress"></textarea></div><div class="field"><label>Receipt Number</label><input id="rNumber"></div><div class="field"><label>Date</label><input id="rDate" type="date"></div><div class="field"><label>Reference / Details (optional)</label><input id="rReference"></div><div class="field"><label>Total Amount (₹) *</label><input id="rTotal" type="number" min="0" step="0.01" oninput="calculateReceipt()"></div><div class="field"><label>Amount Received Now (₹) *</label><input id="rReceived" type="number" min="0" step="0.01" oninput="calculateReceipt()"></div></div>
+<div class="summary"><div class="summary-row"><span>Total Amount</span><b>₹<span id="rTotalShow">0.00</span></b></div><div class="summary-row"><span>Amount Received</span><b>₹<span id="rReceivedShow">0.00</span></b></div><div class="summary-row grand"><span>Balance Due</span><b>₹<span id="rBalance">0.00</span></b></div></div><div class="grid" style="margin-top:12px"><div class="field"><label>Payment Method</label><select id="rMethod"><option value="Cash">Cash</option><option value="UPI">UPI</option><option value="Bank Transfer">Bank Transfer</option><option value="Other">Other</option></select></div><div class="field"><label>Notes (optional)</label><input id="rNote" placeholder="Additional note"></div></div><button class="btn-green" onclick="saveReceipt()">Save Receipt</button><button class="btn-blue" onclick="previewReceipt()">Preview</button><button class="btn-dark" onclick="shareReceiptPDF()">Download / Share PDF</button></div><div id="receiptPreview" class="preview hidden"></div></section>
 <section id="savedReceipts" class="page"><div class="card"><h2>Saved Payment Receipts</h2><button class="btn-green" onclick="newReceipt()">＋ New Payment Receipt</button><input id="receiptSearch" placeholder="Search receipt or customer..." oninput="renderReceipts()"></div><div id="receiptList"></div></section>
 
 <section id="settings" class="page">
@@ -495,6 +495,7 @@ td input,td select{min-width:80px;padding:8px}
 </section>
 
 </div>
+<button id="fixedBackButton" type="button" onclick="goBackPage()" aria-label="Back" style="position:fixed;top:12px;left:10px;z-index:9999;background:#e8eef3;color:#24445c;border:1px solid #d1dce5;border-radius:20px;padding:8px 12px;margin:0;font-size:14px;font-weight:600;box-shadow:0 2px 7px #0002;display:none">← Back</button>
 <div id="adminToast" role="status" aria-live="polite"></div>
 
 <script>
@@ -804,7 +805,11 @@ function updateHome(){
  if($("homeBusinessName")){const businessName=String(settings.name||"").trim();$("homeBusinessName").textContent=businessName;$("homeBusinessName").classList.toggle("hidden",!businessName);}
  if($("homeAccountEmail"))$("homeAccountEmail").textContent=authUser?.email||"";
 }
-function showPage(page){
+let pageHistory=[];
+function goBackPage(){if(pageHistory.length){const previous=pageHistory.pop();showPage(previous,false);}else showPage("home",false);}
+function showPage(page,addToHistory=true){
+ const current=document.querySelector(".page.active")?.id;
+ if(addToHistory && current && current!==page)pageHistory.push(current);
   if(page==="admin"&&!adminOnly())return alert("Administrator access required.");
  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
  if($(page))$(page).classList.add("active");
@@ -820,6 +825,8 @@ function showPage(page){
   if(page==="savedBlindOrders")renderBlindOrders();
  if(page==="admin")loadAuthorizedUsers();
  if(page==="settings")window.scrollTo({top:0,behavior:"auto"});
+ const back=$("fixedBackButton");if(back)back.style.display=page==="home"?"none":"inline-flex";
+ window.scrollTo({top:0,behavior:"auto"});
 }
 
 function newMeasurement(){
