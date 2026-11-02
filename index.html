@@ -1000,7 +1000,7 @@ function measurementSheetHTML(m){
    const dimUnit=m.unit==="cm"?"cm":"inch";
    const shade=r.shade?`<div class="measurement-shade">Shade No: ${esc(r.shade)}</div>`:"";
    return `<div class="measurement-window">
-    <div class="measurement-seven" style="position:relative;width:112px;height:58px;margin:8px 0 4px 4px"><span class="measurement-width">${esc(r.width)} ${dimUnit}</span><span class="measurement-height">${esc(r.height)}</span>${fabric.curtain||fabric.sheer?`<span style="position:absolute;right:0;top:31px;transform:translateX(-2px);text-align:right;font-size:8px;line-height:1.1;font-weight:800;white-space:nowrap">${fabric.curtain?`Main Cloth: ${money(fabric.curtain)} Mtr (${fabric.mainPanels}P)`:``}${fabric.sheer?`${fabric.curtain?`<br>`:``}Sheer: ${money(fabric.sheer)} Mtr (${fabric.sheerPanels}P)`:``}</span>`:""}</div>
+    <div class="measurement-seven" style="position:relative;width:112px;height:58px;margin:8px 0 4px 4px"><span class="measurement-width">${esc(r.width)} ${dimUnit}</span><span class="measurement-height">${esc(r.height)}</span>${fabric.curtain||fabric.sheer?`<span style="position:absolute;right:9px;top:36px;transform:none;text-align:right;font-size:8px;line-height:1.1;font-weight:800;white-space:nowrap">${fabric.curtain?`Main Cloth: ${money(fabric.curtain)} Mtr (${fabric.mainPanels}P)`:``}${fabric.sheer?`${fabric.curtain?`<br>`:``}Sheer: ${money(fabric.sheer)} Mtr (${fabric.sheerPanels}P)`:``}</span>`:""}</div>
     <div class="measurement-window-detail"><b style="font-size:17px;font-weight:800">${esc(typeName)}</b>${shade?shade.replace('class="measurement-shade"','class="measurement-shade" style="font-size:16px;font-weight:800"'):''}</div>
    </div>`;
   }).join("");
