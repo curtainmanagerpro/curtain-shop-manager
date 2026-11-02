@@ -167,7 +167,7 @@ td input,td select{min-width:80px;padding:8px}
 .measurement-seven{position:relative;width:max-content;height:58px;margin:8px 0 4px 4px}
 
 .measurement-width{position:relative;display:inline-block;left:auto;top:auto;font-weight:800;font-size:17px;white-space:nowrap;padding-bottom:2px;border-bottom:2px solid #243c55}.measurement-width:after{content:"";position:absolute;left:100%;top:100%;height:42px;border-right:2px solid #243c55}
-.measurement-height{position:absolute;left:calc(100% + 4px);top:35px;font-weight:800;font-size:17px;white-space:nowrap}
+.measurement-height{position:absolute;left:calc(100% + 7px);top:39px;font-weight:800;font-size:14px;line-height:1.1;white-space:nowrap;z-index:2;background:#fff;padding:0 2px}
 .measurement-window-detail{font-size:11px;line-height:1.35;margin-top:5px;overflow-wrap:anywhere}
 .measurement-room-total{font-weight:bold;text-align:right;padding-top:8px}
 .measurement-shade{font-size:11px;font-weight:bold;margin-top:2px;overflow-wrap:anywhere}
@@ -1000,7 +1000,7 @@ function measurementSheetHTML(m){
    const dimUnit=m.unit==="cm"?"cm":"inch";
    const shade=r.shade?`<div class="measurement-shade">Shade No: ${esc(r.shade)}</div>`:"";
    return `<div class="measurement-window">
-    <div class="measurement-seven" style="position:relative;width:112px;height:68px;margin:8px 0 4px 4px"><span class="measurement-width">${esc(r.width)} ${dimUnit}${fabric.curtain||fabric.sheer?`<span class="measurement-fabric-annotation" style="position:absolute;left:100%;top:29px;transform:translateX(-100%);text-align:right;font-size:8px;line-height:1.15;font-weight:800;white-space:normal;width:102px;z-index:1;background:transparent">${fabric.curtain?`Main Cloth (${fabric.mainPanels}P)<br>${money(fabric.curtain)} Mtr`:``}${fabric.sheer?`${fabric.curtain?`<br><br>`:``}Sheer (${fabric.sheerPanels}P)<br>${money(fabric.sheer)} Mtr`:``}</span></span>`:""}</div>
+    <div class="measurement-seven" style="position:relative;width:112px;height:68px;margin:8px 0 4px 4px"><span class="measurement-width">${esc(r.width)} ${dimUnit}</span><span class="measurement-height">${esc(r.height)} ${dimUnit}</span>${fabric.curtain||fabric.sheer?`<span class="measurement-fabric-annotation" style="position:absolute;left:calc(100% - 112px);top:52px;transform:translateY(-50%);text-align:right;font-size:10px;line-height:1.2;font-weight:800;white-space:normal;width:104px;z-index:1;background:#fff;padding:1px 4px 1px 0">${fabric.curtain?`Main Cloth (${fabric.mainPanels}P)<br>${money(fabric.curtain)} Mtr`:``}${fabric.sheer?`${fabric.curtain?`<br><br>`:``}Sheer (${fabric.sheerPanels}P)<br>${money(fabric.sheer)} Mtr`:``}</span>`}`:""}</div>
     <div class="measurement-window-detail"><b style="font-size:17px;font-weight:800">${esc(typeName)}</b>${shade?shade.replace('class="measurement-shade"','class="measurement-shade" style="font-size:16px;font-weight:800"'):''}</div>
    </div>`;
   }).join("");
@@ -1535,12 +1535,38 @@ function showSavedDocumentPreview(title,html){
  modal.style.display="block";document.body.style.overflow="hidden";
 }
 function closeSavedDocumentPreview(){const modal=$("savedDocumentPreviewModal");if(modal)modal.style.display="none";document.body.style.overflow="";}
-function previewReceipt(){const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");showSavedDocumentPreview("Payment Receipt Preview",receiptHTML(d));const content=$("savedDocumentPreviewContent");if(content){content.classList.add("receipt-preview-responsive");let st=$("receiptPreviewResponsiveStyle");if(!st){st=document.createElement("style");st.id="receiptPreviewResponsiveStyle";st.textContent=`@media(max-width:700px){#savedDocumentPreviewModal{padding:5px!important}#savedDocumentPreviewModal>div{padding:5px!important;max-width:100vw!important}#savedDocumentPreviewContent.receipt-preview-responsive .preview{width:720px!important;max-width:none!important;transform:scale(calc((100vw - 24px)/720));transform-origin:top left;margin:0!important;font-size:11px!important}#savedDocumentPreviewContent.receipt-preview-responsive{overflow:visible!important;width:100%!important;max-width:100%!important}#savedDocumentPreviewContent.receipt-preview-responsive .preview *{box-sizing:border-box!important;overflow-wrap:anywhere!important}#savedDocumentPreviewContent.receipt-preview-responsive .preview img{max-width:100%!important}}`;document.head.appendChild(st);} }}
+function applyReceiptPreviewResponsive(){
+ const content=$("savedDocumentPreviewContent");
+ if(!content||!content.querySelector(".preview"))return;
+ content.classList.add("receipt-preview-responsive");
+ let st=$("receiptPreviewResponsiveStyle");
+ if(!st){
+  st=document.createElement("style");st.id="receiptPreviewResponsiveStyle";
+  st.textContent=`@media(max-width:700px){
+   #savedDocumentPreviewModal{padding:5px!important;overflow-x:hidden!important}
+   #savedDocumentPreviewModal>div{padding:6px!important;width:100%!important;max-width:100vw!important;overflow-x:hidden!important}
+   #savedDocumentPreviewContent.receipt-preview-responsive{width:100%!important;max-width:100%!important;overflow:visible!important}
+   #savedDocumentPreviewContent.receipt-preview-responsive .preview{width:720px!important;min-width:720px!important;max-width:none!important;transform:scale(var(--receipt-preview-scale, .48));transform-origin:top left;margin:0!important;font-size:14px!important}
+   #savedDocumentPreviewContent.receipt-preview-responsive .preview *{box-sizing:border-box!important;overflow-wrap:anywhere!important}
+   #savedDocumentPreviewContent.receipt-preview-responsive .preview img{max-width:100%!important}
+  }`;
+  document.head.appendChild(st);
+ }
+ const scale=Math.max(.30,Math.min(1,(window.innerWidth-28)/720));
+ content.style.setProperty("--receipt-preview-scale",String(scale));
+}
+function previewReceipt(){
+ const d=currentReceipt();
+ if(!d.customer)return alert("Please enter Customer Name.");
+ if(d.total<=0)return alert("Enter the total job amount.");
+ showSavedDocumentPreview("Payment Receipt Preview",receiptHTML(d));
+ applyReceiptPreviewResponsive();
+}
 function renderReceipts(){
  const q=($("receiptSearch")?.value||"").toLowerCase();
  $("receiptList").innerHTML=receipts.filter(d=>[d.number,d.customer,d.phone,d.date,d.reference].join(" ").toLowerCase().includes(q)).slice().reverse().map(d=>`<div class="customer-card"><h3>${esc(d.number)}</h3><b>${esc(d.customer)}</b><p class="small">${esc(formatDateDMY(d.date))}</p><p>Received: <b>₹${money(d.received)}</b> · Balance: <b>₹${money(d.balance)}</b></p><div class="doc-actions"><button class="btn-blue" onclick="editReceipt('${String(d.id)}')">Edit / Open</button><button class="btn-green" onclick="previewSavedReceipt('${String(d.id)}')">Preview</button><button class="btn-dark" onclick="shareSavedReceiptPDF('${String(d.id)}')">Share PDF</button><button class="btn-red" onclick="deleteReceipt('${String(d.id)}')">Delete</button></div></div>`).join("")||'<div class="empty">No saved payment receipts.</div>';
 }
-function previewSavedReceipt(id){const d=receipts.find(x=>String(x.id)===String(id));if(!d)return;showSavedDocumentPreview("Payment Receipt · "+(d.number||""),receiptHTML(d));}
+function previewSavedReceipt(id){const d=receipts.find(x=>String(x.id)===String(id));if(!d)return;showSavedDocumentPreview("Payment Receipt · "+(d.number||""),receiptHTML(d));applyReceiptPreviewResponsive();}
 function deleteReceipt(id){if(!confirm("Delete this payment receipt?"))return;receipts=receipts.filter(x=>String(x.id)!==String(id));saveStorage();renderReceipts();}
 async function makeDocumentPDF(html,filename,title){
  if(!window.jspdf||!window.html2canvas)return alert("PDF libraries did not load. Check your internet connection and try again.");
