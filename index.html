@@ -892,7 +892,7 @@ function clothMeters(row,unit){
  const type=String(row.type||"");
  if(!isRFT(type,row.customUnit||"Sq.Ft")) return {curtain:0,sheer:0,mainPanels:0,sheerPanels:0};
  const main=type!=="Sheer Curtain";
- const sheer=type==="Sheer Curtain"||type==="Curtain with Sheer";
+ const sheer=type==="Sheer Curtain";
  const mainPanels=main?Math.ceil(width/50):0, sheerPanels=sheer?Math.ceil(width/60):0;
  return {curtain:main?mainPanels*(height+30)/100*qty:0,sheer:sheer?sheerPanels*(height+25)/100*qty:0,mainPanels,sheerPanels};
 }
@@ -909,8 +909,8 @@ function recalculateMeasurements(){
   tr.querySelector(".mAreaValue").textContent=money(c.area);
   const fabric=clothMeters({type,height:h,width:w,qty},$("mUnit").value);
   const fabricLines=[];
-  if(fabric.curtain>0)fabricLines.push(`Curtain Cloth: ${money(fabric.curtain)} m (${fabric.mainPanels}P)`);
-  if(fabric.sheer>0)fabricLines.push(`Sheer Cloth: ${money(fabric.sheer)} m (${fabric.sheerPanels}P)`);
+  if(fabric.curtain>0)fabricLines.push(`Main Cloth: ${money(fabric.curtain)} Mtr (${fabric.mainPanels}P)`);
+  if(fabric.sheer>0)fabricLines.push(`Sheer: ${money(fabric.sheer)} Mtr (${fabric.sheerPanels}P)`);
   tr.querySelector(".mFabricCalc").textContent=fabricLines.join(" | ");
   totalSqft+=c.sqft;totalRft+=c.rft;
  });
@@ -1000,8 +1000,7 @@ function measurementSheetHTML(m){
    const dimUnit=m.unit==="cm"?"cm":"inch";
    const shade=r.shade?`<div class="measurement-shade">Shade No: ${esc(r.shade)}</div>`:"";
    return `<div class="measurement-window">
-    <div class="measurement-seven"><span class="measurement-width">${esc(r.width)} ${dimUnit}</span><span class="measurement-height">${esc(r.height)}</span></div>
-    <div class="measurement-fabric-inline" style="font-size:10px;line-height:1.2;font-weight:700;margin:0 0 4px 4px">${fabric.curtain?`Cloth: ${money(fabric.curtain)} m (${fabric.mainPanels}P)`:""}${fabric.sheer?`${fabric.curtain?"<br>":""}Sheer: ${money(fabric.sheer)} m (${fabric.sheerPanels}P)`:""}</div>
+    <div class="measurement-seven" style="position:relative;width:112px;height:58px;margin:8px 0 4px 4px"><span class="measurement-width">${esc(r.width)} ${dimUnit}</span><span class="measurement-height">${esc(r.height)}</span>${fabric.curtain||fabric.sheer?`<span style="position:absolute;left:0;top:27px;font-size:9px;line-height:1.1;font-weight:800;white-space:nowrap">${fabric.curtain?`Main Cloth: ${money(fabric.curtain)} Mtr (${fabric.mainPanels}P)`:``}${fabric.sheer?`${fabric.curtain?`<br>`:``}Sheer: ${money(fabric.sheer)} Mtr (${fabric.sheerPanels}P)`:``}</span>`:""}</div>
     <div class="measurement-window-detail"><b style="font-size:17px;font-weight:800">${esc(typeName)}</b>${shade?shade.replace('class="measurement-shade"','class="measurement-shade" style="font-size:16px;font-weight:800"'):''}</div>
    </div>`;
   }).join("");
@@ -1012,6 +1011,7 @@ function measurementSheetHTML(m){
    <div class="measurement-room-total">${g.rows.length} Window${g.rows.length===1?"":"s"}</div>
   </div>`;
  }).join("");
+ const typeSqft={};(m.rows||[]).forEach(r=>{const t=String(r.type==="Other"?(r.customType||"Other"):r.type||"").trim();const blind=!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");if(blind){typeSqft[t]=(typeSqft[t]||0)+Number(r.sqft||r.areaValue||0);}});
  const totalSqft=(m.rows||[]).reduce((a,r)=>a+Number(r.sqft||0),0);
  const totalRft=(m.rows||[]).reduce((a,r)=>a+Number(r.rft||0),0);
  const totalCurtainMeters=(m.rows||[]).reduce((a,r)=>a+Number(r.curtainMeters||0),0);
@@ -1023,7 +1023,7 @@ function measurementSheetHTML(m){
   ${m.address?`<div style="margin-bottom:10px"><b>Address:</b> ${esc(m.address)}</div>`:""}
   <div style="display:grid;grid-template-columns:105px minmax(0,1fr) 95px 85px;gap:8px;background:#eaf0f5;padding:8px 4px;font-weight:bold;font-size:12px"><div>Area</div><div>Measurements (Width / Height)</div><div style="text-align:right">Total</div><div style="text-align:right">Items</div></div>
   ${roomBlocks}
-  <div class="measurement-grand">Total Sq.Ft: ${money(totalSqft)} &nbsp;&nbsp; Total Running Feet: ${money(totalRft)}<br><b>Total Curtain Cloth: ${money(totalCurtainMeters)} m &nbsp; | &nbsp; Total Sheer Cloth: ${money(totalSheerMeters)} m</b></div>
+  <div class="measurement-grand">${Object.entries(typeSqft).map(([type,total])=>`<b>Total ${esc(type)}: ${money(total)} Sq.Ft</b>`).join(" &nbsp; | &nbsp; ")}<br>Total Running Feet: ${money(totalRft)}<br><b>Total Main Cloth: ${money(totalCurtainMeters)} Mtr &nbsp; | &nbsp; Total Sheer: ${money(totalSheerMeters)} Mtr</b></div>
  </div>`;
 }
 function previewMeasurementSheet(){
@@ -1091,7 +1091,7 @@ function measurementToInvoice(id){
   const blind=!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");
   const fabric=blind?{curtain:0,sheer:0}:clothMeters(r,m.unit||"cm");
   curtainMeters+=Number(fabric.curtain||0);sheerMeters+=Number(fabric.sheer||0);
-  const name=(r.type==="Other"?(r.customType||"Other"):r.type)+" — "+r.width+" × "+r.height+" "+(m.unit||"cm");
+  const name=(r.type==="Other"?(r.customType||"Other"):r.type);
   return {name,qty:Number((blind?(r.sqft||r.areaValue):(r.rft||r.areaValue))||0).toFixed(2),unit:blind?"Sq.Ft":"RFT",rate:""};
  });
  if(curtainMeters>0)invoiceItems.push({name:"TOTAL CURTAIN CLOTH",qty:Number(curtainMeters.toFixed(2)),unit:"Meter",rate:""});
@@ -1535,7 +1535,7 @@ function showSavedDocumentPreview(title,html){
  modal.style.display="block";document.body.style.overflow="hidden";
 }
 function closeSavedDocumentPreview(){const modal=$("savedDocumentPreviewModal");if(modal)modal.style.display="none";document.body.style.overflow="";}
-function previewReceipt(){const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");showSavedDocumentPreview("Payment Receipt Preview",receiptHTML(d));}
+function previewReceipt(){const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");showSavedDocumentPreview("Payment Receipt Preview",receiptHTML(d));const content=$("savedDocumentPreviewContent");if(content){content.classList.add("receipt-preview-responsive");let st=$("receiptPreviewResponsiveStyle");if(!st){st=document.createElement("style");st.id="receiptPreviewResponsiveStyle";st.textContent=`@media(max-width:700px){#savedDocumentPreviewModal{padding:6px!important}#savedDocumentPreviewModal>div{padding:8px!important}#savedDocumentPreviewContent.receipt-preview-responsive .preview{width:100%!important;max-width:100%!important;box-sizing:border-box!important;overflow:hidden!important;font-size:clamp(9px,2.7vw,13px)!important}#savedDocumentPreviewContent.receipt-preview-responsive .preview *{min-width:0!important;box-sizing:border-box!important;overflow-wrap:anywhere!important;word-break:normal!important}#savedDocumentPreviewContent.receipt-preview-responsive .preview [style*="grid-template-columns"]{grid-template-columns:minmax(0,1fr)!important}#savedDocumentPreviewContent.receipt-preview-responsive .preview [style*="grid-template-columns"]>div{border-right:0!important;border-left:0!important}#savedDocumentPreviewContent.receipt-preview-responsive .preview img{max-width:100%!important}}`;document.head.appendChild(st);} }}
 function renderReceipts(){
  const q=($("receiptSearch")?.value||"").toLowerCase();
  $("receiptList").innerHTML=receipts.filter(d=>[d.number,d.customer,d.phone,d.date,d.reference].join(" ").toLowerCase().includes(q)).slice().reverse().map(d=>`<div class="customer-card"><h3>${esc(d.number)}</h3><b>${esc(d.customer)}</b><p class="small">${esc(formatDateDMY(d.date))}</p><p>Received: <b>₹${money(d.received)}</b> · Balance: <b>₹${money(d.balance)}</b></p><div class="doc-actions"><button class="btn-blue" onclick="editReceipt('${String(d.id)}')">Edit / Open</button><button class="btn-green" onclick="previewSavedReceipt('${String(d.id)}')">Preview</button><button class="btn-dark" onclick="shareSavedReceiptPDF('${String(d.id)}')">Share PDF</button><button class="btn-red" onclick="deleteReceipt('${String(d.id)}')">Delete</button></div></div>`).join("")||'<div class="empty">No saved payment receipts.</div>';
