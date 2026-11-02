@@ -1064,15 +1064,42 @@ function measurementToQuotation(){
  const m=getMeasurementForm();if(!m.customer||!m.rows.length)return alert("Enter a customer and valid measurements first.");
  const i=measurements.findIndex(x=>x.id===m.id);if(i>=0)measurements[i]=m;else measurements.push(m);saveStorage();
  newQuotation();$("qCustomer").value=m.customer;$("qPhone").value=m.phone;$("qAddress").value=m.address;
- const grouped={};m.rows.forEach(r=>{const baseName=r.type==="Other"?(r.customType||"Other"):r.type;const fabric=clothMeters(r,m.unit||"cm");const itemName=baseName+(fabric.curtain?` — Curtain Cloth ${money(fabric.curtain)}m`:"")+(fabric.sheer?` — Sheer Cloth ${money(fabric.sheer)}m`:"");const key=itemName+"|"+r.unit;if(!grouped[key])grouped[key]={qty:0,rate:r.rate,unit:r.unit,name:itemName};grouped[key].qty+=r.areaValue;});
+ const grouped={};let curtainMeters=0,sheerMeters=0;
+ (m.rows||[]).forEach(r=>{
+  const baseName=r.type==="Other"?(r.customType||"Other"):r.type;
+  const blind=!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");
+  const fabric=blind?{curtain:0,sheer:0}:clothMeters(r,m.unit||"cm");
+  curtainMeters+=Number(fabric.curtain||0);sheerMeters+=Number(fabric.sheer||0);
+  const unit=blind?"Sq.Ft":"RFT";
+  const qty=blind?Number(r.sqft||r.areaValue||0):Number(r.rft||r.areaValue||0);
+  const key=baseName+"|"+unit;
+  if(!grouped[key])grouped[key]={qty:0,unit,name:baseName};
+  grouped[key].qty+=qty;
+ });
  quotationItems=Object.values(grouped).map(g=>({name:g.name,qty:Number(g.qty.toFixed(2)),rate:"",unit:g.unit}));
+ if(curtainMeters>0)quotationItems.push({name:"TOTAL CURTAIN CLOTH",qty:Number(curtainMeters.toFixed(2)),rate:"",unit:"Meter"});
+ if(sheerMeters>0)quotationItems.push({name:"TOTAL SHEER CLOTH",qty:Number(sheerMeters.toFixed(2)),rate:"",unit:"Meter"});
  renderQuotationItems();
 }
 
-
 function measurementToQuotationSaved(id){const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;loadMeasurementIntoForm(m);measurementToQuotation();}
 function loadMeasurementIntoForm(m){currentMeasurementId=m.id;$ ("mCustomer").value=m.customer||"";$("mPhone").value=m.phone||"";$("mAddress").value=m.address||"";$("mDate").value=m.date||today();$("mUnit").value=m.unit||"cm";$ ("measurementBody").innerHTML="";(m.rows||[]).forEach(r=>addMeasurementRow(r));}
-function measurementToInvoice(id){const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;newInvoice();$("iCustomer").value=m.customer||"";$("iPhone").value=m.phone||"";$("iAddress").value=m.address||"";invoiceItems=(m.rows||[]).map(r=>{const fabric=clothMeters(r,m.unit||"cm");return {name:(r.type==="Other"?(r.customType||"Other"):r.type)+" — "+r.width+" × "+r.height+" "+(m.unit||"cm")+(fabric.curtain?` | Curtain Cloth ${money(fabric.curtain)}m`:"")+(fabric.sheer?` | Sheer Cloth ${money(fabric.sheer)}m`:""),qty:Number(r.qty||1),unit:"Nos",rate:""};});if(!invoiceItems.length)invoiceItems=[{name:"",qty:"",unit:"Item",rate:""}];renderInvoiceItems();}
+function measurementToInvoice(id){
+ const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;
+ newInvoice();$("iCustomer").value=m.customer||"";$("iPhone").value=m.phone||"";$("iAddress").value=m.address||"";
+ let curtainMeters=0,sheerMeters=0;
+ invoiceItems=(m.rows||[]).map(r=>{
+  const blind=!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");
+  const fabric=blind?{curtain:0,sheer:0}:clothMeters(r,m.unit||"cm");
+  curtainMeters+=Number(fabric.curtain||0);sheerMeters+=Number(fabric.sheer||0);
+  const name=(r.type==="Other"?(r.customType||"Other"):r.type)+" — "+r.width+" × "+r.height+" "+(m.unit||"cm");
+  return {name,qty:Number((blind?(r.sqft||r.areaValue):(r.rft||r.areaValue))||0).toFixed(2),unit:blind?"Sq.Ft":"RFT",rate:""};
+ });
+ if(curtainMeters>0)invoiceItems.push({name:"TOTAL CURTAIN CLOTH",qty:Number(curtainMeters.toFixed(2)),unit:"Meter",rate:""});
+ if(sheerMeters>0)invoiceItems.push({name:"TOTAL SHEER CLOTH",qty:Number(sheerMeters.toFixed(2)),unit:"Meter",rate:""});
+ if(!invoiceItems.length)invoiceItems=[{name:"",qty:"",unit:"Item",rate:""}];
+ renderInvoiceItems();
+}
 function measurementToBlindOrder(id){
  const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;
  newBlindOrder();
