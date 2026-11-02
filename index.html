@@ -513,7 +513,7 @@ const DATA_KEY="curtain_manager_data_v4";
 const SETTINGS_KEY="curtain_manager_settings_v4";
 function settingsStorageKey(){return authUser?.id?SETTINGS_KEY+"_"+authUser.id:SETTINGS_KEY;}
 const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Blackout Curtain","Sheer Curtain","Zebra Blind","Roman Blind","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Other"];
-const rftTypes=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain"];
+const rftTypes=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Sheer Curtain"];
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 const money=n=>Number(n||0).toFixed(2);
@@ -889,7 +889,9 @@ function getRowCalc(h,w,unit,type,qty,rate,customUnit){
 function clothMeters(row,unit){
  const cmFactor=unit==="cm"?1:2.54;
  const width=Number(row.width||0)*cmFactor,height=Number(row.height||0)*cmFactor,qty=Math.max(1,Number(row.qty||1));
- const type=String(row.type||""); const main=type!=="Sheer Curtain";
+ const type=String(row.type||"");
+ if(!isRFT(type,row.customUnit||"Sq.Ft")) return {curtain:0,sheer:0,mainPanels:0,sheerPanels:0};
+ const main=type!=="Sheer Curtain";
  const sheer=type==="Sheer Curtain"||type==="Curtain with Sheer";
  const mainPanels=main?Math.ceil(width/50):0, sheerPanels=sheer?Math.ceil(width/60):0;
  return {curtain:main?mainPanels*(height+30)/100*qty:0,sheer:sheer?sheerPanels*(height+25)/100*qty:0,mainPanels,sheerPanels};
@@ -936,9 +938,7 @@ function saveMeasurement(){
  const m=getMeasurementForm();
  if(!m.customer)return alert("Please enter Customer Name.");
  if(!m.rows.length)return alert("Enter at least one valid width and height.");
- const sqFtBlindRows=m.rows.filter(r=>!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft"));
- if(!sqFtBlindRows.length)return alert("Please add at least one Square Feet (Sq.Ft) Blind measurement. Running Feet Curtain measurements are excluded from Blind Order.");
- if(sqFtBlindRows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
+ if(m.rows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
  const i=measurements.findIndex(x=>x.id===m.id);
  if(i>=0)measurements[i]=m;else measurements.push(m);
  currentMeasurementId=m.id;saveStorage();alert("Measurement saved successfully.");showPage("savedMeasurements");
@@ -1001,7 +1001,8 @@ function measurementSheetHTML(m){
    const shade=r.shade?`<div class="measurement-shade">Shade No: ${esc(r.shade)}</div>`:"";
    return `<div class="measurement-window">
     <div class="measurement-seven"><span class="measurement-width">${esc(r.width)} ${dimUnit}</span><span class="measurement-height">${esc(r.height)}</span></div>
-    <div class="measurement-window-detail"><b style="font-size:17px;font-weight:800">${esc(typeName)}</b><div style="font-size:13px;font-weight:700">${fabric.curtain?`Curtain Cloth: ${money(fabric.curtain)} m (${fabric.mainPanels}P)`:""}${fabric.sheer?`${fabric.curtain?"<br>":""}Sheer Cloth: ${money(fabric.sheer)} m (${fabric.sheerPanels}P)`:""}</div>${shade?shade.replace('class="measurement-shade"','class="measurement-shade" style="font-size:16px;font-weight:800"'):''}</div>
+    <div class="measurement-fabric-inline" style="font-size:10px;line-height:1.2;font-weight:700;margin:0 0 4px 4px">${fabric.curtain?`Cloth: ${money(fabric.curtain)} m (${fabric.mainPanels}P)`:""}${fabric.sheer?`${fabric.curtain?"<br>":""}Sheer: ${money(fabric.sheer)} m (${fabric.sheerPanels}P)`:""}</div>
+    <div class="measurement-window-detail"><b style="font-size:17px;font-weight:800">${esc(typeName)}</b>${shade?shade.replace('class="measurement-shade"','class="measurement-shade" style="font-size:16px;font-weight:800"'):''}</div>
    </div>`;
   }).join("");
   return `<div class="measurement-room">
@@ -1028,9 +1029,7 @@ function measurementSheetHTML(m){
 function previewMeasurementSheet(){
  const m=getMeasurementForm();
  if(!m.rows.length)return alert("Enter at least one valid width and height.");
- const sqFtBlindRows=m.rows.filter(r=>!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft"));
- if(!sqFtBlindRows.length)return alert("Please add at least one Square Feet (Sq.Ft) Blind measurement. Running Feet Curtain measurements are excluded from Blind Order.");
- if(sqFtBlindRows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
+ if(m.rows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
  const el=$("measurementPreview");el.innerHTML=measurementSheetHTML(m);el.classList.remove("hidden");
  el.scrollIntoView({behavior:"smooth",block:"start"});
 }
