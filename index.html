@@ -512,7 +512,7 @@ let currentInvoiceId=null,currentReceiptId=null,invoiceItems=[];
 const DATA_KEY="curtain_manager_data_v4";
 const SETTINGS_KEY="curtain_manager_settings_v4";
 function settingsStorageKey(){return authUser?.id?SETTINGS_KEY+"_"+authUser.id:SETTINGS_KEY;}
-const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Blackout Curtain","Zebra Blind","Roman Blind","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Other"];
+const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Blackout Curtain","Curtain with Sheer","Sheer Curtain","Zebra Blind","Roman Blind","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Other"];
 const rftTypes=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain"];
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
@@ -850,7 +850,7 @@ function addMeasurementRow(data){
   <td data-label="Shade No."><input class="mShade" placeholder="Optional"></td>
   <td class="mUnitCell" data-label="Unit">Sq.Ft</td>
   <td data-label="Qty"><input class="mQty" type="number" min="1" value="1"></td>
-  <td class="mAreaCell" data-label="Value">0.00</td>
+  <td class="mAreaCell" data-label="Value"><div class="mAreaValue">0.00</div><div class="mFabricCalc" style="font-size:12px;line-height:1.35;font-weight:700;color:#17613a;margin-top:4px"></div></td>
   <td data-label="Delete"><button class="btn-red" type="button" style="padding:5px 9px;font-size:12px;margin:0">Delete</button></td>`;
  $("measurementBody").appendChild(tr);
  const typeSelect=tr.querySelector(".mType");
@@ -886,6 +886,14 @@ function getRowCalc(h,w,unit,type,qty,rate,customUnit){
  const area=rft?widthFeet*qty:sqft*qty;
  return {unit:rft?"RFT":"Sq.Ft",area,amount:area*rate,sqft:rft?0:sqft*qty,rft:rft?widthFeet*qty:0};
 }
+function clothMeters(row,unit){
+ const cmFactor=unit==="cm"?1:2.54;
+ const width=Number(row.width||0)*cmFactor,height=Number(row.height||0)*cmFactor,qty=Math.max(1,Number(row.qty||1));
+ const type=String(row.type||""); const main=type!=="Sheer Curtain";
+ const sheer=type==="Sheer Curtain"||type==="Curtain with Sheer";
+ const mainPanels=main?Math.ceil(width/50):0, sheerPanels=sheer?Math.ceil(width/60):0;
+ return {curtain:main?mainPanels*(height+30)/100*qty:0,sheer:sheer?sheerPanels*(height+25)/100*qty:0,mainPanels,sheerPanels};
+}
 function recalculateMeasurements(){
  let totalSqft=0,totalRft=0;
  document.querySelectorAll("#measurementBody tr").forEach(tr=>{
@@ -896,7 +904,12 @@ function recalculateMeasurements(){
   const qty=Math.max(1,Number(tr.querySelector(".mQty").value)||1);
   const c=getRowCalc(h,w,$("mUnit").value,type,qty,0,customUnit);
   tr.querySelector(".mUnitCell").textContent=c.unit;
-  tr.querySelector(".mAreaCell").textContent=money(c.area);
+  tr.querySelector(".mAreaValue").textContent=money(c.area);
+  const fabric=clothMeters({type,height:h,width:w,qty},$("mUnit").value);
+  const fabricLines=[];
+  if(fabric.curtain>0)fabricLines.push(`Curtain Cloth: ${money(fabric.curtain)} m (${fabric.mainPanels} panels)`);
+  if(fabric.sheer>0)fabricLines.push(`Sheer Cloth: ${money(fabric.sheer)} m (${fabric.sheerPanels} panels)`);
+  tr.querySelector(".mFabricCalc").textContent=fabricLines.join(" | ");
   totalSqft+=c.sqft;totalRft+=c.rft;
  });
  $("measurementSqft").textContent=money(totalSqft);
@@ -914,7 +927,8 @@ function getMeasurementForm(){
   const customUnit=tr.querySelector(".mCustomUnit").value;
   const qty=Math.max(1,Number(tr.querySelector(".mQty").value)||1),rate=0;
   const c=getRowCalc(h,w,$("mUnit").value,type,qty,rate,customUnit);
-  rows.push({area:tr.querySelector(".mArea").value.trim(),type,customType,customUnit,shade:tr.querySelector(".mShade").value.trim(),height:h,width:w,qty,rate,unit:c.unit,areaValue:c.area,amount:c.amount,sqft:c.sqft,rft:c.rft});
+  const fabric=clothMeters({type,height:h,width:w,qty},$("mUnit").value);
+  rows.push({area:tr.querySelector(".mArea").value.trim(),type,customType,customUnit,shade:tr.querySelector(".mShade").value.trim(),height:h,width:w,qty,rate,unit:c.unit,areaValue:c.area,amount:c.amount,sqft:c.sqft,rft:c.rft,curtainMeters:fabric.curtain,sheerMeters:fabric.sheer,curtainPanels:fabric.mainPanels,sheerPanels:fabric.sheerPanels});
  });
  return {id:currentMeasurementId||newId(),customer:$("mCustomer").value.trim(),phone:$("mPhone").value.trim(),address:$("mAddress").value.trim(),date:$("mDate").value,unit:$("mUnit").value,rows};
 }
@@ -982,11 +996,12 @@ function measurementSheetHTML(m){
  const roomBlocks=[...groups.values()].map(g=>{
   const windows=g.rows.map(r=>{
    const typeName=r.type==="Other"?(r.customType||"Other"):r.type;
+   const fabric=(r.curtainMeters!==undefined||r.sheerMeters!==undefined)?{curtain:Number(r.curtainMeters||0),sheer:Number(r.sheerMeters||0),mainPanels:Number(r.curtainPanels||0),sheerPanels:Number(r.sheerPanels||0)}:clothMeters(r,m.unit||"cm");
    const dimUnit=m.unit==="cm"?"cm":"inch";
    const shade=r.shade?`<div class="measurement-shade">Shade No: ${esc(r.shade)}</div>`:"";
    return `<div class="measurement-window">
     <div class="measurement-seven"><span class="measurement-width">${esc(r.width)} ${dimUnit}</span><span class="measurement-height">${esc(r.height)}</span></div>
-    <div class="measurement-window-detail"><b style="font-size:17px;font-weight:800">${esc(typeName)}</b>${shade?shade.replace('class="measurement-shade"','class="measurement-shade" style="font-size:16px;font-weight:800"'):''}</div>
+    <div class="measurement-window-detail"><b style="font-size:17px;font-weight:800">${esc(typeName)}</b><div style="font-size:13px;font-weight:700">${fabric.curtain?`Curtain Cloth: ${money(fabric.curtain)} m (${fabric.mainPanels} panels)`:""}${fabric.sheer?`${fabric.curtain?"<br>":""}Sheer Cloth: ${money(fabric.sheer)} m (${fabric.sheerPanels} panels)`:""}</div>${shade?shade.replace('class="measurement-shade"','class="measurement-shade" style="font-size:16px;font-weight:800"'):''}</div>
    </div>`;
   }).join("");
   return `<div class="measurement-room">
@@ -998,6 +1013,8 @@ function measurementSheetHTML(m){
  }).join("");
  const totalSqft=(m.rows||[]).reduce((a,r)=>a+Number(r.sqft||0),0);
  const totalRft=(m.rows||[]).reduce((a,r)=>a+Number(r.rft||0),0);
+ const totalCurtainMeters=(m.rows||[]).reduce((a,r)=>a+Number(r.curtainMeters||0),0);
+ const totalSheerMeters=(m.rows||[]).reduce((a,r)=>a+Number(r.sheerMeters||0),0);
  const business=settings.name||"Home Style Curtains";
  return `<div class="measurement-print">
   <div class="measurement-print-head"><h2>${esc(business)}</h2><div>${esc(settings.address||"")}</div><div>${esc(settings.phone||"")}</div><h3 style="margin:8px 0 0">MEASUREMENT SHEET</h3></div>
@@ -1005,7 +1022,7 @@ function measurementSheetHTML(m){
   ${m.address?`<div style="margin-bottom:10px"><b>Address:</b> ${esc(m.address)}</div>`:""}
   <div style="display:grid;grid-template-columns:105px minmax(0,1fr) 95px 85px;gap:8px;background:#eaf0f5;padding:8px 4px;font-weight:bold;font-size:12px"><div>Area</div><div>Measurements (Width / Height)</div><div style="text-align:right">Total</div><div style="text-align:right">Items</div></div>
   ${roomBlocks}
-  <div class="measurement-grand">Total Sq.Ft: ${money(totalSqft)} &nbsp;&nbsp; Total Running Feet: ${money(totalRft)}</div>
+  <div class="measurement-grand">Total Sq.Ft: ${money(totalSqft)} &nbsp;&nbsp; Total Running Feet: ${money(totalRft)}<br><b>Total Curtain Cloth: ${money(totalCurtainMeters)} m &nbsp; | &nbsp; Total Sheer Cloth: ${money(totalSheerMeters)} m</b></div>
  </div>`;
 }
 function previewMeasurementSheet(){
@@ -1047,7 +1064,7 @@ function measurementToQuotation(){
  const m=getMeasurementForm();if(!m.customer||!m.rows.length)return alert("Enter a customer and valid measurements first.");
  const i=measurements.findIndex(x=>x.id===m.id);if(i>=0)measurements[i]=m;else measurements.push(m);saveStorage();
  newQuotation();$("qCustomer").value=m.customer;$("qPhone").value=m.phone;$("qAddress").value=m.address;
- const grouped={};m.rows.forEach(r=>{const itemName=r.type==="Other"?(r.customType||"Other"):r.type;const key=itemName+"|"+r.unit;if(!grouped[key])grouped[key]={qty:0,rate:r.rate,unit:r.unit,name:itemName};grouped[key].qty+=r.areaValue;});
+ const grouped={};m.rows.forEach(r=>{const baseName=r.type==="Other"?(r.customType||"Other"):r.type;const fabric=clothMeters(r,m.unit||"cm");const itemName=baseName+(fabric.curtain?` — Curtain Cloth ${money(fabric.curtain)}m`:"")+(fabric.sheer?` — Sheer Cloth ${money(fabric.sheer)}m`:"");const key=itemName+"|"+r.unit;if(!grouped[key])grouped[key]={qty:0,rate:r.rate,unit:r.unit,name:itemName};grouped[key].qty+=r.areaValue;});
  quotationItems=Object.values(grouped).map(g=>({name:g.name,qty:Number(g.qty.toFixed(2)),rate:"",unit:g.unit}));
  renderQuotationItems();
 }
@@ -1055,7 +1072,7 @@ function measurementToQuotation(){
 
 function measurementToQuotationSaved(id){const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;loadMeasurementIntoForm(m);measurementToQuotation();}
 function loadMeasurementIntoForm(m){currentMeasurementId=m.id;$ ("mCustomer").value=m.customer||"";$("mPhone").value=m.phone||"";$("mAddress").value=m.address||"";$("mDate").value=m.date||today();$("mUnit").value=m.unit||"cm";$ ("measurementBody").innerHTML="";(m.rows||[]).forEach(r=>addMeasurementRow(r));}
-function measurementToInvoice(id){const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;newInvoice();$("iCustomer").value=m.customer||"";$("iPhone").value=m.phone||"";$("iAddress").value=m.address||"";invoiceItems=(m.rows||[]).map(r=>({name:(r.type==="Other"?(r.customType||"Other"):r.type)+" — "+r.width+" × "+r.height+" "+(m.unit||"cm"),qty:Number(r.qty||1),unit:"Nos",rate:""}));if(!invoiceItems.length)invoiceItems=[{name:"",qty:"",unit:"Item",rate:""}];renderInvoiceItems();}
+function measurementToInvoice(id){const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;newInvoice();$("iCustomer").value=m.customer||"";$("iPhone").value=m.phone||"";$("iAddress").value=m.address||"";invoiceItems=(m.rows||[]).map(r=>{const fabric=clothMeters(r,m.unit||"cm");return {name:(r.type==="Other"?(r.customType||"Other"):r.type)+" — "+r.width+" × "+r.height+" "+(m.unit||"cm")+(fabric.curtain?` | Curtain Cloth ${money(fabric.curtain)}m`:"")+(fabric.sheer?` | Sheer Cloth ${money(fabric.sheer)}m`:""),qty:Number(r.qty||1),unit:"Nos",rate:""};});if(!invoiceItems.length)invoiceItems=[{name:"",qty:"",unit:"Item",rate:""}];renderInvoiceItems();}
 function measurementToBlindOrder(id){
  const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;
  newBlindOrder();
