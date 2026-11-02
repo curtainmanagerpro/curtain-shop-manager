@@ -513,7 +513,7 @@ const DATA_KEY="curtain_manager_data_v4";
 const SETTINGS_KEY="curtain_manager_settings_v4";
 function settingsStorageKey(){return authUser?.id?SETTINGS_KEY+"_"+authUser.id:SETTINGS_KEY;}
 const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Blackout Curtain","Curtain with Sheer","Sheer Curtain","Zebra Blind","Roman Blind","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Other"];
-const rftTypes=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain"];
+const rftTypes=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Curtain with Sheer","Sheer Curtain"];
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 const money=n=>Number(n||0).toFixed(2);
