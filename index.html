@@ -891,7 +891,8 @@ function clothMeters(row,unit){
  const width=Number(row.width||0)*cmFactor,height=Number(row.height||0)*cmFactor,qty=Math.max(1,Number(row.qty||1));
  const type=String(row.type||""); const main=type!=="Sheer Curtain";
  const sheer=type==="Sheer Curtain"||type==="Curtain with Sheer";
- const mainPanels=main?Math.ceil(width/50):0, sheerPanels=sheer?Math.ceil(width/60):0;
+ const mainPanels=main?Math.ceil(width/50):0,
+      sheerPanels=sheer?Math.floor(width/60):0;
  return {curtain:main?mainPanels*(height+30)/100*qty:0,sheer:sheer?sheerPanels*(height+25)/100*qty:0,mainPanels,sheerPanels};
 }
 function recalculateMeasurements(){
