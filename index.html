@@ -235,7 +235,7 @@ td input,td select{min-width:80px;padding:8px}
   <h2>📏 Measurement Sheet</h2>
   <div class="grid">
    <div class="field"><label>Customer Name *</label><input id="mCustomer" placeholder="Customer name"></div>
-   <div class="field"><label>Phone / WhatsApp</label><input id="mPhone" type="tel"></div>
+   <div class="field"><label>Phone / WhatsApp</label><input id="mPhone" type="tel"><button type="button" class="btn-light" onclick="selectCustomerContact('mCustomer','mPhone')">📒 Select Contact</button></div>
    <div class="field"><label>Address</label><textarea id="mAddress"></textarea></div>
    <div class="field"><label>Date</label><input id="mDate" type="date"></div>
    <div class="field"><label>Measurement Unit</label><select id="mUnit" onchange="recalculateMeasurements()"><option value="cm">Centimeter</option><option value="inch">Inch</option></select></div>
@@ -254,7 +254,6 @@ td input,td select{min-width:80px;padding:8px}
 
   <div class="row-add-bottom" style="display:flex;justify-content:flex-end;margin-top:10px">
     <button class="btn-blue" type="button" onclick="addMeasurementRow()">＋ Add Row</button>
-    <button class="btn-dark" type="button" onclick="openCameraMeasure()">📷 Camera Measure (ทดลอง)</button>
   </div>
 
   <div class="summary">
@@ -293,7 +292,7 @@ td input,td select{min-width:80px;padding:8px}
  </div>
  <div class="field">
   <label>Customer Phone Number</label>
-  <input id="boCustomerPhone" type="tel" placeholder="Phone number">
+  <input id="boCustomerPhone" type="tel" placeholder="Phone number"><button type="button" class="btn-light" onclick="selectCustomerContact('boCustomerName','boCustomerPhone')">📒 Select Contact</button>
  </div>
 </div>
   <div class="notice" id="boBusinessInfo"></div>
@@ -361,7 +360,7 @@ td input,td select{min-width:80px;padding:8px}
  <div class="card"><h2>Quotation</h2>
   <div class="grid">
    <div class="field"><label>Customer Name *</label><input id="qCustomer"></div>
-   <div class="field"><label>Phone</label><input id="qPhone"></div>
+   <div class="field"><label>Phone</label><input id="qPhone" type="tel"><button type="button" class="btn-light" onclick="selectCustomerContact('qCustomer','qPhone')">📒 Select Contact</button></div>
    <div class="field"><label>Address</label><textarea id="qAddress"></textarea></div>
    <div class="field"><label>Quotation No.</label><input id="qNumber"></div>
    <div class="field"><label>Date</label><input id="qDate" type="date"></div>
@@ -402,14 +401,14 @@ td input,td select{min-width:80px;padding:8px}
 </section>
 
 <section id="invoice" class="page"><div class="card"><h2>New Invoice</h2><div class="grid">
-<div class="field"><label>Customer Name *</label><input id="iCustomer"></div><div class="field"><label>Phone / WhatsApp</label><input id="iPhone" type="tel"></div><div class="field"><label>Address</label><textarea id="iAddress"></textarea></div><div class="field"><label>Invoice Number</label><input id="iNumber"></div><div class="field"><label>Date</label><input id="iDate" type="date"></div></div></div>
+<div class="field"><label>Customer Name *</label><input id="iCustomer"></div><div class="field"><label>Phone / WhatsApp</label><input id="iPhone" type="tel"><button type="button" class="btn-light" onclick="selectCustomerContact('iCustomer','iPhone')">📒 Select Contact</button></div><div class="field"><label>Address</label><textarea id="iAddress"></textarea></div><div class="field"><label>Invoice Number</label><input id="iNumber"></div><div class="field"><label>Date</label><input id="iDate" type="date"></div></div></div>
 <div class="card"><h2>Invoice Items</h2><div id="invoiceItems"></div><div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn-blue" type="button" onclick="addInvoiceItem()">＋ Add Item</button></div></div>
 <div class="card"><h2>Calculation</h2><div class="grid"><div class="field"><label>Discount Type</label><select id="iDiscountType" onchange="calculateInvoice()"><option value="percent">Percentage %</option><option value="fixed">Fixed Amount ₹</option></select></div><div class="field"><label>Discount</label><input id="iDiscountValue" type="number" value="0" oninput="calculateInvoice()"></div><div class="field"><label>GST %</label><input id="iGstValue" type="number" value="0" oninput="calculateInvoice()"></div><div class="field"><label>Amount Received</label><input id="iPaid" type="number" min="0" value="0" oninput="calculateInvoice()"></div></div>
 <div class="summary"><div class="summary-row"><span>Subtotal</span><b>₹<span id="iSubtotal">0.00</span></b></div><div class="summary-row"><span>Discount</span><b>₹<span id="iDiscount">0.00</span></b></div><div class="summary-row"><span>GST</span><b>₹<span id="iGST">0.00</span></b></div><div class="summary-row grand"><span>Grand Total</span><b>₹<span id="iGrand">0.00</span></b></div><div class="summary-row"><span>Amount Received</span><b>₹<span id="iPaidShow">0.00</span></b></div><div class="summary-row"><span>Balance Due</span><b>₹<span id="iBalance">0.00</span></b></div></div>
 <div class="field" style="margin-top:12px"><label>Notes / Terms</label><textarea id="iNotes"></textarea></div><button class="btn-green" onclick="saveInvoice()">Save Invoice</button><button class="btn-blue" onclick="previewInvoice()">Preview</button><button class="btn-dark" onclick="shareInvoicePDF()">Download / Share PDF</button></div><div id="invoicePreview" class="preview hidden"></div></section>
 <section id="savedInvoices" class="page"><div class="card"><h2>Saved Invoices</h2><button class="btn-green" onclick="newInvoice()">＋ New Invoice</button><input id="invoiceSearch" placeholder="Search invoice or customer..." oninput="renderInvoices()"></div><div id="invoiceList"></div></section>
 <section id="receipt" class="page"><div class="card"><h2>New Payment Receipt</h2><div class="grid">
-<div class="field"><label>Customer Name *</label><input id="rCustomer"></div><div class="field"><label>Phone / WhatsApp</label><input id="rPhone" type="tel"></div><div class="field"><label>Address / Place</label><textarea id="rAddress"></textarea></div><div class="field"><label>Receipt Number</label><input id="rNumber"></div><div class="field"><label>Date</label><input id="rDate" type="date"></div><div class="field"><label>Reference / Details (optional)</label><input id="rReference"></div><div class="field"><label>Total Amount (₹) *</label><input id="rTotal" type="number" min="0" step="0.01" oninput="calculateReceipt()"></div><div class="field"><label>Amount Received Now (₹) *</label><input id="rReceived" type="number" min="0" step="0.01" oninput="calculateReceipt()"></div></div>
+<div class="field"><label>Customer Name *</label><input id="rCustomer"></div><div class="field"><label>Phone / WhatsApp</label><input id="rPhone" type="tel"><button type="button" class="btn-light" onclick="selectCustomerContact('rCustomer','rPhone')">📒 Select Contact</button></div><div class="field"><label>Address / Place</label><textarea id="rAddress"></textarea></div><div class="field"><label>Receipt Number</label><input id="rNumber"></div><div class="field"><label>Date</label><input id="rDate" type="date"></div><div class="field"><label>Reference / Details (optional)</label><input id="rReference"></div><div class="field"><label>Total Amount (₹) *</label><input id="rTotal" type="number" min="0" step="0.01" oninput="calculateReceipt()"></div><div class="field"><label>Amount Received Now (₹) *</label><input id="rReceived" type="number" min="0" step="0.01" oninput="calculateReceipt()"></div></div>
 <div class="summary"><div class="summary-row"><span>Total Amount</span><b>₹<span id="rTotalShow">0.00</span></b></div><div class="summary-row"><span>Amount Received</span><b>₹<span id="rReceivedShow">0.00</span></b></div><div class="summary-row grand"><span>Balance Due</span><b>₹<span id="rBalance">0.00</span></b></div></div><div class="grid" style="margin-top:12px"><div class="field"><label>Payment Method</label><select id="rMethod"><option value="Cash">Cash</option><option value="UPI">UPI</option><option value="Bank Transfer">Bank Transfer</option><option value="Other">Other</option></select></div><div class="field"><label>Notes (optional)</label><input id="rNote" placeholder="Additional note"></div></div><button class="btn-green" onclick="saveReceipt()">Save Receipt</button><button class="btn-blue" onclick="previewReceipt()">Preview</button><button class="btn-dark" onclick="shareReceiptPDF()">Download / Share PDF</button></div><div id="receiptPreview" class="preview hidden"></div></section>
 <section id="savedReceipts" class="page"><div class="card"><h2>Saved Payment Receipts</h2><button class="btn-green" onclick="newReceipt()">＋ New Payment Receipt</button><input id="receiptSearch" placeholder="Search receipt or customer..." oninput="renderReceipts()"></div><div id="receiptList"></div></section>
 
@@ -1951,37 +1950,29 @@ if ("serviceWorker" in navigator) {
       .catch(error => console.error("Service Worker:", error));
   });
 }
+
+/* Optional Android/Chrome Contact Picker: fills customer name and phone only. */
+async function selectCustomerContact(nameFieldId, phoneFieldId){
+ const nameField=$(nameFieldId), phoneField=$(phoneFieldId);
+ if(!nameField||!phoneField)return;
+ if(!('contacts' in navigator && 'ContactsManager' in window)){
+   alert("ഈ ബ്രൗസറിൽ Contact Picker ലഭ്യമല്ല. Android Chrome-ൽ HTTPS വഴി തുറന്ന് വീണ്ടും ശ്രമിക്കുക.");
+   return;
+ }
+ try{
+   const contacts=await navigator.contacts.select(['name','tel'],{multiple:false});
+   if(!contacts||!contacts.length)return;
+   const contact=contacts[0];
+   const names=Array.isArray(contact.name)?contact.name:[];
+   const tels=Array.isArray(contact.tel)?contact.tel:[];
+   if(names.length)nameField.value=names[0];
+   if(tels.length)phoneField.value=tels[0];
+ }catch(error){
+   if(error&&error.name!=='AbortError')alert("Contact തിരഞ്ഞെടുക്കാൻ കഴിഞ്ഞില്ല. വീണ്ടും ശ്രമിക്കുക.");
+ }
+}
+
 </script>
 <div id="pdfSheet" style="position:fixed;left:-10000px;top:0;width:794px;background:#fff;"></div>
-
-<!-- Experimental Camera Measure module: isolated from existing app logic -->
-<div id="cameraMeasureModal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.82);padding:12px;overflow:auto">
- <div style="max-width:760px;margin:10px auto;background:#fff;border-radius:16px;padding:16px;color:#17202a">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0">📷 Camera Measure — Experimental</h2><button class="btn-red" onclick="closeCameraMeasure()">Close ✕</button></div>
-  <p style="font-size:14px">ഇത് ക്യാമറ ഉപയോഗിച്ചുള്ള പരീക്ഷണ അളവാണ്. കൃത്യമായ curtain stitching-ന് tape/laser meter ഉപയോഗിച്ച് വീണ്ടും പരിശോധിക്കുക.</p>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"><button class="btn-blue" onclick="startCameraMeasure()">Start Camera</button><button class="btn-light" onclick="stopCameraMeasure()">Stop</button></div>
-  <div style="position:relative;background:#111;border-radius:10px;overflow:hidden"><video id="cmVideo" autoplay playsinline muted style="display:block;width:100%;max-height:58vh;object-fit:contain"></video><canvas id="cmCanvas" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none"></canvas></div>
-  <div id="cmStatus" class="notice" style="margin:10px 0">1) Start Camera. 2) Calibration തിരഞ്ഞെടുക്കുക.</div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input id="cmKnownDistance" type="number" min="0.1" step="0.1" placeholder="Reference distance (cm)" style="max-width:190px"><button class="btn-blue" onclick="cmSetMode('calibrate')">Calibrate: 2 points</button><button class="btn-green" onclick="cmSetMode('measure')">Measure: 2 points</button></div>
-  <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"><label>Measurement row</label><select id="cmRowSelect" style="max-width:180px"></select><select id="cmDimension"><option value="width">Apply to Width</option><option value="height">Apply to Height</option></select><button class="btn-green" onclick="cmApplyResult()">Apply Result</button></div>
-  <div style="font-size:13px;color:#555;margin-top:10px">സൂചന: ക്യാമറയുടെ angle, ദൂരം, വെളിച്ചം എന്നിവ കാരണം ഫലം മാറാം. ഇത് എല്ലാ Android ഫോണിലും ഒരേ കൃത്യത ഉറപ്പാക്കുന്നില്ല.</div>
- </div>
-</div>
-<script>
-(function(){
- let stream=null, mode='', pts=[], pxPerCm=0, resultCm=null;
- const modal=document.getElementById('cameraMeasureModal'), video=document.getElementById('cmVideo'), canvas=document.getElementById('cmCanvas'), ctx=canvas.getContext('2d');
- function status(t){document.getElementById('cmStatus').textContent=t;}
- window.openCameraMeasure=function(){modal.style.display='block';cmRefreshRows();};
- window.closeCameraMeasure=function(){stopCameraMeasure();modal.style.display='none';};
- window.startCameraMeasure=async function(){try{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw Error('ഈ browser-ൽ camera access ലഭ്യമല്ല. HTTPS വഴി തുറന്ന് നോക്കുക.');stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});video.srcObject=stream;video.onloadedmetadata=()=>{canvas.width=video.videoWidth||640;canvas.height=video.videoHeight||480;};status('Camera ready. Reference length അറിയുന്ന രണ്ട് പോയിന്റുകൾ തിരഞ്ഞെടുക്കുക.');}catch(e){status('Camera തുറക്കാനായില്ല: '+e.message+' — HTTPS permission പരിശോധിക്കുക.');}};
- window.stopCameraMeasure=function(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}video.srcObject=null;};
- window.cmSetMode=function(m){mode=m;pts=[];ctx.clearRect(0,0,canvas.width,canvas.height);status(m==='calibrate'?'Reference object-ന്റെ രണ്ട് അറ്റങ്ങൾ tap ചെയ്യുക.':'അളക്കേണ്ട ഭാഗത്തിന്റെ രണ്ട് അറ്റങ്ങൾ tap ചെയ്യുക.');};
- canvas.addEventListener('click',function(e){if(!mode||!canvas.width)return;const r=canvas.getBoundingClientRect();const x=(e.clientX-r.left)*canvas.width/r.width,y=(e.clientY-r.top)*canvas.height/r.height;pts.push({x,y});ctx.fillStyle='#ff3030';ctx.beginPath();ctx.arc(x,y,Math.max(6,canvas.width/100),0,Math.PI*2);ctx.fill();if(pts.length===2){const d=Math.hypot(pts[1].x-pts[0].x,pts[1].y-pts[0].y);if(mode==='calibrate'){const known=parseFloat(document.getElementById('cmKnownDistance').value);if(known>0){pxPerCm=d/known;status('Calibration set: '+pxPerCm.toFixed(2)+' pixels/cm. ഇനി Measure തിരഞ്ഞെടുക്കുക.');}else status('Reference distance (cm) നൽകണം. വീണ്ടും Calibrate ചെയ്യുക.');}else if(pxPerCm>0){resultCm=d/pxPerCm;status('Approx. measurement: '+resultCm.toFixed(2)+' cm ('+(resultCm/2.54).toFixed(2)+' inch). Apply Result അമർത്താം.');}else status('ആദ്യം reference distance ഉപയോഗിച്ച് Calibrate ചെയ്യണം.');mode='';pts=[];}});
- window.cmRefreshRows=function(){const sel=document.getElementById('cmRowSelect');sel.innerHTML='';const rows=[...document.querySelectorAll('#measurementBody tr')];rows.forEach((tr,i)=>{const o=document.createElement('option');o.value=i;o.textContent='Row '+(i+1);sel.appendChild(o);});if(!rows.length)status('ആദ്യം Measurement Sheet-ൽ Add Row ചേർക്കുക.');};
- window.cmApplyResult=function(){if(!(resultCm>0)){status('ആദ്യം ക്യാമറയിൽ measurement എടുക്കുക.');return;}const rows=[...document.querySelectorAll('#measurementBody tr')],tr=rows[Number(document.getElementById('cmRowSelect').value)];if(!tr){status('Measurement row തിരഞ്ഞെടുക്കുക.');return;}const unit=document.getElementById('mUnit')?.value||'cm';const val=unit==='inch'?resultCm/2.54:resultCm;const cls=document.getElementById('cmDimension').value==='width'?'.mWidth':'.mHeight';const input=tr.querySelector(cls);if(input){input.value=val.toFixed(2);input.dispatchEvent(new Event('input',{bubbles:true}));if(typeof recalculateMeasurements==='function')recalculateMeasurements();status('Row '+(Number(document.getElementById('cmRowSelect').value)+1)+'-ൽ value ചേർത്തു.');}};
-})();
-</script>
-
 </body>
 </html>
