@@ -644,9 +644,11 @@ async function loadCloudData(){
 
   if(data&&data.data){
     const cloud=data.data;
-    let deletedMeasurementIds=[];
-    try{deletedMeasurementIds=JSON.parse(localStorage.getItem(DELETED_MEASUREMENTS_KEY)||"[]").map(String);}catch(e){deletedMeasurementIds=[];}
-    const deletedMeasurementSet=new Set(deletedMeasurementIds);
+    let localDeletedMeasurementIds=[];
+    try{localDeletedMeasurementIds=JSON.parse(localStorage.getItem(DELETED_MEASUREMENTS_KEY)||"[]").map(String);}catch(e){localDeletedMeasurementIds=[];}
+    const cloudDeletedMeasurementIds=Array.isArray(cloud.deletedMeasurementIds)?cloud.deletedMeasurementIds.map(String):[];
+    const deletedMeasurementSet=new Set([...localDeletedMeasurementIds,...cloudDeletedMeasurementIds]);
+    try{localStorage.setItem(DELETED_MEASUREMENTS_KEY,JSON.stringify([...deletedMeasurementSet]));}catch(e){}
     const mergeById=(localList,cloudList)=>{
       const map=new Map();
       (Array.isArray(cloudList)?cloudList:[]).forEach(x=>map.set(String(x.id),x));
@@ -685,14 +687,20 @@ async function loadCloudData(){
 async function saveCloudData(){
   if(!sb||!authUser)return {ok:false,message:"Cloud login is not ready."};
 
-  const cloudData={measurements,quotations,blindOrders,invoices,receipts,settings};
+  let deletedMeasurementIds=[];
+  try{deletedMeasurementIds=JSON.parse(localStorage.getItem(DELETED_MEASUREMENTS_KEY)||"[]").map(String);}catch(e){deletedMeasurementIds=[];}
   const {data:existing,error:findError}=await sb
     .from("customer_data")
-    .select("id")
+    .select("id,data")
     .eq("user_id",authUser.id)
     .maybeSingle();
-
   if(findError)return {ok:false,message:findError.message};
+  const cloudDeleted=Array.isArray(existing?.data?.deletedMeasurementIds)?existing.data.deletedMeasurementIds.map(String):[];
+  const deletedSet=new Set([...deletedMeasurementIds,...cloudDeleted]);
+  deletedMeasurementIds=[...deletedSet];
+  try{localStorage.setItem(DELETED_MEASUREMENTS_KEY,JSON.stringify(deletedMeasurementIds));}catch(e){}
+  measurements=measurements.filter(x=>!deletedSet.has(String(x.id)));
+  const cloudData={measurements,quotations,blindOrders,invoices,receipts,settings,deletedMeasurementIds};
 
   let result;
   if(existing){
@@ -973,7 +981,7 @@ function deleteMeasurement(id){
  try{localStorage.setItem(key,JSON.stringify(deleted));}catch(e){console.error("Measurement deletion marker save failed:",e);}
  measurements=measurements.filter(m=>String(m.id)!==idText);
  saveStorage();
- if(sb&&authUser)saveCloudData().then(result=>{if(!result.ok)console.error("Deleted measurement cloud sync failed:",result.message);});
+ if(sb&&authUser)saveCloudData().then(result=>{if(!result.ok){console.error("Deleted measurement cloud sync failed:",result.message);alert("Cloud Sync പരാജയപ്പെട്ടു: "+result.message);}});
  renderMeasurements();
 }
 function renderCustomers(){
