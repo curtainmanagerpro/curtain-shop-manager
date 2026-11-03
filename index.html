@@ -891,8 +891,7 @@ function clothMeters(row,unit){
  const width=Number(row.width||0)*cmFactor,height=Number(row.height||0)*cmFactor,qty=Math.max(1,Number(row.qty||1));
  const type=String(row.type||""); const main=type!=="Sheer Curtain";
  const sheer=type==="Sheer Curtain"||type==="Curtain with Sheer";
- const mainPanels=main?Math.ceil(width/50):0,
-      sheerPanels=sheer?Math.floor(width/60):0;
+ const mainPanels=main?Math.ceil(width/50):0, sheerPanels=sheer?Math.ceil(width/60):0;
  return {curtain:main?mainPanels*(height+30)/100*qty:0,sheer:sheer?sheerPanels*(height+25)/100*qty:0,mainPanels,sheerPanels};
 }
 function recalculateMeasurements(){
@@ -909,7 +908,7 @@ function recalculateMeasurements(){
   const fabric=clothMeters({type,height:h,width:w,qty},$("mUnit").value);
   const fabricLines=[];
   if(fabric.curtain>0)fabricLines.push(`Curtain Cloth: ${money(fabric.curtain)} m (${fabric.mainPanels} panels)`);
-  if(fabric.sheer>0)fabricLines.push(`Sheer: ${money(fabric.sheer)} m (${fabric.sheerPanels} panels)`);
+  if(fabric.sheer>0)fabricLines.push(`Sheer Cloth: ${money(fabric.sheer)} m (${fabric.sheerPanels} panels)`);
   tr.querySelector(".mFabricCalc").textContent=fabricLines.join(" | ");
   totalSqft+=c.sqft;totalRft+=c.rft;
  });
