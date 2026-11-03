@@ -903,7 +903,8 @@ function clothMeters(row,unit){
  if(!isRFT(type,row.customUnit||"Sq.Ft")) return {curtain:0,sheer:0,mainPanels:0,sheerPanels:0};
  const main=type!=="Sheer Curtain";
  const sheer=type==="Sheer Curtain"||type==="Curtain with Sheer";
- const mainPanels=main?Math.ceil(width/50):0, sheerPanels=sheer?Math.ceil(width/60):0;
+ const mainPanels=main?Math.ceil(width/50):0,
+      sheerPanels=sheer?Math.floor(width/60):0;
  return {curtain:main?mainPanels*(height+30)/100*qty:0,sheer:sheer?sheerPanels*(height+25)/100*qty:0,mainPanels,sheerPanels};
 }
 function recalculateMeasurements(){
