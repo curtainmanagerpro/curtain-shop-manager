@@ -909,7 +909,7 @@ function recalculateMeasurements(){
   const fabric=clothMeters({type,height:h,width:w,qty},$("mUnit").value);
   const fabricLines=[];
   if(fabric.curtain>0)fabricLines.push(`Curtain Cloth: ${money(fabric.curtain)} m (${fabric.mainPanels} panels)`);
-  if(fabric.sheer>0)fabricLines.push(`Sheer Cloth: ${money(fabric.sheer)} m (${fabric.sheerPanels} panels)`);
+  if(fabric.sheer>0)fabricLines.push(`Sheer: ${money(fabric.sheer)} m (${fabric.sheerPanels} panels)`);
   tr.querySelector(".mFabricCalc").textContent=fabricLines.join(" | ");
   totalSqft+=c.sqft;totalRft+=c.rft;
  });
