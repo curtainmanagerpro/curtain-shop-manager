@@ -254,6 +254,7 @@ td input,td select{min-width:80px;padding:8px}
 
   <div class="row-add-bottom" style="display:flex;justify-content:flex-end;margin-top:10px">
     <button class="btn-blue" type="button" onclick="addMeasurementRow()">＋ Add Row</button>
+    <button class="btn-dark" type="button" onclick="openCameraMeasure()">📷 Camera Measure (ทดลอง)</button>
   </div>
 
   <div class="summary">
@@ -1952,5 +1953,35 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <div id="pdfSheet" style="position:fixed;left:-10000px;top:0;width:794px;background:#fff;"></div>
+
+<!-- Experimental Camera Measure module: isolated from existing app logic -->
+<div id="cameraMeasureModal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.82);padding:12px;overflow:auto">
+ <div style="max-width:760px;margin:10px auto;background:#fff;border-radius:16px;padding:16px;color:#17202a">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0">📷 Camera Measure — Experimental</h2><button class="btn-red" onclick="closeCameraMeasure()">Close ✕</button></div>
+  <p style="font-size:14px">ഇത് ക്യാമറ ഉപയോഗിച്ചുള്ള പരീക്ഷണ അളവാണ്. കൃത്യമായ curtain stitching-ന് tape/laser meter ഉപയോഗിച്ച് വീണ്ടും പരിശോധിക്കുക.</p>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"><button class="btn-blue" onclick="startCameraMeasure()">Start Camera</button><button class="btn-light" onclick="stopCameraMeasure()">Stop</button></div>
+  <div style="position:relative;background:#111;border-radius:10px;overflow:hidden"><video id="cmVideo" autoplay playsinline muted style="display:block;width:100%;max-height:58vh;object-fit:contain"></video><canvas id="cmCanvas" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none"></canvas></div>
+  <div id="cmStatus" class="notice" style="margin:10px 0">1) Start Camera. 2) Calibration തിരഞ്ഞെടുക്കുക.</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input id="cmKnownDistance" type="number" min="0.1" step="0.1" placeholder="Reference distance (cm)" style="max-width:190px"><button class="btn-blue" onclick="cmSetMode('calibrate')">Calibrate: 2 points</button><button class="btn-green" onclick="cmSetMode('measure')">Measure: 2 points</button></div>
+  <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"><label>Measurement row</label><select id="cmRowSelect" style="max-width:180px"></select><select id="cmDimension"><option value="width">Apply to Width</option><option value="height">Apply to Height</option></select><button class="btn-green" onclick="cmApplyResult()">Apply Result</button></div>
+  <div style="font-size:13px;color:#555;margin-top:10px">സൂചന: ക്യാമറയുടെ angle, ദൂരം, വെളിച്ചം എന്നിവ കാരണം ഫലം മാറാം. ഇത് എല്ലാ Android ഫോണിലും ഒരേ കൃത്യത ഉറപ്പാക്കുന്നില്ല.</div>
+ </div>
+</div>
+<script>
+(function(){
+ let stream=null, mode='', pts=[], pxPerCm=0, resultCm=null;
+ const modal=document.getElementById('cameraMeasureModal'), video=document.getElementById('cmVideo'), canvas=document.getElementById('cmCanvas'), ctx=canvas.getContext('2d');
+ function status(t){document.getElementById('cmStatus').textContent=t;}
+ window.openCameraMeasure=function(){modal.style.display='block';cmRefreshRows();};
+ window.closeCameraMeasure=function(){stopCameraMeasure();modal.style.display='none';};
+ window.startCameraMeasure=async function(){try{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw Error('ഈ browser-ൽ camera access ലഭ്യമല്ല. HTTPS വഴി തുറന്ന് നോക്കുക.');stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});video.srcObject=stream;video.onloadedmetadata=()=>{canvas.width=video.videoWidth||640;canvas.height=video.videoHeight||480;};status('Camera ready. Reference length അറിയുന്ന രണ്ട് പോയിന്റുകൾ തിരഞ്ഞെടുക്കുക.');}catch(e){status('Camera തുറക്കാനായില്ല: '+e.message+' — HTTPS permission പരിശോധിക്കുക.');}};
+ window.stopCameraMeasure=function(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}video.srcObject=null;};
+ window.cmSetMode=function(m){mode=m;pts=[];ctx.clearRect(0,0,canvas.width,canvas.height);status(m==='calibrate'?'Reference object-ന്റെ രണ്ട് അറ്റങ്ങൾ tap ചെയ്യുക.':'അളക്കേണ്ട ഭാഗത്തിന്റെ രണ്ട് അറ്റങ്ങൾ tap ചെയ്യുക.');};
+ canvas.addEventListener('click',function(e){if(!mode||!canvas.width)return;const r=canvas.getBoundingClientRect();const x=(e.clientX-r.left)*canvas.width/r.width,y=(e.clientY-r.top)*canvas.height/r.height;pts.push({x,y});ctx.fillStyle='#ff3030';ctx.beginPath();ctx.arc(x,y,Math.max(6,canvas.width/100),0,Math.PI*2);ctx.fill();if(pts.length===2){const d=Math.hypot(pts[1].x-pts[0].x,pts[1].y-pts[0].y);if(mode==='calibrate'){const known=parseFloat(document.getElementById('cmKnownDistance').value);if(known>0){pxPerCm=d/known;status('Calibration set: '+pxPerCm.toFixed(2)+' pixels/cm. ഇനി Measure തിരഞ്ഞെടുക്കുക.');}else status('Reference distance (cm) നൽകണം. വീണ്ടും Calibrate ചെയ്യുക.');}else if(pxPerCm>0){resultCm=d/pxPerCm;status('Approx. measurement: '+resultCm.toFixed(2)+' cm ('+(resultCm/2.54).toFixed(2)+' inch). Apply Result അമർത്താം.');}else status('ആദ്യം reference distance ഉപയോഗിച്ച് Calibrate ചെയ്യണം.');mode='';pts=[];}});
+ window.cmRefreshRows=function(){const sel=document.getElementById('cmRowSelect');sel.innerHTML='';const rows=[...document.querySelectorAll('#measurementBody tr')];rows.forEach((tr,i)=>{const o=document.createElement('option');o.value=i;o.textContent='Row '+(i+1);sel.appendChild(o);});if(!rows.length)status('ആദ്യം Measurement Sheet-ൽ Add Row ചേർക്കുക.');};
+ window.cmApplyResult=function(){if(!(resultCm>0)){status('ആദ്യം ക്യാമറയിൽ measurement എടുക്കുക.');return;}const rows=[...document.querySelectorAll('#measurementBody tr')],tr=rows[Number(document.getElementById('cmRowSelect').value)];if(!tr){status('Measurement row തിരഞ്ഞെടുക്കുക.');return;}const unit=document.getElementById('mUnit')?.value||'cm';const val=unit==='inch'?resultCm/2.54:resultCm;const cls=document.getElementById('cmDimension').value==='width'?'.mWidth':'.mHeight';const input=tr.querySelector(cls);if(input){input.value=val.toFixed(2);input.dispatchEvent(new Event('input',{bubbles:true}));if(typeof recalculateMeasurements==='function')recalculateMeasurements();status('Row '+(Number(document.getElementById('cmRowSelect').value)+1)+'-ൽ value ചേർത്തു.');}};
+})();
+</script>
+
 </body>
 </html>
