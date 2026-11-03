@@ -165,10 +165,12 @@ td input,td select{min-width:80px;padding:8px}
 .measurement-window-list{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-start}
 .measurement-window{width:112px;min-height:120px;display:flex;flex-direction:column;align-items:flex-start}
 .measurement-seven{position:relative;width:max-content;height:58px;margin:8px 0 4px 4px}
+
 .measurement-seven:after{content:"";position:absolute;left:100%;top:22px;height:32px;border-right:2px solid #243c55}
-.measurement-width{position:relative;display:inline-block;left:auto;top:auto;font-weight:800;font-size:17px;white-space:nowrap;padding-bottom:2px;border-bottom:2px solid #243c55}
-.measurement-height{position:absolute;left:calc(100% + 4px);top:35px;font-weight:800;font-size:17px;white-space:nowrap}
-.measurement-window-detail{font-size:11px;line-height:1.35;margin-top:5px;overflow-wrap:anywhere}.measurement-fabric{font-size:13px;font-weight:800;margin-top:3px}
+.measurement-fabric{font-size:13px;font-weight:800;margin-top:3px}
+.measurement-width{position:relative;display:inline-block;left:auto;top:auto;font-weight:800;font-size:17px;white-space:nowrap;padding-bottom:2px;border-bottom:2px solid #243c55}.measurement-width:after{content:"";position:absolute;left:100%;top:100%;height:42px;border-right:2px solid #243c55}
+.measurement-height{position:absolute;left:calc(100% + 7px);top:39px;font-weight:800;font-size:14px;line-height:1.1;white-space:nowrap;z-index:2;background:#fff;padding:0 2px}
+.measurement-window-detail{font-size:11px;line-height:1.35;margin-top:5px;overflow-wrap:anywhere}
 .measurement-room-total{font-weight:bold;text-align:right;padding-top:8px}
 .measurement-shade{font-size:11px;font-weight:bold;margin-top:2px;overflow-wrap:anywhere}
 .measurement-grand{border-top:2px solid #24445c;margin-top:10px;padding-top:10px;text-align:right;font-weight:bold}
@@ -510,10 +512,11 @@ let measurements=[],quotations=[],blindOrders=[],invoices=[],receipts=[],setting
 let currentMeasurementId=null,currentQuotationId=null,currentBlindOrderId=null,quotationItems=[];
 let currentInvoiceId=null,currentReceiptId=null,invoiceItems=[];
 const DATA_KEY="curtain_manager_data_v4";
+const DELETED_MEASUREMENTS_KEY="curtain_manager_deleted_measurements_v1";
 const SETTINGS_KEY="curtain_manager_settings_v4";
 function settingsStorageKey(){return authUser?.id?SETTINGS_KEY+"_"+authUser.id:SETTINGS_KEY;}
-const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Blackout Curtain","Curtain with Sheer","Sheer Curtain","Zebra Blind","Roman Blind","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Other"];
-const rftTypes=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Curtain with Sheer","Sheer Curtain"];
+const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Blackout Curtain","Sheer Curtain","Zebra Blind","Roman Blind","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Other"];
+const rftTypes=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Sheer Curtain"];
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 const money=n=>Number(n||0).toFixed(2);
@@ -622,6 +625,10 @@ async function loadCloudData(){
 
   loadStorage();
   const localSnapshot={measurements,quotations,blindOrders,invoices,receipts,settings};
+  try{
+    const deletedIds=new Set(JSON.parse(localStorage.getItem(DELETED_MEASUREMENTS_KEY)||"[]").map(String));
+    measurements=measurements.filter(x=>!deletedIds.has(String(x.id)));
+  }catch(e){}
 
   const {data,error}=await sb
     .from("customer_data")
@@ -637,13 +644,16 @@ async function loadCloudData(){
 
   if(data&&data.data){
     const cloud=data.data;
+    let deletedMeasurementIds=[];
+    try{deletedMeasurementIds=JSON.parse(localStorage.getItem(DELETED_MEASUREMENTS_KEY)||"[]").map(String);}catch(e){deletedMeasurementIds=[];}
+    const deletedMeasurementSet=new Set(deletedMeasurementIds);
     const mergeById=(localList,cloudList)=>{
       const map=new Map();
       (Array.isArray(cloudList)?cloudList:[]).forEach(x=>map.set(String(x.id),x));
       (Array.isArray(localList)?localList:[]).forEach(x=>{if(!map.has(String(x.id)))map.set(String(x.id),x);});
       return Array.from(map.values());
     };
-    measurements=mergeById(localSnapshot.measurements,cloud.measurements);
+    measurements=mergeById(localSnapshot.measurements,cloud.measurements).filter(x=>!deletedMeasurementSet.has(String(x.id)));
     quotations=mergeById(localSnapshot.quotations,cloud.quotations);
     blindOrders=mergeById(localSnapshot.blindOrders,cloud.blindOrders);
     invoices=mergeById(localSnapshot.invoices,cloud.invoices);
@@ -889,10 +899,11 @@ function getRowCalc(h,w,unit,type,qty,rate,customUnit){
 function clothMeters(row,unit){
  const cmFactor=unit==="cm"?1:2.54;
  const width=Number(row.width||0)*cmFactor,height=Number(row.height||0)*cmFactor,qty=Math.max(1,Number(row.qty||1));
- const type=String(row.type||""); const main=type!=="Sheer Curtain";
- const sheer=type==="Sheer Curtain"||type==="Curtain with Sheer";
- const mainPanels=main?Math.ceil(width/50):0,
-      sheerPanels=sheer?Math.floor(width/60):0;
+ const type=String(row.type||"");
+ if(!isRFT(type,row.customUnit||"Sq.Ft")) return {curtain:0,sheer:0,mainPanels:0,sheerPanels:0};
+ const main=type!=="Sheer Curtain";
+ const sheer=type==="Sheer Curtain";
+ const mainPanels=main?Math.ceil(width/50):0, sheerPanels=sheer?Math.ceil(width/60):0;
  return {curtain:main?mainPanels*(height+30)/100*qty:0,sheer:sheer?sheerPanels*(height+25)/100*qty:0,mainPanels,sheerPanels};
 }
 function recalculateMeasurements(){
@@ -908,8 +919,8 @@ function recalculateMeasurements(){
   tr.querySelector(".mAreaValue").textContent=money(c.area);
   const fabric=clothMeters({type,height:h,width:w,qty},$("mUnit").value);
   const fabricLines=[];
-  if(fabric.curtain>0)fabricLines.push(`Curtain Cloth: ${money(fabric.curtain)} m (${fabric.mainPanels} panels)`);
-  if(fabric.sheer>0)fabricLines.push(`Sheer Cloth: ${money(fabric.sheer)} m (${fabric.sheerPanels} panels)`);
+  if(fabric.curtain>0)fabricLines.push(`Main Cloth: ${money(fabric.curtain)} Mtr (${fabric.mainPanels}P)`);
+  if(fabric.sheer>0)fabricLines.push(`Sheer: ${money(fabric.sheer)} Mtr (${fabric.sheerPanels}P)`);
   tr.querySelector(".mFabricCalc").textContent=fabricLines.join(" | ");
   totalSqft+=c.sqft;totalRft+=c.rft;
  });
@@ -937,9 +948,7 @@ function saveMeasurement(){
  const m=getMeasurementForm();
  if(!m.customer)return alert("Please enter Customer Name.");
  if(!m.rows.length)return alert("Enter at least one valid width and height.");
- const sqFtBlindRows=m.rows.filter(r=>!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft"));
- if(!sqFtBlindRows.length)return alert("Please add at least one Square Feet (Sq.Ft) Blind measurement. Running Feet Curtain measurements are excluded from Blind Order.");
- if(sqFtBlindRows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
+ if(m.rows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
  const i=measurements.findIndex(x=>x.id===m.id);
  if(i>=0)measurements[i]=m;else measurements.push(m);
  currentMeasurementId=m.id;saveStorage();alert("Measurement saved successfully.");showPage("savedMeasurements");
@@ -957,7 +966,14 @@ function editMeasurement(id){
 }
 function deleteMeasurement(id){
  if(!confirm("Delete this measurement sheet?"))return;
- measurements=measurements.filter(m=>m.id!==id);saveStorage();renderMeasurements();
+ const key=DELETED_MEASUREMENTS_KEY;
+ let deleted=[];try{deleted=JSON.parse(localStorage.getItem(key)||"[]");}catch(e){deleted=[];}
+ const idText=String(id);if(!deleted.map(String).includes(idText))deleted.push(idText);
+ try{localStorage.setItem(key,JSON.stringify(deleted));}catch(e){console.error("Measurement deletion marker save failed:",e);}
+ measurements=measurements.filter(m=>String(m.id)!==idText);
+ saveStorage();
+ if(sb&&authUser)saveCloudData().then(result=>{if(!result.ok)console.error("Deleted measurement cloud sync failed:",result.message);});
+ renderMeasurements();
 }
 function renderCustomers(){
  const search=($("customerSearch")?.value||"").trim().toLowerCase();
@@ -1014,6 +1030,7 @@ function measurementSheetHTML(m){
    <div class="measurement-room-total">${g.rows.length} Window${g.rows.length===1?"":"s"}</div>
   </div>`;
  }).join("");
+ const typeSqft={};(m.rows||[]).forEach(r=>{const t=String(r.type==="Other"?(r.customType||"Other"):r.type||"").trim();const blind=!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");if(blind){typeSqft[t]=(typeSqft[t]||0)+Number(r.sqft||r.areaValue||0);}});
  const totalSqft=(m.rows||[]).reduce((a,r)=>a+Number(r.sqft||0),0);
  const totalRft=(m.rows||[]).reduce((a,r)=>a+Number(r.rft||0),0);
  const totalCurtainMeters=(m.rows||[]).reduce((a,r)=>a+Number(r.curtainMeters||0),0);
@@ -1025,15 +1042,13 @@ function measurementSheetHTML(m){
   ${m.address?`<div style="margin-bottom:10px"><b>Address:</b> ${esc(m.address)}</div>`:""}
   <div style="display:grid;grid-template-columns:105px minmax(0,1fr) 95px 85px;gap:8px;background:#eaf0f5;padding:8px 4px;font-weight:bold;font-size:12px"><div>Area</div><div>Measurements (Width / Height)</div><div style="text-align:right">Total</div><div style="text-align:right">Items</div></div>
   ${roomBlocks}
-  <div class="measurement-grand">Total Sq.Ft: ${money(totalSqft)} &nbsp;&nbsp; Total Running Feet: ${money(totalRft)}<br><b>Total Curtain Cloth: ${money(totalCurtainMeters)} m &nbsp; | &nbsp; Total Sheer Cloth: ${money(totalSheerMeters)} m</b></div>
+  <div class="measurement-grand" style="text-align:left;display:flex;flex-direction:column;gap:4px;align-items:flex-start">${Object.entries(typeSqft).map(([type,total])=>`<div><b>Total ${esc(type)}: ${money(total)} Sq.Ft</b></div>`).join("")}${totalRft>0?`<div><b>Total Running Feet: ${money(totalRft)} RFT</b></div>`:""}${totalCurtainMeters>0?`<div><b>Total Main Cloth: ${money(totalCurtainMeters)} Mtr</b></div>`:""}${totalSheerMeters>0?`<div><b>Total Sheer: ${money(totalSheerMeters)} Mtr</b></div>`:""}</div>
  </div>`;
 }
 function previewMeasurementSheet(){
  const m=getMeasurementForm();
  if(!m.rows.length)return alert("Enter at least one valid width and height.");
- const sqFtBlindRows=m.rows.filter(r=>!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft"));
- if(!sqFtBlindRows.length)return alert("Please add at least one Square Feet (Sq.Ft) Blind measurement. Running Feet Curtain measurements are excluded from Blind Order.");
- if(sqFtBlindRows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
+ if(m.rows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
  const el=$("measurementPreview");el.innerHTML=measurementSheetHTML(m);el.classList.remove("hidden");
  el.scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -1067,15 +1082,42 @@ function measurementToQuotation(){
  const m=getMeasurementForm();if(!m.customer||!m.rows.length)return alert("Enter a customer and valid measurements first.");
  const i=measurements.findIndex(x=>x.id===m.id);if(i>=0)measurements[i]=m;else measurements.push(m);saveStorage();
  newQuotation();$("qCustomer").value=m.customer;$("qPhone").value=m.phone;$("qAddress").value=m.address;
- const grouped={};m.rows.forEach(r=>{const baseName=r.type==="Other"?(r.customType||"Other"):r.type;const fabric=clothMeters(r,m.unit||"cm");const itemName=baseName+(fabric.curtain?` — Curtain Cloth ${money(fabric.curtain)}m`:"")+(fabric.sheer?` — Sheer Cloth ${money(fabric.sheer)}m`:"");const key=itemName+"|"+r.unit;if(!grouped[key])grouped[key]={qty:0,rate:r.rate,unit:r.unit,name:itemName};grouped[key].qty+=r.areaValue;});
+ const grouped={};let curtainMeters=0,sheerMeters=0;
+ (m.rows||[]).forEach(r=>{
+  const baseName=r.type==="Other"?(r.customType||"Other"):r.type;
+  const blind=!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");
+  const fabric=blind?{curtain:0,sheer:0}:clothMeters(r,m.unit||"cm");
+  curtainMeters+=Number(fabric.curtain||0);sheerMeters+=Number(fabric.sheer||0);
+  const unit=blind?"Sq.Ft":"RFT";
+  const qty=blind?Number(r.sqft||r.areaValue||0):Number(r.rft||r.areaValue||0);
+  const key=baseName+"|"+unit;
+  if(!grouped[key])grouped[key]={qty:0,unit,name:baseName};
+  grouped[key].qty+=qty;
+ });
  quotationItems=Object.values(grouped).map(g=>({name:g.name,qty:Number(g.qty.toFixed(2)),rate:"",unit:g.unit}));
+ if(curtainMeters>0)quotationItems.push({name:"TOTAL CURTAIN CLOTH",qty:Number(curtainMeters.toFixed(2)),rate:"",unit:"Meter"});
+ if(sheerMeters>0)quotationItems.push({name:"TOTAL SHEER CLOTH",qty:Number(sheerMeters.toFixed(2)),rate:"",unit:"Meter"});
  renderQuotationItems();
 }
 
-
 function measurementToQuotationSaved(id){const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;loadMeasurementIntoForm(m);measurementToQuotation();}
 function loadMeasurementIntoForm(m){currentMeasurementId=m.id;$ ("mCustomer").value=m.customer||"";$("mPhone").value=m.phone||"";$("mAddress").value=m.address||"";$("mDate").value=m.date||today();$("mUnit").value=m.unit||"cm";$ ("measurementBody").innerHTML="";(m.rows||[]).forEach(r=>addMeasurementRow(r));}
-function measurementToInvoice(id){const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;newInvoice();$("iCustomer").value=m.customer||"";$("iPhone").value=m.phone||"";$("iAddress").value=m.address||"";invoiceItems=(m.rows||[]).map(r=>{const fabric=clothMeters(r,m.unit||"cm");return {name:(r.type==="Other"?(r.customType||"Other"):r.type)+" — "+r.width+" × "+r.height+" "+(m.unit||"cm")+(fabric.curtain?` | Curtain Cloth ${money(fabric.curtain)}m`:"")+(fabric.sheer?` | Sheer Cloth ${money(fabric.sheer)}m`:""),qty:Number(r.qty||1),unit:"Nos",rate:""};});if(!invoiceItems.length)invoiceItems=[{name:"",qty:"",unit:"Item",rate:""}];renderInvoiceItems();}
+function measurementToInvoice(id){
+ const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;
+ newInvoice();$("iCustomer").value=m.customer||"";$("iPhone").value=m.phone||"";$("iAddress").value=m.address||"";
+ let curtainMeters=0,sheerMeters=0;
+ invoiceItems=(m.rows||[]).map(r=>{
+  const blind=!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");
+  const fabric=blind?{curtain:0,sheer:0}:clothMeters(r,m.unit||"cm");
+  curtainMeters+=Number(fabric.curtain||0);sheerMeters+=Number(fabric.sheer||0);
+  const name=(r.type==="Other"?(r.customType||"Other"):r.type);
+  return {name,qty:Number((blind?(r.sqft||r.areaValue):(r.rft||r.areaValue))||0).toFixed(2),unit:blind?"Sq.Ft":"RFT",rate:""};
+ });
+ if(curtainMeters>0)invoiceItems.push({name:"TOTAL CURTAIN CLOTH",qty:Number(curtainMeters.toFixed(2)),unit:"Meter",rate:""});
+ if(sheerMeters>0)invoiceItems.push({name:"TOTAL SHEER CLOTH",qty:Number(sheerMeters.toFixed(2)),unit:"Meter",rate:""});
+ if(!invoiceItems.length)invoiceItems=[{name:"",qty:"",unit:"Item",rate:""}];
+ renderInvoiceItems();
+}
 function measurementToBlindOrder(id){
  const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;
  newBlindOrder();
@@ -1512,12 +1554,38 @@ function showSavedDocumentPreview(title,html){
  modal.style.display="block";document.body.style.overflow="hidden";
 }
 function closeSavedDocumentPreview(){const modal=$("savedDocumentPreviewModal");if(modal)modal.style.display="none";document.body.style.overflow="";}
-function previewReceipt(){const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");showSavedDocumentPreview("Payment Receipt Preview",receiptHTML(d));}
+function applyReceiptPreviewResponsive(){
+ const content=$("savedDocumentPreviewContent");
+ if(!content||!content.querySelector(".preview"))return;
+ content.classList.add("receipt-preview-responsive");
+ let st=$("receiptPreviewResponsiveStyle");
+ if(!st){
+  st=document.createElement("style");st.id="receiptPreviewResponsiveStyle";
+  st.textContent=`@media(max-width:700px){
+   #savedDocumentPreviewModal{padding:5px!important;overflow-x:hidden!important}
+   #savedDocumentPreviewModal>div{padding:6px!important;width:100%!important;max-width:100vw!important;overflow-x:hidden!important}
+   #savedDocumentPreviewContent.receipt-preview-responsive{width:100%!important;max-width:100%!important;overflow:visible!important}
+   #savedDocumentPreviewContent.receipt-preview-responsive .preview{width:720px!important;min-width:720px!important;max-width:none!important;transform:scale(var(--receipt-preview-scale, .48));transform-origin:top left;margin:0!important;font-size:14px!important}
+   #savedDocumentPreviewContent.receipt-preview-responsive .preview *{box-sizing:border-box!important;overflow-wrap:anywhere!important}
+   #savedDocumentPreviewContent.receipt-preview-responsive .preview img{max-width:100%!important}
+  }`;
+  document.head.appendChild(st);
+ }
+ const scale=Math.max(.30,Math.min(1,(window.innerWidth-28)/720));
+ content.style.setProperty("--receipt-preview-scale",String(scale));
+}
+function previewReceipt(){
+ const d=currentReceipt();
+ if(!d.customer)return alert("Please enter Customer Name.");
+ if(d.total<=0)return alert("Enter the total job amount.");
+ showSavedDocumentPreview("Payment Receipt Preview",receiptHTML(d));
+ applyReceiptPreviewResponsive();
+}
 function renderReceipts(){
  const q=($("receiptSearch")?.value||"").toLowerCase();
  $("receiptList").innerHTML=receipts.filter(d=>[d.number,d.customer,d.phone,d.date,d.reference].join(" ").toLowerCase().includes(q)).slice().reverse().map(d=>`<div class="customer-card"><h3>${esc(d.number)}</h3><b>${esc(d.customer)}</b><p class="small">${esc(formatDateDMY(d.date))}</p><p>Received: <b>₹${money(d.received)}</b> · Balance: <b>₹${money(d.balance)}</b></p><div class="doc-actions"><button class="btn-blue" onclick="editReceipt('${String(d.id)}')">Edit / Open</button><button class="btn-green" onclick="previewSavedReceipt('${String(d.id)}')">Preview</button><button class="btn-dark" onclick="shareSavedReceiptPDF('${String(d.id)}')">Share PDF</button><button class="btn-red" onclick="deleteReceipt('${String(d.id)}')">Delete</button></div></div>`).join("")||'<div class="empty">No saved payment receipts.</div>';
 }
-function previewSavedReceipt(id){const d=receipts.find(x=>String(x.id)===String(id));if(!d)return;showSavedDocumentPreview("Payment Receipt · "+(d.number||""),receiptHTML(d));}
+function previewSavedReceipt(id){const d=receipts.find(x=>String(x.id)===String(id));if(!d)return;showSavedDocumentPreview("Payment Receipt · "+(d.number||""),receiptHTML(d));applyReceiptPreviewResponsive();}
 function deleteReceipt(id){if(!confirm("Delete this payment receipt?"))return;receipts=receipts.filter(x=>String(x.id)!==String(id));saveStorage();renderReceipts();}
 async function makeDocumentPDF(html,filename,title){
  if(!window.jspdf||!window.html2canvas)return alert("PDF libraries did not load. Check your internet connection and try again.");
