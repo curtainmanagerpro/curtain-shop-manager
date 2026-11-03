@@ -513,6 +513,7 @@ let currentMeasurementId=null,currentQuotationId=null,currentBlindOrderId=null,q
 let currentInvoiceId=null,currentReceiptId=null,invoiceItems=[];
 const DATA_KEY="curtain_manager_data_v4";
 const DELETED_MEASUREMENTS_KEY="curtain_manager_deleted_measurements_v1";
+const DELETED_RECORDS_KEY="curtain_manager_deleted_records_v1";
 const SETTINGS_KEY="curtain_manager_settings_v4";
 function settingsStorageKey(){return authUser?.id?SETTINGS_KEY+"_"+authUser.id:SETTINGS_KEY;}
 const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Blackout Curtain","Curtain with Sheer","Sheer Curtain","Zebra Blind","Roman Blind","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Other"];
@@ -649,17 +650,24 @@ async function loadCloudData(){
     const cloudDeletedMeasurementIds=Array.isArray(cloud.deletedMeasurementIds)?cloud.deletedMeasurementIds.map(String):[];
     const deletedMeasurementSet=new Set([...localDeletedMeasurementIds,...cloudDeletedMeasurementIds]);
     try{localStorage.setItem(DELETED_MEASUREMENTS_KEY,JSON.stringify([...deletedMeasurementSet]));}catch(e){}
-    const mergeById=(localList,cloudList)=>{
-      const map=new Map();
-      (Array.isArray(cloudList)?cloudList:[]).forEach(x=>map.set(String(x.id),x));
-      (Array.isArray(localList)?localList:[]).forEach(x=>{if(!map.has(String(x.id)))map.set(String(x.id),x);});
+    let localDeletedRecords={};try{localDeletedRecords=JSON.parse(localStorage.getItem(DELETED_RECORDS_KEY)||"{}");}catch(e){}
+    const cloudDeletedRecords=cloud.deletedRecordIds&&typeof cloud.deletedRecordIds==="object"?cloud.deletedRecordIds:{};
+    const deletedRecordIds={};
+    ["quotations","blindOrders","invoices","receipts"].forEach(k=>{
+      deletedRecordIds[k]=[...new Set([...(Array.isArray(localDeletedRecords[k])?localDeletedRecords[k]:[]),...(Array.isArray(cloudDeletedRecords[k])?cloudDeletedRecords[k]:[])].map(String))];
+    });
+    try{localStorage.setItem(DELETED_RECORDS_KEY,JSON.stringify(deletedRecordIds));}catch(e){}
+    const mergeById=(localList,cloudList,deletedIds=[])=>{
+      const deletedSet=new Set(deletedIds.map(String));const map=new Map();
+      (Array.isArray(cloudList)?cloudList:[]).forEach(x=>{if(!deletedSet.has(String(x.id)))map.set(String(x.id),x);});
+      (Array.isArray(localList)?localList:[]).forEach(x=>{if(!deletedSet.has(String(x.id))&&!map.has(String(x.id)))map.set(String(x.id),x);});
       return Array.from(map.values());
     };
-    measurements=mergeById(localSnapshot.measurements,cloud.measurements).filter(x=>!deletedMeasurementSet.has(String(x.id)));
-    quotations=mergeById(localSnapshot.quotations,cloud.quotations);
-    blindOrders=mergeById(localSnapshot.blindOrders,cloud.blindOrders);
-    invoices=mergeById(localSnapshot.invoices,cloud.invoices);
-    receipts=mergeById(localSnapshot.receipts,cloud.receipts);
+    measurements=mergeById(localSnapshot.measurements,cloud.measurements,[...deletedMeasurementSet]);
+    quotations=mergeById(localSnapshot.quotations,cloud.quotations,deletedRecordIds.quotations);
+    blindOrders=mergeById(localSnapshot.blindOrders,cloud.blindOrders,deletedRecordIds.blindOrders);
+    invoices=mergeById(localSnapshot.invoices,cloud.invoices,deletedRecordIds.invoices);
+    receipts=mergeById(localSnapshot.receipts,cloud.receipts,deletedRecordIds.receipts);
     if(cloud.settings&&Object.keys(cloud.settings).length)settings=cloud.settings;
   }
 
@@ -699,8 +707,20 @@ async function saveCloudData(){
   const deletedSet=new Set([...deletedMeasurementIds,...cloudDeleted]);
   deletedMeasurementIds=[...deletedSet];
   try{localStorage.setItem(DELETED_MEASUREMENTS_KEY,JSON.stringify(deletedMeasurementIds));}catch(e){}
-  measurements=measurements.filter(x=>!deletedSet.has(String(x.id)));
-  const cloudData={measurements,quotations,blindOrders,invoices,receipts,settings,deletedMeasurementIds};
+  let localDeletedRecords={};try{localDeletedRecords=JSON.parse(localStorage.getItem(DELETED_RECORDS_KEY)||"{}");}catch(e){}
+  const cloudDeletedRecords=existing?.data?.deletedRecordIds&&typeof existing.data.deletedRecordIds==="object"?existing.data.deletedRecordIds:{};
+  const deletedRecordIds={};
+  ["quotations","blindOrders","invoices","receipts"].forEach(k=>{
+    deletedRecordIds[k]=[...new Set([...(Array.isArray(localDeletedRecords[k])?localDeletedRecords[k]:[]),...(Array.isArray(cloudDeletedRecords[k])?cloudDeletedRecords[k]:[])].map(String))];
+  });
+  try{localStorage.setItem(DELETED_RECORDS_KEY,JSON.stringify(deletedRecordIds));}catch(e){}
+  const filterDeleted=(list,ids)=>list.filter(x=>!new Set(ids.map(String)).has(String(x.id)));
+  measurements=filterDeleted(measurements,[...deletedSet]);
+  quotations=filterDeleted(quotations,deletedRecordIds.quotations);
+  blindOrders=filterDeleted(blindOrders,deletedRecordIds.blindOrders);
+  invoices=filterDeleted(invoices,deletedRecordIds.invoices);
+  receipts=filterDeleted(receipts,deletedRecordIds.receipts);
+  const cloudData={measurements,quotations,blindOrders,invoices,receipts,settings,deletedMeasurementIds,deletedRecordIds};
 
   let result;
   if(existing){
@@ -974,28 +994,36 @@ function editMeasurement(id){
  showPage("measurement");
 }
 
+function addDeletedRecordId(collection,id){
+ let all={};try{all=JSON.parse(localStorage.getItem(DELETED_RECORDS_KEY)||"{}");}catch(e){}
+ if(!Array.isArray(all[collection]))all[collection]=[];
+ const idText=String(id);if(!all[collection].map(String).includes(idText))all[collection].push(idText);
+ try{localStorage.setItem(DELETED_RECORDS_KEY,JSON.stringify(all));}catch(e){console.error("Delete marker save failed:",e);}
+}
 function showDeleteSyncNotice(message,success=true){
  let el=document.getElementById("deleteSyncNotice");
- if(!el){el=document.createElement("div");el.id="deleteSyncNotice";el.style.cssText="position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:999999;padding:12px 20px;border-radius:10px;color:#fff;font:600 14px Arial,sans-serif;box-shadow:0 4px 18px rgba(0,0,0,.25);max-width:90vw;text-align:center";document.body.appendChild(el);}
+ if(!el){el=document.createElement("div");el.id="deleteSyncNotice";el.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:999999;padding:20px 30px;border-radius:16px;color:#fff;font:700 20px Arial,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.32);max-width:88vw;text-align:center;min-width:220px";document.body.appendChild(el);}
  el.style.background=success?"#16803c":"#b42323";el.textContent=(success?"✓ ":"⚠ ")+message;el.style.display="block";
  clearTimeout(window.deleteSyncNoticeTimer);window.deleteSyncNoticeTimer=setTimeout(()=>{el.style.display="none";},3000);
 }
 async function persistDeleteAndNotify(){
+ // Instant centered feedback immediately after the user's confirmation.
+ showDeleteSyncNotice("Deleted Successfully ✓",true);
  saveStorage();
- if(!sb||!authUser){showDeleteSyncNotice("Deleted on this device. Cloud login unavailable.",false);return false;}
- try{const result=await saveCloudData();if(!result.ok){showDeleteSyncNotice("Deleted locally, but Cloud Sync failed: "+result.message,false);return false;}showDeleteSyncNotice("Deleted Successfully · Synced to Cloud",true);return true;}
- catch(e){showDeleteSyncNotice("Cloud Sync failed. Please check connection.",false);return false;}
+ if(!sb||!authUser){showDeleteSyncNotice("Deleted on this device · Cloud login unavailable",false);return false;}
+ try{const result=await saveCloudData();if(!result.ok){showDeleteSyncNotice("Deleted locally · Cloud Sync failed",false);return false;}showDeleteSyncNotice("Deleted Successfully · Synced to Cloud ✓",true);return true;}
+ catch(e){showDeleteSyncNotice("Deleted locally · Cloud Sync failed",false);return false;}
 }
 
-function deleteMeasurement(id){
+async function deleteMeasurement(id){
  if(!confirm("Delete this measurement sheet?"))return;
  const key=DELETED_MEASUREMENTS_KEY;
  let deleted=[];try{deleted=JSON.parse(localStorage.getItem(key)||"[]");}catch(e){deleted=[];}
  const idText=String(id);if(!deleted.map(String).includes(idText))deleted.push(idText);
  try{localStorage.setItem(key,JSON.stringify(deleted));}catch(e){console.error("Measurement deletion marker save failed:",e);}
  measurements=measurements.filter(m=>String(m.id)!==idText);
- persistDeleteAndNotify();
  renderMeasurements();
+ await persistDeleteAndNotify();
 }
 function renderCustomers(){
  const search=($("customerSearch")?.value||"").trim().toLowerCase();
@@ -1400,7 +1428,7 @@ function editQuotation(id){
  $("qNumber").value=q.number;$("qDate").value=q.date;$("discountType").value=q.discountType||"percent";$("discountValue").value=q.discountValue||0;$("gstValue").value=q.gstRate||0;$("qTerms").value=q.terms||"";
  quotationItems=JSON.parse(JSON.stringify(q.items||[]));renderQuotationItems();showPage("quotation");
 }
-async function deleteQuote(id){if(!confirm("Delete this quotation?"))return;quotations=quotations.filter(q=>String(q.id)!==String(id));renderSavedQuotes();await persistDeleteAndNotify();}
+async function deleteQuote(id){if(!confirm("Delete this quotation?"))return;addDeletedRecordId("quotations",id);quotations=quotations.filter(q=>String(q.id)!==String(id));renderSavedQuotes();await persistDeleteAndNotify();}
 function documentSignatureHTML(){
  const signature=settings.signature?`<img src="${settings.signature}" alt="Authorized signature" style="display:block;max-width:170px;width:100%;height:48px;object-fit:contain;margin:0 auto 3px">`:"";
  return `<div style="display:flex;justify-content:flex-end;margin-top:28px;break-inside:avoid"><div style="width:210px;text-align:center;padding:8px 10px 0">${signature}<div style="height:${settings.signature?'0':'42px'}"></div><div style="border-bottom:1px solid #6f2948"></div><div style="font-size:12px;font-weight:bold;margin-top:6px">Authorized Signature</div></div></div>`;
@@ -1486,7 +1514,7 @@ function renderInvoices(){
  $("invoiceList").innerHTML=invoices.filter(d=>[d.number,d.customer,d.phone,d.date].join(" ").toLowerCase().includes(q)).slice().reverse().map(d=>`<div class="customer-card"><h3>${esc(d.number)}</h3><b>${esc(d.customer)}</b><p class="small">${esc(formatDateDMY(d.date))}</p><p>Grand Total: <b>₹${money(d.grand)}</b> · Balance: <b>₹${money(d.balance)}</b></p><div class="doc-actions"><button class="btn-blue" onclick="editInvoice('${String(d.id)}')">Edit / Open</button><button class="btn-green" onclick="previewSavedInvoice('${String(d.id)}')">Preview</button><button class="btn-dark" onclick="shareSavedInvoicePDF('${String(d.id)}')">Share PDF</button><button class="btn-red" onclick="deleteInvoice('${String(d.id)}')">Delete</button></div></div>`).join("")||'<div class="empty">No saved invoices.</div>';
 }
 function previewSavedInvoice(id){const d=invoices.find(x=>String(x.id)===String(id));if(!d)return;showSavedDocumentPreview("Invoice · "+(d.number||""),invoiceHTML(d));}
-async function deleteInvoice(id){if(!confirm("Delete this invoice?"))return;invoices=invoices.filter(x=>String(x.id)!==String(id));renderInvoices();await persistDeleteAndNotify();}
+async function deleteInvoice(id){if(!confirm("Delete this invoice?"))return;addDeletedRecordId("invoices",id);invoices=invoices.filter(x=>String(x.id)!==String(id));renderInvoices();await persistDeleteAndNotify();}
 function newReceipt(){
  currentReceiptId=null;$("rCustomer").value="";$("rPhone").value="";$("rAddress").value="";$("rNumber").value=nextReceiptNumber();$("rDate").value=today();$("rReference").value="";$("rTotal").value="";$("rReceived").value="";$("rMethod").value="Cash";$("rNote").value="";
  calculateReceipt();$("receiptPreview").classList.add("hidden");$("receiptPreview").innerHTML="";showPage("receipt");
@@ -1608,7 +1636,7 @@ function renderReceipts(){
  $("receiptList").innerHTML=receipts.filter(d=>[d.number,d.customer,d.phone,d.date,d.reference].join(" ").toLowerCase().includes(q)).slice().reverse().map(d=>`<div class="customer-card"><h3>${esc(d.number)}</h3><b>${esc(d.customer)}</b><p class="small">${esc(formatDateDMY(d.date))}</p><p>Received: <b>₹${money(d.received)}</b> · Balance: <b>₹${money(d.balance)}</b></p><div class="doc-actions"><button class="btn-blue" onclick="editReceipt('${String(d.id)}')">Edit / Open</button><button class="btn-green" onclick="previewSavedReceipt('${String(d.id)}')">Preview</button><button class="btn-dark" onclick="shareSavedReceiptPDF('${String(d.id)}')">Share PDF</button><button class="btn-red" onclick="deleteReceipt('${String(d.id)}')">Delete</button></div></div>`).join("")||'<div class="empty">No saved payment receipts.</div>';
 }
 function previewSavedReceipt(id){const d=receipts.find(x=>String(x.id)===String(id));if(!d)return;showSavedDocumentPreview("Payment Receipt · "+(d.number||""),receiptHTML(d));applyReceiptPreviewResponsive();}
-function deleteReceipt(id){if(!confirm("Delete this payment receipt?"))return;receipts=receipts.filter(x=>String(x.id)!==String(id));saveStorage();renderReceipts();}
+async function deleteReceipt(id){if(!confirm("Delete this payment receipt?"))return;addDeletedRecordId("receipts",id);receipts=receipts.filter(x=>String(x.id)!==String(id));renderReceipts();await persistDeleteAndNotify();}
 async function makeDocumentPDF(html,filename,title){
  if(!window.jspdf||!window.html2canvas)return alert("PDF libraries did not load. Check your internet connection and try again.");
  const host=$("pdfSheet");host.innerHTML=html;host.style.width="794px";
@@ -1907,7 +1935,7 @@ $("boCustomerPhone").value=d.customerPhone||"";
  $("blindOrderBody").innerHTML="";(d.rows||[]).forEach(r=>addBlindOrderRow(r));if(!(d.rows||[]).length){addBlindOrderRow();addBlindOrderRow();}
  $("blindOrderPreview").classList.add("hidden");updateBlindBusinessInfo();showPage("blindOrder");window.scrollTo({top:0,behavior:"smooth"});
 }
-async function deleteBlindOrder(id){if(!confirm("Delete this saved Blinds Order?"))return;blindOrders=blindOrders.filter(x=>String(x.id)!==String(id));if(String(currentBlindOrderId)===String(id))currentBlindOrderId=null;renderBlindOrders();await persistDeleteAndNotify();}
+async function deleteBlindOrder(id){if(!confirm("Delete this saved Blinds Order?"))return;addDeletedRecordId("blindOrders",id);blindOrders=blindOrders.filter(x=>String(x.id)!==String(id));if(String(currentBlindOrderId)===String(id))currentBlindOrderId=null;renderBlindOrders();await persistDeleteAndNotify();}
 function renderBlindOrders(){
  const q=($("blindOrderSearch")?.value||"").toLowerCase();
 
