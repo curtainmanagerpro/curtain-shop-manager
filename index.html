@@ -154,38 +154,28 @@ td input,td select{min-width:80px;padding:8px}
 @media(max-width:480px){.app-header-top h1{font-size:19px}.header-home-btn{padding:9px 10px;font-size:14px}}
 
 
-/* Measurement sheet: clean aligned measurement cards */
+/* Measurement sheet: horizontal seven-shaped dimensions and grouped rooms */
 .m-custom-type{display:none}
 .measurement-print{background:#fff;color:#203040;padding:22px;max-width:100%;font-family:Arial,sans-serif}
 .measurement-print-head{text-align:center;border-bottom:2px solid #24445c;padding-bottom:10px;margin-bottom:12px}
 .measurement-print-head h2{margin:5px 0}
 .measurement-print-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin:10px 0 14px}
-.measurement-room{display:grid;grid-template-columns:105px minmax(0,1fr) 95px 85px;gap:8px;align-items:start;border-top:1.5px solid #647586;padding:10px 4px}
+.measurement-room{display:grid;grid-template-columns:105px minmax(0,1fr) 95px 85px;gap:8px;align-items:stretch;border-top:1.5px solid #647586;padding:5px 4px}
 .measurement-room-name{font-weight:bold;overflow-wrap:anywhere;padding-top:8px}
-.measurement-window-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:18px 20px;align-items:start;min-width:0}
-.measurement-window{width:100%;min-width:0;display:flex;flex-direction:column;align-items:flex-start;box-sizing:border-box;padding:2px 6px 12px}
-.measurement-seven{position:relative;width:max-content;max-width:100%;height:58px;margin:8px 0 8px 4px}
+.measurement-window-list{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-start}
+.measurement-window{width:112px;min-height:120px;display:flex;flex-direction:column;align-items:flex-start}
+.measurement-seven{position:relative;width:max-content;height:58px;margin:8px 0 4px 4px}
 .measurement-seven:after{content:"";position:absolute;left:100%;top:22px;height:32px;border-right:2px solid #243c55}
-.measurement-width{position:relative;display:inline-block;left:auto;top:auto;font-weight:800;font-size:18px;white-space:nowrap;padding-bottom:2px;border-bottom:2px solid #243c55}
-.measurement-height{position:absolute;left:calc(100% + 8px);top:34px;font-weight:800;font-size:17px;white-space:nowrap}
-.measurement-window-detail{font-size:15px;line-height:1.4;margin-top:8px;overflow-wrap:anywhere;word-break:normal;width:100%}
-.measurement-item-type{font-size:16px;font-weight:800;margin-bottom:3px}
-.measurement-shade{font-size:14px;font-weight:700;margin:2px 0 8px;overflow-wrap:anywhere}
-.measurement-cloth-label{font-size:15px;font-weight:800;margin-top:2px}
-.measurement-cloth-meter{font-size:17px;font-weight:900;margin-top:2px}
+.measurement-width{position:relative;display:inline-block;left:auto;top:auto;font-weight:800;font-size:17px;white-space:nowrap;padding-bottom:2px;border-bottom:2px solid #243c55}
+.measurement-height{position:absolute;left:calc(100% + 4px);top:35px;font-weight:800;font-size:17px;white-space:nowrap}
+.measurement-window-detail{font-size:11px;line-height:1.35;margin-top:5px;overflow-wrap:anywhere}.measurement-fabric{font-size:13px;font-weight:800;margin-top:3px}
 .measurement-room-total{font-weight:bold;text-align:right;padding-top:8px}
+.measurement-shade{font-size:11px;font-weight:bold;margin-top:2px;overflow-wrap:anywhere}
 .measurement-grand{border-top:2px solid #24445c;margin-top:10px;padding-top:10px;text-align:right;font-weight:bold}
-@media(max-width:700px){
- .measurement-print{padding:12px}
- .measurement-room{grid-template-columns:70px minmax(0,1fr);gap:6px;padding:9px 2px}
- .measurement-window-list{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px 10px}
- .measurement-room-total{font-size:12px;text-align:left;grid-column:2;padding-top:4px}
- .measurement-window{padding:2px 4px 10px}
- .measurement-width{font-size:17px}
- .measurement-height{font-size:16px;left:calc(100% + 6px)}
- .measurement-window-detail{font-size:14px}
- .measurement-item-type,.measurement-cloth-label{font-size:14px}
- .measurement-cloth-meter{font-size:16px}
+@media(max-width:600px){
+ .measurement-room{grid-template-columns:78px minmax(0,1fr) 65px;gap:4px}
+ .measurement-room-total{font-size:12px}
+ .measurement-window-list{gap:12px}
 }
 @media print{.measurement-print{padding:0}}
 </style>
@@ -1006,13 +996,14 @@ function measurementSheetHTML(m){
  const roomBlocks=[...groups.values()].map(g=>{
   const windows=g.rows.map(r=>{
    const typeName=r.type==="Other"?(r.customType||"Other"):r.type;
-   const fabric=(r.curtainMeters!==undefined||r.sheerMeters!==undefined)?{curtain:Number(r.curtainMeters||0),sheer:Number(r.sheerMeters||0),mainPanels:Number(r.curtainPanels||0),sheerPanels:Number(r.sheerPanels||0)}:clothMeters(r,m.unit||"cm");
+   const isCurtainFabricType=rftTypes.includes(r.type)||(r.type==="Other"&&r.customUnit==="RFT");
+   const fabric=isCurtainFabricType?((r.curtainMeters!==undefined||r.sheerMeters!==undefined)?{curtain:Number(r.curtainMeters||0),sheer:Number(r.sheerMeters||0),mainPanels:Number(r.curtainPanels||0),sheerPanels:Number(r.sheerPanels||0)}:clothMeters(r,m.unit||"cm")):{curtain:0,sheer:0,mainPanels:0,sheerPanels:0};
    const dimUnit=m.unit==="cm"?"cm":"inch";
    const shade=r.shade?`<div class="measurement-shade">Shade: ${esc(r.shade)}</div>`:"";
-   const clothDetails=`${fabric.curtain?`<div class="measurement-cloth-label">Main Cloth (${esc(fabric.mainPanels)}P)</div><div class="measurement-cloth-meter">${money(fabric.curtain)} Mtr</div>`:""}${fabric.sheer?`<div class="measurement-cloth-label">Sheer Cloth (${esc(fabric.sheerPanels)}P)</div><div class="measurement-cloth-meter">${money(fabric.sheer)} Mtr</div>`:""}`;
+   const fabricMarkup=`${fabric.curtain>0?`<div class="measurement-fabric">Main Cloth (${fabric.mainPanels}P)</div><div class="measurement-fabric">${money(fabric.curtain)} Mtr</div>`:""}${fabric.sheer>0?`<div class="measurement-fabric">Sheer Cloth (${fabric.sheerPanels}P)</div><div class="measurement-fabric">${money(fabric.sheer)} Mtr</div>`:""}`;
    return `<div class="measurement-window">
-    <div class="measurement-seven"><span class="measurement-width">${esc(r.width)} ${dimUnit}</span><span class="measurement-height">${esc(r.height)} ${dimUnit}</span></div>
-    <div class="measurement-window-detail"><div class="measurement-item-type">${esc(typeName)}</div>${shade}${clothDetails}</div>
+    <div class="measurement-seven"><span class="measurement-width">${esc(r.width)} ${dimUnit}</span><span class="measurement-height">${esc(r.height)}</span></div>
+    <div class="measurement-window-detail"><b style="font-size:17px;font-weight:800">${esc(typeName)}</b>${shade}${fabricMarkup}</div>
    </div>`;
   }).join("");
   return `<div class="measurement-room">
