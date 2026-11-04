@@ -1454,10 +1454,28 @@ function downloadBackup(){
  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="curtain-shop-backup.json";a.click();URL.revokeObjectURL(a.href);
 }
 async function restoreBackup(e){
- try{const d=JSON.parse(await e.target.files[0].text());if(!confirm("Replace the current local records with this backup?"))return;
- measurements=Array.isArray(d.measurements)?d.measurements:[];quotations=Array.isArray(d.quotations)?d.quotations:[];
-    blindOrders=Array.isArray(d.blindOrders)?d.blindOrders:[];invoices=Array.isArray(d.invoices)?d.invoices:[];receipts=Array.isArray(d.receipts)?d.receipts:[];settings=d.settings||{};
- saveStorage();loadSettings();alert("Backup restored.");}catch{alert("Invalid backup file.");}
+ try{
+  const file=e.target.files&&e.target.files[0];
+  if(!file)return;
+  const d=JSON.parse(await file.text());
+  if(!confirm("Restore the records saved in this backup? Current records will be replaced."))return;
+  measurements=Array.isArray(d.measurements)?d.measurements:[];
+  quotations=Array.isArray(d.quotations)?d.quotations:[];
+  blindOrders=Array.isArray(d.blindOrders)?d.blindOrders:[];
+  invoices=Array.isArray(d.invoices)?d.invoices:[];
+  receipts=Array.isArray(d.receipts)?d.receipts:[];
+  settings=d.settings&&typeof d.settings==="object"?d.settings:{};
+  // A backup is a point-in-time snapshot. Remove deletion tombstones so records
+  // present in that snapshot can be restored to both local cache and cloud.
+  try{localStorage.setItem(deletedMeasurementsStorageKey(),"[]");}catch{}
+  try{localStorage.setItem(deletedRecordsStorageKey(),JSON.stringify({quotations:[],blindOrders:[],invoices:[],receipts:[]}));}catch{}
+  saveStorage();
+  loadSettings();
+  renderMeasurements();renderSavedQuotes?.();renderBlindOrders?.();renderInvoices?.();renderReceipts?.();
+  updateHome();
+  alert("Backup restored. Cloud sync will complete shortly.");
+ }catch(error){console.error("Backup restore failed:",error);alert("Invalid backup file or restore failed.");}
+ finally{if(e.target)e.target.value="";}
 }
 
 
