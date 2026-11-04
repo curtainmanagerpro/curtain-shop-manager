@@ -165,11 +165,9 @@ td input,td select{min-width:80px;padding:8px}
 .measurement-window-list{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-start}
 .measurement-window{width:112px;min-height:120px;display:flex;flex-direction:column;align-items:flex-start}
 .measurement-seven{position:relative;width:max-content;height:58px;margin:8px 0 4px 4px}
-
 .measurement-seven:after{content:"";position:absolute;left:100%;top:22px;height:32px;border-right:2px solid #243c55}
-.measurement-fabric{font-size:13px;font-weight:800;margin-top:3px}
-.measurement-width{position:relative;display:inline-block;left:auto;top:auto;font-weight:800;font-size:17px;white-space:nowrap;padding-bottom:2px;border-bottom:2px solid #243c55}.measurement-width:after{content:"";position:absolute;left:100%;top:100%;height:42px;border-right:2px solid #243c55}
-.measurement-height{position:absolute;left:calc(100% + 7px);top:39px;font-weight:800;font-size:14px;line-height:1.1;white-space:nowrap;z-index:2;background:#fff;padding:0 2px}
+.measurement-width{position:relative;display:inline-block;left:auto;top:auto;font-weight:800;font-size:17px;white-space:nowrap;padding-bottom:2px;border-bottom:2px solid #243c55}
+.measurement-height{position:absolute;left:calc(100% + 4px);top:35px;font-weight:800;font-size:17px;white-space:nowrap}
 .measurement-window-detail{font-size:11px;line-height:1.35;margin-top:5px;overflow-wrap:anywhere}
 .measurement-room-total{font-weight:bold;text-align:right;padding-top:8px}
 .measurement-shade{font-size:11px;font-weight:bold;margin-top:2px;overflow-wrap:anywhere}
@@ -235,7 +233,7 @@ td input,td select{min-width:80px;padding:8px}
   <h2>📏 Measurement Sheet</h2>
   <div class="grid">
    <div class="field"><label>Customer Name *</label><input id="mCustomer" placeholder="Customer name"></div>
-   <div class="field"><label>Phone / WhatsApp</label><input id="mPhone" type="tel"><button type="button" class="btn-light" onclick="selectCustomerContact('mCustomer','mPhone')">📒 Select Contact</button></div>
+   <div class="field"><label>Phone / WhatsApp</label><input id="mPhone" type="tel"></div>
    <div class="field"><label>Address</label><textarea id="mAddress"></textarea></div>
    <div class="field"><label>Date</label><input id="mDate" type="date"></div>
    <div class="field"><label>Measurement Unit</label><select id="mUnit" onchange="recalculateMeasurements()"><option value="cm">Centimeter</option><option value="inch">Inch</option></select></div>
@@ -292,7 +290,7 @@ td input,td select{min-width:80px;padding:8px}
  </div>
  <div class="field">
   <label>Customer Phone Number</label>
-  <input id="boCustomerPhone" type="tel" placeholder="Phone number"><button type="button" class="btn-light" onclick="selectCustomerContact('boCustomerName','boCustomerPhone')">📒 Select Contact</button>
+  <input id="boCustomerPhone" type="tel" placeholder="Phone number">
  </div>
 </div>
   <div class="notice" id="boBusinessInfo"></div>
@@ -360,7 +358,7 @@ td input,td select{min-width:80px;padding:8px}
  <div class="card"><h2>Quotation</h2>
   <div class="grid">
    <div class="field"><label>Customer Name *</label><input id="qCustomer"></div>
-   <div class="field"><label>Phone</label><input id="qPhone" type="tel"><button type="button" class="btn-light" onclick="selectCustomerContact('qCustomer','qPhone')">📒 Select Contact</button></div>
+   <div class="field"><label>Phone</label><input id="qPhone"></div>
    <div class="field"><label>Address</label><textarea id="qAddress"></textarea></div>
    <div class="field"><label>Quotation No.</label><input id="qNumber"></div>
    <div class="field"><label>Date</label><input id="qDate" type="date"></div>
@@ -401,14 +399,14 @@ td input,td select{min-width:80px;padding:8px}
 </section>
 
 <section id="invoice" class="page"><div class="card"><h2>New Invoice</h2><div class="grid">
-<div class="field"><label>Customer Name *</label><input id="iCustomer"></div><div class="field"><label>Phone / WhatsApp</label><input id="iPhone" type="tel"><button type="button" class="btn-light" onclick="selectCustomerContact('iCustomer','iPhone')">📒 Select Contact</button></div><div class="field"><label>Address</label><textarea id="iAddress"></textarea></div><div class="field"><label>Invoice Number</label><input id="iNumber"></div><div class="field"><label>Date</label><input id="iDate" type="date"></div></div></div>
+<div class="field"><label>Customer Name *</label><input id="iCustomer"></div><div class="field"><label>Phone / WhatsApp</label><input id="iPhone" type="tel"></div><div class="field"><label>Address</label><textarea id="iAddress"></textarea></div><div class="field"><label>Invoice Number</label><input id="iNumber"></div><div class="field"><label>Date</label><input id="iDate" type="date"></div></div></div>
 <div class="card"><h2>Invoice Items</h2><div id="invoiceItems"></div><div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn-blue" type="button" onclick="addInvoiceItem()">＋ Add Item</button></div></div>
 <div class="card"><h2>Calculation</h2><div class="grid"><div class="field"><label>Discount Type</label><select id="iDiscountType" onchange="calculateInvoice()"><option value="percent">Percentage %</option><option value="fixed">Fixed Amount ₹</option></select></div><div class="field"><label>Discount</label><input id="iDiscountValue" type="number" value="0" oninput="calculateInvoice()"></div><div class="field"><label>GST %</label><input id="iGstValue" type="number" value="0" oninput="calculateInvoice()"></div><div class="field"><label>Amount Received</label><input id="iPaid" type="number" min="0" value="0" oninput="calculateInvoice()"></div></div>
 <div class="summary"><div class="summary-row"><span>Subtotal</span><b>₹<span id="iSubtotal">0.00</span></b></div><div class="summary-row"><span>Discount</span><b>₹<span id="iDiscount">0.00</span></b></div><div class="summary-row"><span>GST</span><b>₹<span id="iGST">0.00</span></b></div><div class="summary-row grand"><span>Grand Total</span><b>₹<span id="iGrand">0.00</span></b></div><div class="summary-row"><span>Amount Received</span><b>₹<span id="iPaidShow">0.00</span></b></div><div class="summary-row"><span>Balance Due</span><b>₹<span id="iBalance">0.00</span></b></div></div>
 <div class="field" style="margin-top:12px"><label>Notes / Terms</label><textarea id="iNotes"></textarea></div><button class="btn-green" onclick="saveInvoice()">Save Invoice</button><button class="btn-blue" onclick="previewInvoice()">Preview</button><button class="btn-dark" onclick="shareInvoicePDF()">Download / Share PDF</button></div><div id="invoicePreview" class="preview hidden"></div></section>
 <section id="savedInvoices" class="page"><div class="card"><h2>Saved Invoices</h2><button class="btn-green" onclick="newInvoice()">＋ New Invoice</button><input id="invoiceSearch" placeholder="Search invoice or customer..." oninput="renderInvoices()"></div><div id="invoiceList"></div></section>
 <section id="receipt" class="page"><div class="card"><h2>New Payment Receipt</h2><div class="grid">
-<div class="field"><label>Customer Name *</label><input id="rCustomer"></div><div class="field"><label>Phone / WhatsApp</label><input id="rPhone" type="tel"><button type="button" class="btn-light" onclick="selectCustomerContact('rCustomer','rPhone')">📒 Select Contact</button></div><div class="field"><label>Address / Place</label><textarea id="rAddress"></textarea></div><div class="field"><label>Receipt Number</label><input id="rNumber"></div><div class="field"><label>Date</label><input id="rDate" type="date"></div><div class="field"><label>Reference / Details (optional)</label><input id="rReference"></div><div class="field"><label>Total Amount (₹) *</label><input id="rTotal" type="number" min="0" step="0.01" oninput="calculateReceipt()"></div><div class="field"><label>Amount Received Now (₹) *</label><input id="rReceived" type="number" min="0" step="0.01" oninput="calculateReceipt()"></div></div>
+<div class="field"><label>Customer Name *</label><input id="rCustomer"></div><div class="field"><label>Phone / WhatsApp</label><input id="rPhone" type="tel"></div><div class="field"><label>Address / Place</label><textarea id="rAddress"></textarea></div><div class="field"><label>Receipt Number</label><input id="rNumber"></div><div class="field"><label>Date</label><input id="rDate" type="date"></div><div class="field"><label>Reference / Details (optional)</label><input id="rReference"></div><div class="field"><label>Total Amount (₹) *</label><input id="rTotal" type="number" min="0" step="0.01" oninput="calculateReceipt()"></div><div class="field"><label>Amount Received Now (₹) *</label><input id="rReceived" type="number" min="0" step="0.01" oninput="calculateReceipt()"></div></div>
 <div class="summary"><div class="summary-row"><span>Total Amount</span><b>₹<span id="rTotalShow">0.00</span></b></div><div class="summary-row"><span>Amount Received</span><b>₹<span id="rReceivedShow">0.00</span></b></div><div class="summary-row grand"><span>Balance Due</span><b>₹<span id="rBalance">0.00</span></b></div></div><div class="grid" style="margin-top:12px"><div class="field"><label>Payment Method</label><select id="rMethod"><option value="Cash">Cash</option><option value="UPI">UPI</option><option value="Bank Transfer">Bank Transfer</option><option value="Other">Other</option></select></div><div class="field"><label>Notes (optional)</label><input id="rNote" placeholder="Additional note"></div></div><button class="btn-green" onclick="saveReceipt()">Save Receipt</button><button class="btn-blue" onclick="previewReceipt()">Preview</button><button class="btn-dark" onclick="shareReceiptPDF()">Download / Share PDF</button></div><div id="receiptPreview" class="preview hidden"></div></section>
 <section id="savedReceipts" class="page"><div class="card"><h2>Saved Payment Receipts</h2><button class="btn-green" onclick="newReceipt()">＋ New Payment Receipt</button><input id="receiptSearch" placeholder="Search receipt or customer..." oninput="renderReceipts()"></div><div id="receiptList"></div></section>
 
@@ -497,7 +495,7 @@ td input,td select{min-width:80px;padding:8px}
 </section>
 
 </div>
-<button id="fixedBackButton" type="button" onclick="goBackPage()" aria-label="Back" style="position:fixed;top:105px;left:12px;z-index:9999;background:#000;color:#fff;border:1px solid #222;border-radius:12px;padding:9px 14px;margin:0;font-size:14px;font-weight:700;box-shadow:0 2px 7px #0004;display:none">← Back</button>
+<button id="fixedBackButton" type="button" onclick="goBackPage()" aria-label="Back" style="position:fixed;top:12px;left:10px;z-index:9999;background:#e8eef3;color:#24445c;border:1px solid #d1dce5;border-radius:20px;padding:8px 12px;margin:0;font-size:14px;font-weight:600;box-shadow:0 2px 7px #0002;display:none">← Back</button>
 <div id="adminToast" role="status" aria-live="polite"></div>
 
 <script>
@@ -512,10 +510,9 @@ let measurements=[],quotations=[],blindOrders=[],invoices=[],receipts=[],setting
 let currentMeasurementId=null,currentQuotationId=null,currentBlindOrderId=null,quotationItems=[];
 let currentInvoiceId=null,currentReceiptId=null,invoiceItems=[];
 const DATA_KEY="curtain_manager_data_v4";
-const DELETED_MEASUREMENTS_KEY="curtain_manager_deleted_measurements_v1";
-const DELETED_RECORDS_KEY="curtain_manager_deleted_records_v1";
 const SETTINGS_KEY="curtain_manager_settings_v4";
-function settingsStorageKey(){return authUser?.id?SETTINGS_KEY+"_"+authUser.id:SETTINGS_KEY;}
+function dataStorageKey(){return authUser?.id?DATA_KEY+"_user_"+authUser.id:null;}
+function settingsStorageKey(){return authUser?.id?SETTINGS_KEY+"_"+authUser.id:null;}
 const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Blackout Curtain","Curtain with Sheer","Sheer Curtain","Zebra Blind","Roman Blind","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Other"];
 const rftTypes=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Curtain with Sheer","Sheer Curtain"];
 const $=id=>document.getElementById(id);
@@ -598,6 +595,7 @@ async function boot(){
   if(event==="SIGNED_IN"&&session?.user)setTimeout(()=>verifyUser(session.user),0);
   if(event==="SIGNED_OUT"){
    authUser=null;authRecord=null;accessCheckInProgress=false;
+   measurements=[];quotations=[];blindOrders=[];invoices=[];receipts=[];settings={};
    $("mainApp").classList.add("hidden");$("mainApp").style.display="none";
    $("loginScreen").classList.remove("hidden");$("loginScreen").style.display="grid";
    $("loginMessage").textContent="Signed out.";
@@ -610,6 +608,7 @@ async function signOut(){
   const {error}=await sb.auth.signOut({scope:"local"});
   if(error)throw error;
   authUser=null;authRecord=null;accessCheckInProgress=false;
+  measurements=[];quotations=[];blindOrders=[];invoices=[];receipts=[];settings={};
   $("mainApp").classList.add("hidden");$("mainApp").style.display="none";
   $("loginScreen").classList.remove("hidden");$("loginScreen").style.display="grid";
   $("loginMessage").textContent="Signed out. Please sign in again.";
@@ -620,16 +619,14 @@ async function signOut(){
 
 async function loadCloudData(){
   if(!sb||!authUser){
-    loadStorage();
-    return false;
+    measurements=[];quotations=[];blindOrders=[];invoices=[];receipts=[];settings={};
+    updateHome();return false;
   }
 
+  // Strict account isolation: read only this authenticated user's local cache.
   loadStorage();
+  loadSettingsFromLocalOnly();
   const localSnapshot={measurements,quotations,blindOrders,invoices,receipts,settings};
-  try{
-    const deletedIds=new Set(JSON.parse(localStorage.getItem(DELETED_MEASUREMENTS_KEY)||"[]").map(String));
-    measurements=measurements.filter(x=>!deletedIds.has(String(x.id)));
-  }catch(e){}
 
   const {data,error}=await sb
     .from("customer_data")
@@ -639,43 +636,26 @@ async function loadCloudData(){
 
   if(error){
     console.error("Cloud data loading failed:",error.message);
-    updateHome();
-    return false;
+    updateHome();return false;
   }
 
   if(data&&data.data){
     const cloud=data.data;
-    let localDeletedMeasurementIds=[];
-    try{localDeletedMeasurementIds=JSON.parse(localStorage.getItem(DELETED_MEASUREMENTS_KEY)||"[]").map(String);}catch(e){localDeletedMeasurementIds=[];}
-    const cloudDeletedMeasurementIds=Array.isArray(cloud.deletedMeasurementIds)?cloud.deletedMeasurementIds.map(String):[];
-    const deletedMeasurementSet=new Set([...localDeletedMeasurementIds,...cloudDeletedMeasurementIds]);
-    try{localStorage.setItem(DELETED_MEASUREMENTS_KEY,JSON.stringify([...deletedMeasurementSet]));}catch(e){}
-    let localDeletedRecords={};try{localDeletedRecords=JSON.parse(localStorage.getItem(DELETED_RECORDS_KEY)||"{}");}catch(e){}
-    const cloudDeletedRecords=cloud.deletedRecordIds&&typeof cloud.deletedRecordIds==="object"?cloud.deletedRecordIds:{};
-    const deletedRecordIds={};
-    ["quotations","blindOrders","invoices","receipts"].forEach(k=>{
-      deletedRecordIds[k]=[...new Set([...(Array.isArray(localDeletedRecords[k])?localDeletedRecords[k]:[]),...(Array.isArray(cloudDeletedRecords[k])?cloudDeletedRecords[k]:[])].map(String))];
-    });
-    try{localStorage.setItem(DELETED_RECORDS_KEY,JSON.stringify(deletedRecordIds));}catch(e){}
-    const mergeById=(localList,cloudList,deletedIds=[])=>{
-      const deletedSet=new Set(deletedIds.map(String));const map=new Map();
-      (Array.isArray(cloudList)?cloudList:[]).forEach(x=>{if(!deletedSet.has(String(x.id)))map.set(String(x.id),x);});
-      (Array.isArray(localList)?localList:[]).forEach(x=>{if(!deletedSet.has(String(x.id))&&!map.has(String(x.id)))map.set(String(x.id),x);});
+    const mergeById=(localList,cloudList)=>{
+      const map=new Map();
+      (Array.isArray(cloudList)?cloudList:[]).forEach(x=>map.set(String(x.id),x));
+      (Array.isArray(localList)?localList:[]).forEach(x=>{if(!map.has(String(x.id)))map.set(String(x.id),x);});
       return Array.from(map.values());
     };
-    measurements=mergeById(localSnapshot.measurements,cloud.measurements,[...deletedMeasurementSet]);
-    quotations=mergeById(localSnapshot.quotations,cloud.quotations,deletedRecordIds.quotations);
-    blindOrders=mergeById(localSnapshot.blindOrders,cloud.blindOrders,deletedRecordIds.blindOrders);
-    invoices=mergeById(localSnapshot.invoices,cloud.invoices,deletedRecordIds.invoices);
-    receipts=mergeById(localSnapshot.receipts,cloud.receipts,deletedRecordIds.receipts);
+    measurements=mergeById(localSnapshot.measurements,cloud.measurements);
+    quotations=mergeById(localSnapshot.quotations,cloud.quotations);
+    blindOrders=mergeById(localSnapshot.blindOrders,cloud.blindOrders);
+    invoices=mergeById(localSnapshot.invoices,cloud.invoices);
+    receipts=mergeById(localSnapshot.receipts,cloud.receipts);
     if(cloud.settings&&Object.keys(cloud.settings).length)settings=cloud.settings;
   }
 
-  try{
-    localStorage.setItem(DATA_KEY,JSON.stringify({measurements,quotations,blindOrders,invoices,receipts}));
-    localStorage.setItem(settingsStorageKey(),JSON.stringify(settings));
-  }catch(e){console.error("Local cache save failed:",e);}
-
+  saveStorageLocalOnly();
   updateHome();
   const cloudData=data&&data.data?data.data:{};
   const hasLocalOnly =
@@ -683,8 +663,7 @@ async function loadCloudData(){
     quotations.length>(cloudData.quotations||[]).length ||
     blindOrders.length>(cloudData.blindOrders||[]).length ||
     invoices.length>(cloudData.invoices||[]).length ||
-    receipts.length>(cloudData.receipts||[]).length ||
-    !data;
+    receipts.length>(cloudData.receipts||[]).length || !data;
   if(hasLocalOnly){
     const result=await saveCloudData();
     if(!result.ok)console.error("Cloud merge sync failed:",result.message);
@@ -695,32 +674,14 @@ async function loadCloudData(){
 async function saveCloudData(){
   if(!sb||!authUser)return {ok:false,message:"Cloud login is not ready."};
 
-  let deletedMeasurementIds=[];
-  try{deletedMeasurementIds=JSON.parse(localStorage.getItem(DELETED_MEASUREMENTS_KEY)||"[]").map(String);}catch(e){deletedMeasurementIds=[];}
+  const cloudData={measurements,quotations,blindOrders,invoices,receipts,settings};
   const {data:existing,error:findError}=await sb
     .from("customer_data")
-    .select("id,data")
+    .select("id")
     .eq("user_id",authUser.id)
     .maybeSingle();
+
   if(findError)return {ok:false,message:findError.message};
-  const cloudDeleted=Array.isArray(existing?.data?.deletedMeasurementIds)?existing.data.deletedMeasurementIds.map(String):[];
-  const deletedSet=new Set([...deletedMeasurementIds,...cloudDeleted]);
-  deletedMeasurementIds=[...deletedSet];
-  try{localStorage.setItem(DELETED_MEASUREMENTS_KEY,JSON.stringify(deletedMeasurementIds));}catch(e){}
-  let localDeletedRecords={};try{localDeletedRecords=JSON.parse(localStorage.getItem(DELETED_RECORDS_KEY)||"{}");}catch(e){}
-  const cloudDeletedRecords=existing?.data?.deletedRecordIds&&typeof existing.data.deletedRecordIds==="object"?existing.data.deletedRecordIds:{};
-  const deletedRecordIds={};
-  ["quotations","blindOrders","invoices","receipts"].forEach(k=>{
-    deletedRecordIds[k]=[...new Set([...(Array.isArray(localDeletedRecords[k])?localDeletedRecords[k]:[]),...(Array.isArray(cloudDeletedRecords[k])?cloudDeletedRecords[k]:[])].map(String))];
-  });
-  try{localStorage.setItem(DELETED_RECORDS_KEY,JSON.stringify(deletedRecordIds));}catch(e){}
-  const filterDeleted=(list,ids)=>list.filter(x=>!new Set(ids.map(String)).has(String(x.id)));
-  measurements=filterDeleted(measurements,[...deletedSet]);
-  quotations=filterDeleted(quotations,deletedRecordIds.quotations);
-  blindOrders=filterDeleted(blindOrders,deletedRecordIds.blindOrders);
-  invoices=filterDeleted(invoices,deletedRecordIds.invoices);
-  receipts=filterDeleted(receipts,deletedRecordIds.receipts);
-  const cloudData={measurements,quotations,blindOrders,invoices,receipts,settings,deletedMeasurementIds,deletedRecordIds};
 
   let result;
   if(existing){
@@ -739,49 +700,45 @@ async function saveCloudData(){
 
  function loadStorage(){
  try{
-   const d=JSON.parse(localStorage.getItem(DATA_KEY)||"{}");
+   const key=dataStorageKey();
+   const d=key?JSON.parse(localStorage.getItem(key)||"{}"):{};
    measurements=Array.isArray(d.measurements)?d.measurements:[];
    quotations=Array.isArray(d.quotations)?d.quotations:[];
-    blindOrders=Array.isArray(d.blindOrders)?d.blindOrders:[];
-    invoices=Array.isArray(d.invoices)?d.invoices:[];
-    receipts=Array.isArray(d.receipts)?d.receipts:[];
- }catch{
-   measurements=[];
-   quotations=[];
-   blindOrders=[];
-   invoices=[];
-   receipts=[];
- }
+   blindOrders=Array.isArray(d.blindOrders)?d.blindOrders:[];
+   invoices=Array.isArray(d.invoices)?d.invoices:[];
+   receipts=Array.isArray(d.receipts)?d.receipts:[];
+ }catch{measurements=[];quotations=[];blindOrders=[];invoices=[];receipts=[];}
+}
+function saveStorageLocalOnly(){
+ const key=dataStorageKey();if(!key)return;
+ try{localStorage.setItem(key,JSON.stringify({measurements,quotations,blindOrders,invoices,receipts}));}
+ catch(e){console.error("Account-local cache save failed:",e);}
+}
+function loadSettingsFromLocalOnly(){
+ const key=settingsStorageKey();settings={};
+ try{if(key){const v=localStorage.getItem(key);if(v)settings=JSON.parse(v)||{};}}catch{}
 }
 
-
 function saveStorage(){
+  if(!authUser?.id){alert("ആദ്യം നിങ്ങളുടെ അക്കൗണ്ടിൽ Login ചെയ്യുക.");return false;}
   try{
-    localStorage.setItem(DATA_KEY,JSON.stringify({measurements,quotations,blindOrders,invoices,receipts}));
-    localStorage.setItem(settingsStorageKey(),JSON.stringify(settings));
+    saveStorageLocalOnly();
+    const skey=settingsStorageKey();if(skey)localStorage.setItem(skey,JSON.stringify(settings));
     updateHome();
   }catch(error){
     console.error("Local save failed:",error);
     alert("ഈ ഉപകരണത്തിൽ വിവരങ്ങൾ സൂക്ഷിക്കാൻ കഴിഞ്ഞില്ല. ബ്രൗസറിലെ സംഭരണസ്ഥലം പരിശോധിക്കുക.");
     return false;
   }
-
   saveCloudData().then(result=>{
-    if(!result.ok){
-      console.error("Cloud sync did not complete:",result.message);
-      window.lastCloudSyncError=result.message;
-    }else{
-      window.lastCloudSyncError="";
-    }
-  }).catch(error=>{
-    console.error("Cloud sync error:",error);
-    window.lastCloudSyncError=error.message||String(error);
-  });
+    if(!result.ok){console.error("Cloud sync did not complete:",result.message);window.lastCloudSyncError=result.message;}
+    else window.lastCloudSyncError="";
+  }).catch(error=>{console.error("Cloud sync error:",error);window.lastCloudSyncError=error.message||String(error);});
   return true;
 }
 
 function loadSettings(){
- try{const localSettings=localStorage.getItem(settingsStorageKey());if(localSettings)settings=JSON.parse(localSettings)||settings;}catch{}
+ try{const skey=settingsStorageKey();const localSettings=skey?localStorage.getItem(skey):null;if(localSettings)settings=JSON.parse(localSettings)||{};else settings={};}catch{settings={};}
  $("sName").value=settings.name||"";
  $("sPhone").value=settings.phone||"";
  $("sWhatsapp").value=settings.whatsapp||"";
@@ -927,12 +884,9 @@ function getRowCalc(h,w,unit,type,qty,rate,customUnit){
 function clothMeters(row,unit){
  const cmFactor=unit==="cm"?1:2.54;
  const width=Number(row.width||0)*cmFactor,height=Number(row.height||0)*cmFactor,qty=Math.max(1,Number(row.qty||1));
- const type=String(row.type||"");
- if(!isRFT(type,row.customUnit||"Sq.Ft")) return {curtain:0,sheer:0,mainPanels:0,sheerPanels:0};
- const main=type!=="Sheer Curtain";
+ const type=String(row.type||""); const main=type!=="Sheer Curtain";
  const sheer=type==="Sheer Curtain"||type==="Curtain with Sheer";
- const mainPanels=main?Math.ceil(width/50):0,
-      sheerPanels=sheer?Math.floor(width/60):0;
+ const mainPanels=main?Math.ceil(width/50):0, sheerPanels=sheer?Math.ceil(width/60):0;
  return {curtain:main?mainPanels*(height+30)/100*qty:0,sheer:sheer?sheerPanels*(height+25)/100*qty:0,mainPanels,sheerPanels};
 }
 function recalculateMeasurements(){
@@ -948,8 +902,8 @@ function recalculateMeasurements(){
   tr.querySelector(".mAreaValue").textContent=money(c.area);
   const fabric=clothMeters({type,height:h,width:w,qty},$("mUnit").value);
   const fabricLines=[];
-  if(fabric.curtain>0)fabricLines.push(`Main Cloth: ${money(fabric.curtain)} Mtr (${fabric.mainPanels}P)`);
-  if(fabric.sheer>0)fabricLines.push(`Sheer: ${money(fabric.sheer)} Mtr (${fabric.sheerPanels}P)`);
+  if(fabric.curtain>0)fabricLines.push(`Curtain Cloth: ${money(fabric.curtain)} m (${fabric.mainPanels} panels)`);
+  if(fabric.sheer>0)fabricLines.push(`Sheer Cloth: ${money(fabric.sheer)} m (${fabric.sheerPanels} panels)`);
   tr.querySelector(".mFabricCalc").textContent=fabricLines.join(" | ");
   totalSqft+=c.sqft;totalRft+=c.rft;
  });
@@ -977,7 +931,9 @@ function saveMeasurement(){
  const m=getMeasurementForm();
  if(!m.customer)return alert("Please enter Customer Name.");
  if(!m.rows.length)return alert("Enter at least one valid width and height.");
- if(m.rows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
+ const sqFtBlindRows=m.rows.filter(r=>!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft"));
+ if(!sqFtBlindRows.length)return alert("Please add at least one Square Feet (Sq.Ft) Blind measurement. Running Feet Curtain measurements are excluded from Blind Order.");
+ if(sqFtBlindRows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
  const i=measurements.findIndex(x=>x.id===m.id);
  if(i>=0)measurements[i]=m;else measurements.push(m);
  currentMeasurementId=m.id;saveStorage();alert("Measurement saved successfully.");showPage("savedMeasurements");
@@ -993,37 +949,9 @@ function editMeasurement(id){
  loadMeasurementIntoForm(m);
  showPage("measurement");
 }
-
-function addDeletedRecordId(collection,id){
- let all={};try{all=JSON.parse(localStorage.getItem(DELETED_RECORDS_KEY)||"{}");}catch(e){}
- if(!Array.isArray(all[collection]))all[collection]=[];
- const idText=String(id);if(!all[collection].map(String).includes(idText))all[collection].push(idText);
- try{localStorage.setItem(DELETED_RECORDS_KEY,JSON.stringify(all));}catch(e){console.error("Delete marker save failed:",e);}
-}
-function showDeleteSyncNotice(message,success=true){
- let el=document.getElementById("deleteSyncNotice");
- if(!el){el=document.createElement("div");el.id="deleteSyncNotice";el.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:999999;padding:20px 30px;border-radius:16px;color:#fff;font:700 20px Arial,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.32);max-width:88vw;text-align:center;min-width:220px";document.body.appendChild(el);}
- el.style.background=success?"#16803c":"#b42323";el.textContent=(success?"✓ ":"⚠ ")+message;el.style.display="block";
- clearTimeout(window.deleteSyncNoticeTimer);window.deleteSyncNoticeTimer=setTimeout(()=>{el.style.display="none";},3000);
-}
-async function persistDeleteAndNotify(){
- // Instant centered feedback immediately after the user's confirmation.
- showDeleteSyncNotice("Deleted Successfully ✓",true);
- saveStorage();
- if(!sb||!authUser){showDeleteSyncNotice("Deleted on this device · Cloud login unavailable",false);return false;}
- try{const result=await saveCloudData();if(!result.ok){showDeleteSyncNotice("Deleted locally · Cloud Sync failed",false);return false;}showDeleteSyncNotice("Deleted Successfully · Synced to Cloud ✓",true);return true;}
- catch(e){showDeleteSyncNotice("Deleted locally · Cloud Sync failed",false);return false;}
-}
-
-async function deleteMeasurement(id){
+function deleteMeasurement(id){
  if(!confirm("Delete this measurement sheet?"))return;
- const key=DELETED_MEASUREMENTS_KEY;
- let deleted=[];try{deleted=JSON.parse(localStorage.getItem(key)||"[]");}catch(e){deleted=[];}
- const idText=String(id);if(!deleted.map(String).includes(idText))deleted.push(idText);
- try{localStorage.setItem(key,JSON.stringify(deleted));}catch(e){console.error("Measurement deletion marker save failed:",e);}
- measurements=measurements.filter(m=>String(m.id)!==idText);
- renderMeasurements();
- await persistDeleteAndNotify();
+ measurements=measurements.filter(m=>m.id!==id);saveStorage();renderMeasurements();
 }
 function renderCustomers(){
  const search=($("customerSearch")?.value||"").trim().toLowerCase();
@@ -1063,14 +991,12 @@ function measurementSheetHTML(m){
  const roomBlocks=[...groups.values()].map(g=>{
   const windows=g.rows.map(r=>{
    const typeName=r.type==="Other"?(r.customType||"Other"):r.type;
-   const isCurtainFabricType=rftTypes.includes(r.type)||(r.type==="Other"&&r.customUnit==="RFT");
-   const fabric=isCurtainFabricType?((r.curtainMeters!==undefined||r.sheerMeters!==undefined)?{curtain:Number(r.curtainMeters||0),sheer:Number(r.sheerMeters||0),mainPanels:Number(r.curtainPanels||0),sheerPanels:Number(r.sheerPanels||0)}:clothMeters(r,m.unit||"cm")):{curtain:0,sheer:0,mainPanels:0,sheerPanels:0};
+   const fabric=(r.curtainMeters!==undefined||r.sheerMeters!==undefined)?{curtain:Number(r.curtainMeters||0),sheer:Number(r.sheerMeters||0),mainPanels:Number(r.curtainPanels||0),sheerPanels:Number(r.sheerPanels||0)}:clothMeters(r,m.unit||"cm");
    const dimUnit=m.unit==="cm"?"cm":"inch";
-   const shade=r.shade?`<div class="measurement-shade">Shade: ${esc(r.shade)}</div>`:"";
-   const fabricMarkup=`${fabric.curtain>0?`<div class="measurement-fabric">Main Cloth (${fabric.mainPanels}P)</div><div class="measurement-fabric">${money(fabric.curtain)} Mtr</div>`:""}${fabric.sheer>0?`<div class="measurement-fabric">Sheer Cloth (${fabric.sheerPanels}P)</div><div class="measurement-fabric">${money(fabric.sheer)} Mtr</div>`:""}`;
+   const shade=r.shade?`<div class="measurement-shade">Shade No: ${esc(r.shade)}</div>`:"";
    return `<div class="measurement-window">
     <div class="measurement-seven"><span class="measurement-width">${esc(r.width)} ${dimUnit}</span><span class="measurement-height">${esc(r.height)}</span></div>
-    <div class="measurement-window-detail"><b style="font-size:17px;font-weight:800">${esc(typeName)}</b>${shade}${fabricMarkup}</div>
+    <div class="measurement-window-detail"><b style="font-size:17px;font-weight:800">${esc(typeName)}</b><div style="font-size:13px;font-weight:700">${fabric.curtain?`Curtain Cloth: ${money(fabric.curtain)} m (${fabric.mainPanels} panels)`:""}${fabric.sheer?`${fabric.curtain?"<br>":""}Sheer Cloth: ${money(fabric.sheer)} m (${fabric.sheerPanels} panels)`:""}</div>${shade?shade.replace('class="measurement-shade"','class="measurement-shade" style="font-size:16px;font-weight:800"'):''}</div>
    </div>`;
   }).join("");
   return `<div class="measurement-room">
@@ -1080,7 +1006,6 @@ function measurementSheetHTML(m){
    <div class="measurement-room-total">${g.rows.length} Window${g.rows.length===1?"":"s"}</div>
   </div>`;
  }).join("");
- const typeSqft={};(m.rows||[]).forEach(r=>{const t=String(r.type==="Other"?(r.customType||"Other"):r.type||"").trim();const blind=!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");if(blind){typeSqft[t]=(typeSqft[t]||0)+Number(r.sqft||r.areaValue||0);}});
  const totalSqft=(m.rows||[]).reduce((a,r)=>a+Number(r.sqft||0),0);
  const totalRft=(m.rows||[]).reduce((a,r)=>a+Number(r.rft||0),0);
  const totalCurtainMeters=(m.rows||[]).reduce((a,r)=>a+Number(r.curtainMeters||0),0);
@@ -1092,13 +1017,15 @@ function measurementSheetHTML(m){
   ${m.address?`<div style="margin-bottom:10px"><b>Address:</b> ${esc(m.address)}</div>`:""}
   <div style="display:grid;grid-template-columns:105px minmax(0,1fr) 95px 85px;gap:8px;background:#eaf0f5;padding:8px 4px;font-weight:bold;font-size:12px"><div>Area</div><div>Measurements (Width / Height)</div><div style="text-align:right">Total</div><div style="text-align:right">Items</div></div>
   ${roomBlocks}
-  <div class="measurement-grand" style="text-align:left;display:flex;flex-direction:column;gap:4px;align-items:flex-start">${Object.entries(typeSqft).map(([type,total])=>`<div><b>Total ${esc(type)}: ${money(total)} Sq.Ft</b></div>`).join("")}${totalRft>0?`<div><b>Total Running Feet: ${money(totalRft)} RFT</b></div>`:""}${totalCurtainMeters>0?`<div><b>Total Main Cloth: ${money(totalCurtainMeters)} Mtr</b></div>`:""}${totalSheerMeters>0?`<div><b>Total Sheer: ${money(totalSheerMeters)} Mtr</b></div>`:""}</div>
+  <div class="measurement-grand">Total Sq.Ft: ${money(totalSqft)} &nbsp;&nbsp; Total Running Feet: ${money(totalRft)}<br><b>Total Curtain Cloth: ${money(totalCurtainMeters)} m &nbsp; | &nbsp; Total Sheer Cloth: ${money(totalSheerMeters)} m</b></div>
  </div>`;
 }
 function previewMeasurementSheet(){
  const m=getMeasurementForm();
  if(!m.rows.length)return alert("Enter at least one valid width and height.");
- if(m.rows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
+ const sqFtBlindRows=m.rows.filter(r=>!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft"));
+ if(!sqFtBlindRows.length)return alert("Please add at least one Square Feet (Sq.Ft) Blind measurement. Running Feet Curtain measurements are excluded from Blind Order.");
+ if(sqFtBlindRows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
  const el=$("measurementPreview");el.innerHTML=measurementSheetHTML(m);el.classList.remove("hidden");
  el.scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -1132,42 +1059,15 @@ function measurementToQuotation(){
  const m=getMeasurementForm();if(!m.customer||!m.rows.length)return alert("Enter a customer and valid measurements first.");
  const i=measurements.findIndex(x=>x.id===m.id);if(i>=0)measurements[i]=m;else measurements.push(m);saveStorage();
  newQuotation();$("qCustomer").value=m.customer;$("qPhone").value=m.phone;$("qAddress").value=m.address;
- const grouped={};let curtainMeters=0,sheerMeters=0;
- (m.rows||[]).forEach(r=>{
-  const baseName=r.type==="Other"?(r.customType||"Other"):r.type;
-  const blind=!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");
-  const fabric=blind?{curtain:0,sheer:0}:clothMeters(r,m.unit||"cm");
-  curtainMeters+=Number(fabric.curtain||0);sheerMeters+=Number(fabric.sheer||0);
-  const unit=blind?"Sq.Ft":"RFT";
-  const qty=blind?Number(r.sqft||r.areaValue||0):Number(r.rft||r.areaValue||0);
-  const key=baseName+"|"+unit;
-  if(!grouped[key])grouped[key]={qty:0,unit,name:baseName};
-  grouped[key].qty+=qty;
- });
+ const grouped={};m.rows.forEach(r=>{const baseName=r.type==="Other"?(r.customType||"Other"):r.type;const fabric=clothMeters(r,m.unit||"cm");const itemName=baseName+(fabric.curtain?` — Curtain Cloth ${money(fabric.curtain)}m`:"")+(fabric.sheer?` — Sheer Cloth ${money(fabric.sheer)}m`:"");const key=itemName+"|"+r.unit;if(!grouped[key])grouped[key]={qty:0,rate:r.rate,unit:r.unit,name:itemName};grouped[key].qty+=r.areaValue;});
  quotationItems=Object.values(grouped).map(g=>({name:g.name,qty:Number(g.qty.toFixed(2)),rate:"",unit:g.unit}));
- if(curtainMeters>0)quotationItems.push({name:"TOTAL CURTAIN CLOTH",qty:Number(curtainMeters.toFixed(2)),rate:"",unit:"Meter"});
- if(sheerMeters>0)quotationItems.push({name:"TOTAL SHEER CLOTH",qty:Number(sheerMeters.toFixed(2)),rate:"",unit:"Meter"});
  renderQuotationItems();
 }
 
+
 function measurementToQuotationSaved(id){const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;loadMeasurementIntoForm(m);measurementToQuotation();}
 function loadMeasurementIntoForm(m){currentMeasurementId=m.id;$ ("mCustomer").value=m.customer||"";$("mPhone").value=m.phone||"";$("mAddress").value=m.address||"";$("mDate").value=m.date||today();$("mUnit").value=m.unit||"cm";$ ("measurementBody").innerHTML="";(m.rows||[]).forEach(r=>addMeasurementRow(r));}
-function measurementToInvoice(id){
- const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;
- newInvoice();$("iCustomer").value=m.customer||"";$("iPhone").value=m.phone||"";$("iAddress").value=m.address||"";
- let curtainMeters=0,sheerMeters=0;
- invoiceItems=(m.rows||[]).map(r=>{
-  const blind=!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");
-  const fabric=blind?{curtain:0,sheer:0}:clothMeters(r,m.unit||"cm");
-  curtainMeters+=Number(fabric.curtain||0);sheerMeters+=Number(fabric.sheer||0);
-  const name=(r.type==="Other"?(r.customType||"Other"):r.type);
-  return {name,qty:Number((blind?(r.sqft||r.areaValue):(r.rft||r.areaValue))||0).toFixed(2),unit:blind?"Sq.Ft":"RFT",rate:""};
- });
- if(curtainMeters>0)invoiceItems.push({name:"TOTAL CURTAIN CLOTH",qty:Number(curtainMeters.toFixed(2)),unit:"Meter",rate:""});
- if(sheerMeters>0)invoiceItems.push({name:"TOTAL SHEER CLOTH",qty:Number(sheerMeters.toFixed(2)),unit:"Meter",rate:""});
- if(!invoiceItems.length)invoiceItems=[{name:"",qty:"",unit:"Item",rate:""}];
- renderInvoiceItems();
-}
+function measurementToInvoice(id){const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;newInvoice();$("iCustomer").value=m.customer||"";$("iPhone").value=m.phone||"";$("iAddress").value=m.address||"";invoiceItems=(m.rows||[]).map(r=>{const fabric=clothMeters(r,m.unit||"cm");return {name:(r.type==="Other"?(r.customType||"Other"):r.type)+" — "+r.width+" × "+r.height+" "+(m.unit||"cm")+(fabric.curtain?` | Curtain Cloth ${money(fabric.curtain)}m`:"")+(fabric.sheer?` | Sheer Cloth ${money(fabric.sheer)}m`:""),qty:Number(r.qty||1),unit:"Nos",rate:""};});if(!invoiceItems.length)invoiceItems=[{name:"",qty:"",unit:"Item",rate:""}];renderInvoiceItems();}
 function measurementToBlindOrder(id){
  const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;
  newBlindOrder();
@@ -1428,7 +1328,7 @@ function editQuotation(id){
  $("qNumber").value=q.number;$("qDate").value=q.date;$("discountType").value=q.discountType||"percent";$("discountValue").value=q.discountValue||0;$("gstValue").value=q.gstRate||0;$("qTerms").value=q.terms||"";
  quotationItems=JSON.parse(JSON.stringify(q.items||[]));renderQuotationItems();showPage("quotation");
 }
-async function deleteQuote(id){if(!confirm("Delete this quotation?"))return;addDeletedRecordId("quotations",id);quotations=quotations.filter(q=>String(q.id)!==String(id));renderSavedQuotes();await persistDeleteAndNotify();}
+function deleteQuote(id){if(!confirm("Delete this quotation?"))return;quotations=quotations.filter(q=>q.id!==id);saveStorage();renderSavedQuotes();}
 function documentSignatureHTML(){
  const signature=settings.signature?`<img src="${settings.signature}" alt="Authorized signature" style="display:block;max-width:170px;width:100%;height:48px;object-fit:contain;margin:0 auto 3px">`:"";
  return `<div style="display:flex;justify-content:flex-end;margin-top:28px;break-inside:avoid"><div style="width:210px;text-align:center;padding:8px 10px 0">${signature}<div style="height:${settings.signature?'0':'42px'}"></div><div style="border-bottom:1px solid #6f2948"></div><div style="font-size:12px;font-weight:bold;margin-top:6px">Authorized Signature</div></div></div>`;
@@ -1514,7 +1414,7 @@ function renderInvoices(){
  $("invoiceList").innerHTML=invoices.filter(d=>[d.number,d.customer,d.phone,d.date].join(" ").toLowerCase().includes(q)).slice().reverse().map(d=>`<div class="customer-card"><h3>${esc(d.number)}</h3><b>${esc(d.customer)}</b><p class="small">${esc(formatDateDMY(d.date))}</p><p>Grand Total: <b>₹${money(d.grand)}</b> · Balance: <b>₹${money(d.balance)}</b></p><div class="doc-actions"><button class="btn-blue" onclick="editInvoice('${String(d.id)}')">Edit / Open</button><button class="btn-green" onclick="previewSavedInvoice('${String(d.id)}')">Preview</button><button class="btn-dark" onclick="shareSavedInvoicePDF('${String(d.id)}')">Share PDF</button><button class="btn-red" onclick="deleteInvoice('${String(d.id)}')">Delete</button></div></div>`).join("")||'<div class="empty">No saved invoices.</div>';
 }
 function previewSavedInvoice(id){const d=invoices.find(x=>String(x.id)===String(id));if(!d)return;showSavedDocumentPreview("Invoice · "+(d.number||""),invoiceHTML(d));}
-async function deleteInvoice(id){if(!confirm("Delete this invoice?"))return;addDeletedRecordId("invoices",id);invoices=invoices.filter(x=>String(x.id)!==String(id));renderInvoices();await persistDeleteAndNotify();}
+function deleteInvoice(id){if(!confirm("Delete this invoice?"))return;invoices=invoices.filter(x=>String(x.id)!==String(id));saveStorage();renderInvoices();}
 function newReceipt(){
  currentReceiptId=null;$("rCustomer").value="";$("rPhone").value="";$("rAddress").value="";$("rNumber").value=nextReceiptNumber();$("rDate").value=today();$("rReference").value="";$("rTotal").value="";$("rReceived").value="";$("rMethod").value="Cash";$("rNote").value="";
  calculateReceipt();$("receiptPreview").classList.add("hidden");$("receiptPreview").innerHTML="";showPage("receipt");
@@ -1604,39 +1504,13 @@ function showSavedDocumentPreview(title,html){
  modal.style.display="block";document.body.style.overflow="hidden";
 }
 function closeSavedDocumentPreview(){const modal=$("savedDocumentPreviewModal");if(modal)modal.style.display="none";document.body.style.overflow="";}
-function applyReceiptPreviewResponsive(){
- const content=$("savedDocumentPreviewContent");
- if(!content||!content.querySelector(".preview"))return;
- content.classList.add("receipt-preview-responsive");
- let st=$("receiptPreviewResponsiveStyle");
- if(!st){
-  st=document.createElement("style");st.id="receiptPreviewResponsiveStyle";
-  st.textContent=`@media(max-width:700px){
-   #savedDocumentPreviewModal{padding:5px!important;overflow-x:hidden!important}
-   #savedDocumentPreviewModal>div{padding:6px!important;width:100%!important;max-width:100vw!important;overflow-x:hidden!important}
-   #savedDocumentPreviewContent.receipt-preview-responsive{width:100%!important;max-width:100%!important;overflow:visible!important}
-   #savedDocumentPreviewContent.receipt-preview-responsive .preview{width:720px!important;min-width:720px!important;max-width:none!important;transform:scale(var(--receipt-preview-scale, .48));transform-origin:top left;margin:0!important;font-size:14px!important}
-   #savedDocumentPreviewContent.receipt-preview-responsive .preview *{box-sizing:border-box!important;overflow-wrap:anywhere!important}
-   #savedDocumentPreviewContent.receipt-preview-responsive .preview img{max-width:100%!important}
-  }`;
-  document.head.appendChild(st);
- }
- const scale=Math.max(.30,Math.min(1,(window.innerWidth-28)/720));
- content.style.setProperty("--receipt-preview-scale",String(scale));
-}
-function previewReceipt(){
- const d=currentReceipt();
- if(!d.customer)return alert("Please enter Customer Name.");
- if(d.total<=0)return alert("Enter the total job amount.");
- showSavedDocumentPreview("Payment Receipt Preview",receiptHTML(d));
- applyReceiptPreviewResponsive();
-}
+function previewReceipt(){const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");showSavedDocumentPreview("Payment Receipt Preview",receiptHTML(d));}
 function renderReceipts(){
  const q=($("receiptSearch")?.value||"").toLowerCase();
  $("receiptList").innerHTML=receipts.filter(d=>[d.number,d.customer,d.phone,d.date,d.reference].join(" ").toLowerCase().includes(q)).slice().reverse().map(d=>`<div class="customer-card"><h3>${esc(d.number)}</h3><b>${esc(d.customer)}</b><p class="small">${esc(formatDateDMY(d.date))}</p><p>Received: <b>₹${money(d.received)}</b> · Balance: <b>₹${money(d.balance)}</b></p><div class="doc-actions"><button class="btn-blue" onclick="editReceipt('${String(d.id)}')">Edit / Open</button><button class="btn-green" onclick="previewSavedReceipt('${String(d.id)}')">Preview</button><button class="btn-dark" onclick="shareSavedReceiptPDF('${String(d.id)}')">Share PDF</button><button class="btn-red" onclick="deleteReceipt('${String(d.id)}')">Delete</button></div></div>`).join("")||'<div class="empty">No saved payment receipts.</div>';
 }
-function previewSavedReceipt(id){const d=receipts.find(x=>String(x.id)===String(id));if(!d)return;showSavedDocumentPreview("Payment Receipt · "+(d.number||""),receiptHTML(d));applyReceiptPreviewResponsive();}
-async function deleteReceipt(id){if(!confirm("Delete this payment receipt?"))return;addDeletedRecordId("receipts",id);receipts=receipts.filter(x=>String(x.id)!==String(id));renderReceipts();await persistDeleteAndNotify();}
+function previewSavedReceipt(id){const d=receipts.find(x=>String(x.id)===String(id));if(!d)return;showSavedDocumentPreview("Payment Receipt · "+(d.number||""),receiptHTML(d));}
+function deleteReceipt(id){if(!confirm("Delete this payment receipt?"))return;receipts=receipts.filter(x=>String(x.id)!==String(id));saveStorage();renderReceipts();}
 async function makeDocumentPDF(html,filename,title){
  if(!window.jspdf||!window.html2canvas)return alert("PDF libraries did not load. Check your internet connection and try again.");
  const host=$("pdfSheet");host.innerHTML=html;host.style.width="794px";
@@ -1935,7 +1809,7 @@ $("boCustomerPhone").value=d.customerPhone||"";
  $("blindOrderBody").innerHTML="";(d.rows||[]).forEach(r=>addBlindOrderRow(r));if(!(d.rows||[]).length){addBlindOrderRow();addBlindOrderRow();}
  $("blindOrderPreview").classList.add("hidden");updateBlindBusinessInfo();showPage("blindOrder");window.scrollTo({top:0,behavior:"smooth"});
 }
-async function deleteBlindOrder(id){if(!confirm("Delete this saved Blinds Order?"))return;addDeletedRecordId("blindOrders",id);blindOrders=blindOrders.filter(x=>String(x.id)!==String(id));if(String(currentBlindOrderId)===String(id))currentBlindOrderId=null;renderBlindOrders();await persistDeleteAndNotify();}
+function deleteBlindOrder(id){if(!confirm("Delete this saved Blinds Order?"))return;blindOrders=blindOrders.filter(x=>String(x.id)!==String(id));if(String(currentBlindOrderId)===String(id))currentBlindOrderId=null;saveStorage();renderBlindOrders();}
 function renderBlindOrders(){
  const q=($("blindOrderSearch")?.value||"").toLowerCase();
 
@@ -1999,28 +1873,6 @@ if ("serviceWorker" in navigator) {
       .catch(error => console.error("Service Worker:", error));
   });
 }
-
-/* Optional Android/Chrome Contact Picker: fills customer name and phone only. */
-async function selectCustomerContact(nameFieldId, phoneFieldId){
- const nameField=$(nameFieldId), phoneField=$(phoneFieldId);
- if(!nameField||!phoneField)return;
- if(!('contacts' in navigator && 'ContactsManager' in window)){
-   alert("ഈ ബ്രൗസറിൽ Contact Picker ലഭ്യമല്ല. Android Chrome-ൽ HTTPS വഴി തുറന്ന് വീണ്ടും ശ്രമിക്കുക.");
-   return;
- }
- try{
-   const contacts=await navigator.contacts.select(['name','tel'],{multiple:false});
-   if(!contacts||!contacts.length)return;
-   const contact=contacts[0];
-   const names=Array.isArray(contact.name)?contact.name:[];
-   const tels=Array.isArray(contact.tel)?contact.tel:[];
-   if(names.length)nameField.value=names[0];
-   if(tels.length)phoneField.value=tels[0];
- }catch(error){
-   if(error&&error.name!=='AbortError')alert("Contact തിരഞ്ഞെടുക്കാൻ കഴിഞ്ഞില്ല. വീണ്ടും ശ്രമിക്കുക.");
- }
-}
-
 </script>
 <div id="pdfSheet" style="position:fixed;left:-10000px;top:0;width:794px;background:#fff;"></div>
 </body>
