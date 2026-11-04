@@ -1063,7 +1063,7 @@ function renderMeasurements(){
  $("measurementList").innerHTML=list.slice().reverse().map(m=>{
   const sqft=m.rows.reduce((a,r)=>a+Number(r.sqft||0),0);
   const rft=m.rows.reduce((a,r)=>a+Number(r.rft||0),0);
-  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(formatDateDMY(m.date))}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></p><div class="measurement-action-grid"><button class="btn-blue" onclick="viewMeasurement(${m.id})">View</button><button class="btn-green" onclick="editMeasurement(${m.id})">Edit</button><button class="btn-dark" onclick="downloadSavedMeasurementPDF(${m.id})">Share PDF</button><button class="btn-green" onclick="saveSavedMeasurementJPG(${m.id})">Save as JPG</button><button class="btn-blue" onclick="measurementToQuotationSaved(${m.id})">Create Quotation</button><button class="btn-green" onclick="measurementToInvoice(${m.id})">Create Invoice</button><button class="btn-blue" onclick="measurementToBlindOrder(${m.id})">Create Blind Order</button><button class="btn-dark" onclick="measurementToReceipt(${m.id})">Create Receipt</button><button class="btn-red" onclick="deleteMeasurement(${m.id})">Delete</button></div></div>`;
+  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(formatDateDMY(m.date))}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></p><div class="measurement-action-grid"><button class="btn-blue" onclick="viewMeasurement(${m.id})">View</button><button class="btn-green" onclick="editMeasurement(${m.id})">Edit</button><button class="btn-dark" onclick="downloadSavedMeasurementPDF(${m.id})">Share PDF</button><button class="btn-dark" onclick="printSavedMeasurementSheet(${m.id})">🖨️ Print A4</button><button class="btn-green" onclick="saveSavedMeasurementJPG(${m.id})">Save as JPG</button><button class="btn-blue" onclick="measurementToQuotationSaved(${m.id})">Create Quotation</button><button class="btn-green" onclick="measurementToInvoice(${m.id})">Create Invoice</button><button class="btn-blue" onclick="measurementToBlindOrder(${m.id})">Create Blind Order</button><button class="btn-dark" onclick="measurementToReceipt(${m.id})">Create Receipt</button><button class="btn-red" onclick="deleteMeasurement(${m.id})">Delete</button></div></div>`;
  }).join("")||'<div class="card empty">No saved measurements found.</div>';
 }
 function measurementSheetHTML(m){
@@ -1120,6 +1120,16 @@ function printMeasurementSheet(){
  const m=getMeasurementForm();
  if(!m.rows.length)return alert("Enter at least one valid width and height.");
  if(m.rows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
+ printMeasurementData(m);
+}
+function printSavedMeasurementSheet(id){
+ const m=measurements.find(x=>String(x.id)===String(id));
+ if(!m)return alert("Saved measurement not found.");
+ if(!m.rows||!m.rows.length)return alert("No measurement rows found.");
+ if(m.rows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
+ printMeasurementData(m);
+}
+function printMeasurementData(m){
  const printWindow=window.open("","_blank");
  if(!printWindow)return alert("Print window blocked. Please allow pop-ups and try again.");
  const html=measurementSheetHTML(m);
