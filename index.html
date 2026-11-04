@@ -1237,25 +1237,47 @@ async function saveMeasurementJPGToFolder(){
   capture.querySelectorAll(".measurement-room").forEach(el=>el.style.cssText="display:grid;grid-template-columns:105px minmax(0,1fr) 95px 85px;gap:8px;align-items:stretch;border-top:1.5px solid #647586;padding:5px 4px;");
   capture.querySelectorAll(".measurement-window-list").forEach(el=>el.style.cssText="display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-start;");
   capture.querySelectorAll(".measurement-window").forEach(el=>el.style.cssText="width:112px;min-height:120px;display:flex;flex-direction:column;align-items:flex-start;flex-shrink:0;");
-  document.body.appendChild(capture);await waitForImages(capture);
+  document.body.appendChild(capture);
+  await waitForImages(capture);
   const canvas=await html2canvas(capture,{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,windowWidth:1200,scrollX:0,scrollY:0});
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.95));
   if(!blob)throw new Error("JPG ഫയൽ തയ്യാറാക്കാൻ കഴിഞ്ഞില്ല.");
   const filename="Measurement-"+(($("mCustomer").value||"Customer").replace(/[^a-z0-9-_]/gi,"-"))+".jpg";
+
   if(window.showDirectoryPicker){
-   try{const dir=await window.showDirectoryPicker({mode:"readwrite"});const file=await dir.getFileHandle(filename,{create:true});const writable=await file.createWritable();await writable.write(blob);await writable.close();alert("തിരഞ്ഞെടുത്ത ഫോൾഡറിൽ JPG സേവ് ചെയ്തു.");return;}
-   catch(e){if(e.name==="AbortError")return;}
+   try{
+    const dir=await window.showDirectoryPicker({mode:"readwrite"});
+    const file=await dir.getFileHandle(filename,{create:true});
+    const writable=await file.createWritable();await writable.write(blob);await writable.close();
+    alert("തിരഞ്ഞെടുത്ത ഫോൾഡറിൽ JPG സേവ് ചെയ്തു.");return;
+   }catch(e){if(e.name==="AbortError")return;console.warn("Folder picker unavailable:",e);}
   }
   if(window.showSaveFilePicker){
-   try{const handle=await window.showSaveFilePicker({suggestedName:filename,types:[{description:"JPEG Image",accept:{"image/jpeg":[".jpg"]}}]});const writable=await handle.createWritable();await writable.write(blob);await writable.close();alert("JPG ഫയൽ സേവ് ചെയ്തു.");return;}
-   catch(e){if(e.name==="AbortError")return;}
+   try{
+    const handle=await window.showSaveFilePicker({suggestedName:filename,types:[{description:"JPEG Image",accept:{"image/jpeg":[".jpg"]}}]});
+    const writable=await handle.createWritable();await writable.write(blob);await writable.close();
+    alert("JPG ഫയൽ സേവ് ചെയ്തു.");return;
+   }catch(e){if(e.name==="AbortError")return;console.warn("Save picker unavailable:",e);}
   }
-  const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
-  alert("JPG ഡൗൺലോഡ് ചെയ്തു. ഫോൺ Files / Downloads തുറന്ന് നിങ്ങൾക്ക് വേണ്ട ഫോൾഡറിലേക്ക് മാറ്റാം.");
+  // Android Chrome generally lacks directory/file picker APIs. Use the native share sheet when file sharing is supported.
+  const imageFile=new File([blob],filename,{type:"image/jpeg"});
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[imageFile]})){
+   try{
+    await navigator.share({files:[imageFile],title:"Measurement Sheet JPG",text:"Measurement Sheet"});
+    return;
+   }catch(e){
+    if(e.name==="AbortError")return;
+    console.warn("Image sharing was not completed; falling back to download.",e);
+   }
+  }
+
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),10000);
+  alert("JPG ഡൗൺലോഡ് ചെയ്തു. Files / Downloads തുറന്ന് ആവശ്യമായ ഫോൾഡറിലേക്ക് മാറ്റാം.");
  }catch(e){alert("JPG Error: "+(e.message||e.name||"Unknown error"));}
  finally{if(capture?.parentNode)capture.remove();}
 }
-
 async function saveSavedMeasurementJPG(id){
  const m=measurements.find(x=>String(x.id)===String(id));if(!m)return alert("Saved measurement not found.");
  if(!window.html2canvas)return alert("JPG export library load ആയിട്ടില്ല. Internet പരിശോധിക്കുക.");
