@@ -1457,22 +1457,34 @@ async function restoreBackup(e){
  const file=e?.target?.files?.[0];
  if(!file){alert("Please select a backup file.");return;}
  try{
-  const d=JSON.parse(await file.text());
+  const raw=await file.text();
+  const d=JSON.parse(raw);
+  if(!d||typeof d!=="object")throw new Error("Invalid backup structure");
+  const backupData=d.data&&typeof d.data==="object"?d.data:d;
+  const requiredLists=["measurements","quotations","blindOrders","invoices","receipts"];
+  if(!requiredLists.some(k=>Array.isArray(backupData[k])))throw new Error("Backup lists not found");
   if(!confirm("Restore the records saved in this backup? Current records will be replaced."))return;
 
-  // Restore the exact snapshot from the selected backup. Do not apply old delete tombstones.
-  measurements=Array.isArray(d.measurements)?d.measurements:[];
-  quotations=Array.isArray(d.quotations)?d.quotations:[];
-  blindOrders=Array.isArray(d.blindOrders)?d.blindOrders:[];
-  invoices=Array.isArray(d.invoices)?d.invoices:[];
-  receipts=Array.isArray(d.receipts)?d.receipts:[];
-  settings=d.settings&&typeof d.settings==="object"?d.settings:{};
+  // Keep a frozen snapshot of the selected backup. Restore must not merge with current data.
+  const snapshot={
+   measurements:Array.isArray(backupData.measurements)?backupData.measurements:[],
+   quotations:Array.isArray(backupData.quotations)?backupData.quotations:[],
+   blindOrders:Array.isArray(backupData.blindOrders)?backupData.blindOrders:[],
+   invoices:Array.isArray(backupData.invoices)?backupData.invoices:[],
+   receipts:Array.isArray(backupData.receipts)?backupData.receipts:[],
+   settings:backupData.settings&&typeof backupData.settings==="object"?backupData.settings:{}
+  };
+  const cleanCloudSnapshot={...snapshot,deletedMeasurementIds:[],deletedRecordIds:{quotations:[],blindOrders:[],invoices:[],receipts:[]}};
 
-  // Clear this account's old deletion markers in local storage.
+  // First clear this signed-in user's tombstones, then write the exact backup locally.
   localStorage.setItem(deletedMeasurementsStorageKey(),"[]");
   localStorage.setItem(deletedRecordsStorageKey(),JSON.stringify({quotations:[],blindOrders:[],invoices:[],receipts:[]}));
-
-  // Save locally first, then explicitly replace this account's cloud snapshot without merging old tombstones.
+  measurements=snapshot.measurements;
+  quotations=snapshot.quotations;
+  blindOrders=snapshot.blindOrders;
+  invoices=snapshot.invoices;
+  receipts=snapshot.receipts;
+  settings=snapshot.settings;
   localStorage.setItem(dataStorageKey(),JSON.stringify({measurements,quotations,blindOrders,invoices,receipts}));
   localStorage.setItem(settingsStorageKey(),JSON.stringify(settings));
   loadSettings();
@@ -1483,22 +1495,33 @@ async function restoreBackup(e){
   if(typeof renderReceipts==="function")renderReceipts();
   updateHome();
 
+  // Replace the authenticated user's cloud row and verify that Postgres returned the row.
   if(sb&&authUser){
-   const cloudSnapshot={measurements,quotations,blindOrders,invoices,receipts,settings,deletedMeasurementIds:[],deletedRecordIds:{quotations:[],blindOrders:[],invoices:[],receipts:[]}};
    const {data:existing,error:findError}=await sb.from("customer_data").select("id").eq("user_id",authUser.id).maybeSingle();
    if(findError)throw findError;
-   let result;
+   let writeResult;
    if(existing){
-    result=await sb.from("customer_data").update({data:cloudSnapshot,updated_at:new Date().toISOString()}).eq("id",existing.id).eq("user_id",authUser.id);
+    writeResult=await sb.from("customer_data")
+      .update({data:cleanCloudSnapshot,updated_at:new Date().toISOString()})
+      .eq("id",existing.id).eq("user_id",authUser.id).select("id").maybeSingle();
    }else{
-    result=await sb.from("customer_data").insert({user_id:authUser.id,data:cloudSnapshot});
+    writeResult=await sb.from("customer_data")
+      .insert({user_id:authUser.id,data:cleanCloudSnapshot}).select("id").maybeSingle();
    }
-   if(result.error)throw result.error;
+   if(writeResult.error)throw writeResult.error;
+   if(!writeResult.data?.id)throw new Error("Cloud write did not return a row. Check the UPDATE/INSERT RLS policy.");
+
+   // Read back the cloud snapshot to verify the restore actually persisted.
+   const {data:verifyRow,error:verifyError}=await sb.from("customer_data").select("data").eq("user_id",authUser.id).maybeSingle();
+   if(verifyError)throw verifyError;
+   if(!verifyRow?.data)throw new Error("Cloud verification returned no data.");
+   const restoredCount=Array.isArray(verifyRow.data.measurements)?verifyRow.data.measurements.length:0;
+   if(restoredCount!==snapshot.measurements.length)throw new Error(`Cloud verification mismatch: expected ${snapshot.measurements.length} measurements, found ${restoredCount}.`);
   }
-  alert("Backup restored successfully. The saved backup records are now restored.");
+  alert(sb&&authUser?"Backup restored and verified in Cloud successfully.":"Backup restored on this device. Sign in to sync it to Cloud.");
  }catch(error){
   console.error("Backup restore failed:",error);
-  alert("Restore failed. Please check that the selected backup file is valid and try again.");
+  alert("Restore could not be verified: "+(error?.message||"Unknown error")+". Please check Console/Supabase and try again.");
  }finally{
   if(e?.target)e.target.value="";
  }
