@@ -263,7 +263,7 @@ td input,td select{min-width:80px;padding:8px}
   <button class="btn-green" onclick="saveMeasurement()">Save Measurement</button>
   <button class="btn-blue" onclick="previewMeasurementSheet()">Preview Measurement Sheet</button>
   <button class="btn-dark" onclick="downloadMeasurementPDF()">Download / Share PDF</button>
-  <button class="btn-blue" onclick="measurementToQuotation()">Create Quotation</button><button class="btn-blue" onclick="createBlindOrderFromCurrentMeasurement()">Create Blind Order</button><button class="btn-green" onclick="saveMeasurementJPG()">Save as JPG</button>
+  <button class="btn-blue" onclick="measurementToQuotation()">Create Quotation</button><button class="btn-blue" onclick="createBlindOrderFromCurrentMeasurement()">Create Blind Order</button><button class="btn-green" onclick="saveMeasurementJPG()">Save as JPG</button><button class="btn-blue" onclick="saveMeasurementJPGToFolder()">📁 Save JPG to Folder</button>
   <button class="btn-light" onclick="clearMeasurement()">Clear</button>
   <button class="btn-light" onclick="showPage('savedMeasurements')">View Saved Measurements</button>
   <div id="measurementPreview" class="preview hidden" style="margin-top:16px"></div>
@@ -1222,6 +1222,36 @@ async function saveMeasurementJPG(){
   const url=URL.createObjectURL(blob),a=document.createElement("a");
   a.href=url;a.download="Measurement-"+(($("mCustomer").value||"Customer").replace(/[^a-z0-9-_]/gi,"-"))+".jpg";
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
+ }catch(e){alert("JPG Error: "+(e.message||e.name||"Unknown error"));}
+ finally{if(capture?.parentNode)capture.remove();}
+}
+
+async function saveMeasurementJPGToFolder(){
+ const source=$("measurementPreview").querySelector(".measurement-print");
+ if(!source||$("measurementPreview").classList.contains("hidden"))return alert("ആദ്യം Preview Measurement Sheet തുറക്കുക.");
+ if(!window.html2canvas)return alert("JPG export library load ആയിട്ടില്ല. Internet പരിശോധിക്കുക.");
+ let capture=null;
+ try{
+  capture=source.cloneNode(true);
+  capture.style.cssText="position:fixed;left:-100000px;top:0;width:1100px;max-width:none;height:auto;overflow:visible;background:#fff;padding:24px;z-index:-1;";
+  capture.querySelectorAll(".measurement-room").forEach(el=>el.style.cssText="display:grid;grid-template-columns:105px minmax(0,1fr) 95px 85px;gap:8px;align-items:stretch;border-top:1.5px solid #647586;padding:5px 4px;");
+  capture.querySelectorAll(".measurement-window-list").forEach(el=>el.style.cssText="display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-start;");
+  capture.querySelectorAll(".measurement-window").forEach(el=>el.style.cssText="width:112px;min-height:120px;display:flex;flex-direction:column;align-items:flex-start;flex-shrink:0;");
+  document.body.appendChild(capture);await waitForImages(capture);
+  const canvas=await html2canvas(capture,{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,windowWidth:1200,scrollX:0,scrollY:0});
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.95));
+  if(!blob)throw new Error("JPG ഫയൽ തയ്യാറാക്കാൻ കഴിഞ്ഞില്ല.");
+  const filename="Measurement-"+(($("mCustomer").value||"Customer").replace(/[^a-z0-9-_]/gi,"-"))+".jpg";
+  if(window.showDirectoryPicker){
+   try{const dir=await window.showDirectoryPicker({mode:"readwrite"});const file=await dir.getFileHandle(filename,{create:true});const writable=await file.createWritable();await writable.write(blob);await writable.close();alert("തിരഞ്ഞെടുത്ത ഫോൾഡറിൽ JPG സേവ് ചെയ്തു.");return;}
+   catch(e){if(e.name==="AbortError")return;}
+  }
+  if(window.showSaveFilePicker){
+   try{const handle=await window.showSaveFilePicker({suggestedName:filename,types:[{description:"JPEG Image",accept:{"image/jpeg":[".jpg"]}}]});const writable=await handle.createWritable();await writable.write(blob);await writable.close();alert("JPG ഫയൽ സേവ് ചെയ്തു.");return;}
+   catch(e){if(e.name==="AbortError")return;}
+  }
+  const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
+  alert("JPG ഡൗൺലോഡ് ചെയ്തു. ഫോൺ Files / Downloads തുറന്ന് നിങ്ങൾക്ക് വേണ്ട ഫോൾഡറിലേക്ക് മാറ്റാം.");
  }catch(e){alert("JPG Error: "+(e.message||e.name||"Unknown error"));}
  finally{if(capture?.parentNode)capture.remove();}
 }
