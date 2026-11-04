@@ -180,6 +180,12 @@ td input,td select{min-width:80px;padding:8px}
  .measurement-window-list{gap:12px}
 }
 @media print{.measurement-print{padding:0}}
+/* A4 proportional preview on screen; print/export use A4 dimensions */
+#measurementPreview{background:#eef2f5;padding:10px;overflow:auto}
+#measurementPreview .measurement-print{box-sizing:border-box;width:100%;max-width:100%;min-height:calc(100vw * 297 / 210);margin:0 auto;padding:clamp(8px,2.5vw,22px);background:#fff;box-shadow:0 2px 10px #0002;}
+@media(min-width:700px){#measurementPreview .measurement-print{max-width:210mm;min-height:297mm;padding:12mm}}
+@media print{ @page{size:A4 portrait;margin:8mm} #measurementPreview{padding:0;background:#fff} #measurementPreview .measurement-print{width:194mm;max-width:194mm;min-height:281mm;box-shadow:none;margin:0;padding:0} }
+
 </style>
  <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#24445c">
@@ -262,8 +268,9 @@ td input,td select{min-width:80px;padding:8px}
   </div>
   <button class="btn-green" onclick="saveMeasurement()">Save Measurement</button>
   <button class="btn-blue" onclick="previewMeasurementSheet()">Preview Measurement Sheet</button>
+  <button class="btn-dark" onclick="printMeasurementSheet()">🖨️ Print A4</button>
   <button class="btn-dark" onclick="downloadMeasurementPDF()">Download / Share PDF</button>
-  <button class="btn-blue" onclick="measurementToQuotation()">Create Quotation</button><button class="btn-blue" onclick="createBlindOrderFromCurrentMeasurement()">Create Blind Order</button><button class="btn-green" onclick="saveMeasurementJPG()">Save as JPG</button><button class="btn-blue" onclick="saveMeasurementJPGToFolder()">📁 Save JPG to Folder</button>
+  <button class="btn-blue" onclick="measurementToQuotation()">Create Quotation</button><button class="btn-blue" onclick="createBlindOrderFromCurrentMeasurement()">Create Blind Order</button><button class="btn-green" onclick="saveMeasurementJPG()">Save as JPG</button>
   <button class="btn-light" onclick="clearMeasurement()">Clear</button>
   <button class="btn-light" onclick="showPage('savedMeasurements')">View Saved Measurements</button>
   <div id="measurementPreview" class="preview hidden" style="margin-top:16px"></div>
@@ -1109,6 +1116,27 @@ function previewMeasurementSheet(){
  const el=$("measurementPreview");el.innerHTML=measurementSheetHTML(m);el.classList.remove("hidden");
  el.scrollIntoView({behavior:"smooth",block:"start"});
 }
+function printMeasurementSheet(){
+ const m=getMeasurementForm();
+ if(!m.rows.length)return alert("Enter at least one valid width and height.");
+ if(m.rows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
+ const printWindow=window.open("","_blank");
+ if(!printWindow)return alert("Print window blocked. Please allow pop-ups and try again.");
+ const html=measurementSheetHTML(m);
+ printWindow.document.open();
+ printWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Measurement Sheet</title><style>
+ @page{size:A4 portrait;margin:8mm}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#203040;font-family:Arial,sans-serif}
+ .measurement-print{width:194mm;min-height:281mm;margin:0;padding:0;background:#fff;max-width:none;font-family:Arial,sans-serif}
+ .measurement-print-head{text-align:center;border-bottom:2px solid #24445c;padding-bottom:10px;margin-bottom:12px}
+ .measurement-print-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin:10px 0 14px}
+ .measurement-room{display:grid;grid-template-columns:105px minmax(0,1fr) 95px 85px;gap:8px;align-items:stretch;border-top:1.5px solid #647586;padding:5px 4px}
+ .measurement-window-list{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-start}
+ .measurement-window{width:112px;min-height:120px;display:flex;flex-direction:column;align-items:flex-start;flex-shrink:0}
+ </style></head><body>${html}</body></html>`);
+ printWindow.document.close();
+ setTimeout(()=>{try{printWindow.focus();printWindow.print();}catch(e){}},700);
+}
+
 async function createMeasurementPDF(m){
  if(!m.rows||!m.rows.length)return alert("Enter at least one measurement.");
  if(!window.jspdf||!window.html2canvas)return alert("PDF libraries did not load. Check your internet connection.");
@@ -1210,13 +1238,13 @@ async function saveMeasurementJPG(){
  let capture=null;
  try{
   capture=source.cloneNode(true);
-  capture.style.cssText="position:fixed;left:-100000px;top:0;width:1100px;max-width:none;height:auto;overflow:visible;background:#fff;padding:24px;z-index:-1;";
+  capture.style.cssText="position:fixed;left:-100000px;top:0;width:794px;max-width:none;height:auto;overflow:visible;background:#fff;padding:0;z-index:-1;";
   capture.querySelectorAll(".measurement-room").forEach(el=>el.style.cssText="display:grid;grid-template-columns:105px minmax(0,1fr) 95px 85px;gap:8px;align-items:stretch;border-top:1.5px solid #647586;padding:5px 4px;");
   capture.querySelectorAll(".measurement-window-list").forEach(el=>el.style.cssText="display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-start;");
   capture.querySelectorAll(".measurement-window").forEach(el=>el.style.cssText="width:112px;min-height:120px;display:flex;flex-direction:column;align-items:flex-start;flex-shrink:0;");
   document.body.appendChild(capture);
   await waitForImages(capture);
-  const canvas=await html2canvas(capture,{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,windowWidth:1200,scrollX:0,scrollY:0});
+  const canvas=await html2canvas(capture,{scale:3.125,useCORS:true,backgroundColor:"#ffffff",logging:false,windowWidth:794,windowHeight:1123,scrollX:0,scrollY:0});
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.95));
   if(!blob)throw new Error("JPG ഫയൽ തയ്യാറാക്കാൻ കഴിഞ്ഞില്ല.");
   const url=URL.createObjectURL(blob),a=document.createElement("a");
@@ -1226,68 +1254,16 @@ async function saveMeasurementJPG(){
  finally{if(capture?.parentNode)capture.remove();}
 }
 
-async function saveMeasurementJPGToFolder(){
- const source=$("measurementPreview").querySelector(".measurement-print");
- if(!source||$("measurementPreview").classList.contains("hidden"))return alert("ആദ്യം Preview Measurement Sheet തുറക്കുക.");
- if(!window.html2canvas)return alert("JPG export library load ആയിട്ടില്ല. Internet പരിശോധിക്കുക.");
- let capture=null;
- try{
-  capture=source.cloneNode(true);
-  capture.style.cssText="position:fixed;left:-100000px;top:0;width:1100px;max-width:none;height:auto;overflow:visible;background:#fff;padding:24px;z-index:-1;";
-  capture.querySelectorAll(".measurement-room").forEach(el=>el.style.cssText="display:grid;grid-template-columns:105px minmax(0,1fr) 95px 85px;gap:8px;align-items:stretch;border-top:1.5px solid #647586;padding:5px 4px;");
-  capture.querySelectorAll(".measurement-window-list").forEach(el=>el.style.cssText="display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-start;");
-  capture.querySelectorAll(".measurement-window").forEach(el=>el.style.cssText="width:112px;min-height:120px;display:flex;flex-direction:column;align-items:flex-start;flex-shrink:0;");
-  document.body.appendChild(capture);
-  await waitForImages(capture);
-  const canvas=await html2canvas(capture,{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,windowWidth:1200,scrollX:0,scrollY:0});
-  const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.95));
-  if(!blob)throw new Error("JPG ഫയൽ തയ്യാറാക്കാൻ കഴിഞ്ഞില്ല.");
-  const filename="Measurement-"+(($("mCustomer").value||"Customer").replace(/[^a-z0-9-_]/gi,"-"))+".jpg";
-
-  if(window.showDirectoryPicker){
-   try{
-    const dir=await window.showDirectoryPicker({mode:"readwrite"});
-    const file=await dir.getFileHandle(filename,{create:true});
-    const writable=await file.createWritable();await writable.write(blob);await writable.close();
-    alert("തിരഞ്ഞെടുത്ത ഫോൾഡറിൽ JPG സേവ് ചെയ്തു.");return;
-   }catch(e){if(e.name==="AbortError")return;console.warn("Folder picker unavailable:",e);}
-  }
-  if(window.showSaveFilePicker){
-   try{
-    const handle=await window.showSaveFilePicker({suggestedName:filename,types:[{description:"JPEG Image",accept:{"image/jpeg":[".jpg"]}}]});
-    const writable=await handle.createWritable();await writable.write(blob);await writable.close();
-    alert("JPG ഫയൽ സേവ് ചെയ്തു.");return;
-   }catch(e){if(e.name==="AbortError")return;console.warn("Save picker unavailable:",e);}
-  }
-  // Android Chrome generally lacks directory/file picker APIs. Use the native share sheet when file sharing is supported.
-  const imageFile=new File([blob],filename,{type:"image/jpeg"});
-  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[imageFile]})){
-   try{
-    await navigator.share({files:[imageFile],title:"Measurement Sheet JPG",text:"Measurement Sheet"});
-    return;
-   }catch(e){
-    if(e.name==="AbortError")return;
-    console.warn("Image sharing was not completed; falling back to download.",e);
-   }
-  }
-
-  const url=URL.createObjectURL(blob),a=document.createElement("a");
-  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),10000);
-  alert("JPG ഡൗൺലോഡ് ചെയ്തു. Files / Downloads തുറന്ന് ആവശ്യമായ ഫോൾഡറിലേക്ക് മാറ്റാം.");
- }catch(e){alert("JPG Error: "+(e.message||e.name||"Unknown error"));}
- finally{if(capture?.parentNode)capture.remove();}
-}
 async function saveSavedMeasurementJPG(id){
  const m=measurements.find(x=>String(x.id)===String(id));if(!m)return alert("Saved measurement not found.");
  if(!window.html2canvas)return alert("JPG export library load ആയിട്ടില്ല. Internet പരിശോധിക്കുക.");
  let capture=null;
  try{
   capture=document.createElement("div");capture.innerHTML=measurementSheetHTML(m);
-  capture.style.cssText="position:fixed;left:-100000px;top:0;width:1100px;max-width:none;height:auto;overflow:visible;background:#fff;padding:24px;z-index:-1;";
-  const sheet=capture.querySelector(".measurement-print");if(sheet){sheet.style.width="1050px";sheet.style.maxWidth="none";sheet.style.background="#fff";}
+  capture.style.cssText="position:fixed;left:-100000px;top:0;width:794px;max-width:none;height:auto;overflow:visible;background:#fff;padding:0;z-index:-1;";
+  const sheet=capture.querySelector(".measurement-print");if(sheet){sheet.style.width="794px";sheet.style.maxWidth="none";sheet.style.minHeight="1123px";sheet.style.background="#fff";}
   document.body.appendChild(capture);await waitForImages(capture);
-  const canvas=await html2canvas(capture,{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,windowWidth:1200,scrollX:0,scrollY:0});
+  const canvas=await html2canvas(capture,{scale:3.125,useCORS:true,backgroundColor:"#ffffff",logging:false,windowWidth:794,windowHeight:1123,scrollX:0,scrollY:0});
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.95));if(!blob)throw new Error("JPG export failed");
   const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="Measurement-"+((m.customer||"Customer").replace(/[^a-z0-9-_]/gi,"-"))+".jpg";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
  }catch(e){alert("JPG Error: "+(e.message||e.name||"Unknown error"));}finally{if(capture?.parentNode)capture.remove();}
