@@ -451,7 +451,7 @@ td input,td select{min-width:80px;padding:8px}
   </div>
   <div class="field" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
    <h3>Product Price List</h3>
-   <p class="small">ഇവിടെ ചേർക്കുന്ന വില പുതിയ Quotations-ൽ മാത്രം സ്വയം വരും. പഴയ Quotations മാറില്ല.</p>
+   <div class="item-card" style="display:flex;flex-wrap:wrap;gap:16px;align-items:center"><label><input type="checkbox" id="priceAutoMeasurement" onchange="savePriceAutoOptions()"> Measurement Sheet ON</label><label><input type="checkbox" id="priceAutoQuotation" onchange="savePriceAutoOptions()"> Quotation ON</label><label><input type="checkbox" id="priceAutoInvoice" onchange="savePriceAutoOptions()"> Invoice ON</label></div>
    <div id="priceListRows"></div>
    <div style="display:flex;justify-content:flex-end;margin-top:10px">
     <button type="button" class="btn-blue" onclick="addPriceListRow()">＋ Add Row</button>
@@ -821,9 +821,13 @@ function loadSettings(){
  loadPriceListRows();
 }
 function saveSettings(){
- settings={...settings,name:$("sName").value.trim(),phone:$("sPhone").value.trim(),whatsapp:$("sWhatsapp").value.trim(),email:$("sEmail").value.trim(),gst:$("sGST").value.trim(),validity:$("sValidity").value.trim(),address:$("sAddress").value.trim(),logo:settings.logo||"",signature:settings.signature||"",productPriceList:Array.isArray(settings.productPriceList)?settings.productPriceList:[]};
+ settings={...settings,name:$("sName").value.trim(),phone:$("sPhone").value.trim(),whatsapp:$("sWhatsapp").value.trim(),email:$("sEmail").value.trim(),gst:$("sGST").value.trim(),validity:$("sValidity").value.trim(),address:$("sAddress").value.trim(),logo:settings.logo||"",signature:settings.signature||"",productPriceList:Array.isArray(settings.productPriceList)?settings.productPriceList:[],priceAutoOptions:settings.priceAutoOptions||{measurement:false,quotation:true,invoice:true}};
  saveStorage();alert("Business settings saved.");
 }
+function getPriceAutoOptions(){return settings.priceAutoOptions||{measurement:false,quotation:true,invoice:true};}
+function savePriceAutoOptions(){settings.priceAutoOptions={measurement:$("priceAutoMeasurement").checked,quotation:$("priceAutoQuotation").checked,invoice:$("priceAutoInvoice").checked};saveStorage();}
+function loadPriceAutoOptions(){const o=getPriceAutoOptions();[ ["priceAutoMeasurement","measurement"],["priceAutoQuotation","quotation"],["priceAutoInvoice","invoice"] ].forEach(([id,k])=>{const el=$(id);if(el)el.checked=!!o[k];});}
+function priceListEnabled(where){return !!getPriceAutoOptions()[where];}
 function priceListNormalized(item){
  const name=String(item?.name||"");
  const known=types.includes(name);
@@ -850,6 +854,7 @@ function addPriceListRow(item={}){
  host.appendChild(div);
 }
 function loadPriceListRows(){
+ loadPriceAutoOptions();
  const host=$("priceListRows");if(!host)return;host.innerHTML="";
  const list=Array.isArray(settings.productPriceList)?settings.productPriceList:[];
  if(list.length)list.forEach(item=>addPriceListRow(item));else addPriceListRow();
@@ -878,7 +883,8 @@ function deletePriceListSavedItem(id){
  settings.productPriceList=settings.productPriceList.filter(x=>String(x.id)!==String(id));
  saveStorage();renderPriceList();loadPriceListRows();
 }
-function applyPriceFromList(itemName){
+function applyPriceFromList(itemName,where="quotation"){
+ if(!priceListEnabled(where))return null;
  const name=String(itemName||"").trim().toLowerCase();if(!name)return null;
  const match=(Array.isArray(settings.productPriceList)?settings.productPriceList:[]).find(x=>String(x.name||"").trim().toLowerCase()===name);
  return match?Number(match.rate):null;
@@ -975,7 +981,7 @@ function addMeasurementRow(data){
   <td data-label="Shade No."><input class="mShade" placeholder="Optional"></td>
   <td class="mUnitCell" data-label="Unit">Sq.Ft</td>
   <td data-label="Qty"><input class="mQty" type="number" min="1" value="1"></td>
-  <td class="mAreaCell" data-label="Value"><div class="mAreaValue">0.00</div><div class="mFabricCalc" style="font-size:12px;line-height:1.35;font-weight:700;color:#17613a;margin-top:4px"></div></td>
+  <td class="mAreaCell" data-label="Value"><div class="mAreaValue">0.00</div><div class="mPriceCalc" style="font-size:12px;margin-top:4px"><label>Rate (₹) <input class="mRate" type="number" min="0" step=".01" style="width:90px;padding:4px" value=""></label></div><div class="mFabricCalc" style="font-size:12px;line-height:1.35;font-weight:700;color:#17613a;margin-top:4px"></div></td>
   <td data-label="Delete"><button class="btn-red" type="button" style="padding:5px 9px;font-size:12px;margin:0">Delete</button></td>`;
  $("measurementBody").appendChild(tr);
  const typeSelect=tr.querySelector(".mType");
@@ -987,9 +993,10 @@ function addMeasurementRow(data){
   customUnit.style.display=other?"block":"none";
   recalculateMeasurements();
  }
- typeSelect.onchange=updateCustom;
- customUnit.onchange=recalculateMeasurements;
- tr.querySelectorAll("input").forEach(i=>i.oninput=recalculateMeasurements);
+ typeSelect.onchange=()=>{updateCustom();updateMeasurementRate(tr);};
+ customUnit.onchange=()=>{recalculateMeasurements();updateMeasurementRate(tr);};
+ customInput.oninput=()=>updateMeasurementRate(tr);
+ tr.querySelectorAll("input").forEach(i=>i.oninput=()=>{recalculateMeasurements();if(i.classList.contains("mRate"))return;updateMeasurementRate(tr);});
  tr.querySelector("button").onclick=()=>{tr.remove();recalculateMeasurements();};
  if(data){
   tr.querySelector(".mArea").value=data.area||"";
@@ -1000,9 +1007,12 @@ function addMeasurementRow(data){
   tr.querySelector(".mWidth").value=data.width??"";
   tr.querySelector(".mQty").value=data.qty||1;
   tr.querySelector(".mShade").value=data.shade||"";
+  tr.querySelector(".mRate").value=data.rate??"";
  }
- updateCustom();
+ updateCustom();updateMeasurementRate(tr);
 }
+function measurementRowProductName(tr){const type=tr.querySelector(".mType").value;return type==="Other"?tr.querySelector(".mCustomType").value.trim():type;}
+function updateMeasurementRate(tr){const input=tr.querySelector(".mRate");if(!input||!priceListEnabled("measurement"))return;const found=applyPriceFromList(measurementRowProductName(tr),"measurement");if(found!==null)input.value=String(found);}
 function renumberRows(){document.querySelectorAll("#measurementBody tr").forEach((r,i)=>r.querySelector(".rowNo").textContent=i+1);}
 function getRowCalc(h,w,unit,type,qty,rate,customUnit){
  const rft=isRFT(type,customUnit);
@@ -1053,7 +1063,7 @@ function getMeasurementForm(){
   const type=tr.querySelector(".mType").value;
   const customType=tr.querySelector(".mCustomType").value.trim();
   const customUnit=tr.querySelector(".mCustomUnit").value;
-  const qty=Math.max(1,Number(tr.querySelector(".mQty").value)||1),rate=0;
+  const qty=Math.max(1,Number(tr.querySelector(".mQty").value)||1),rate=Number(tr.querySelector(".mRate").value)||0;
   const c=getRowCalc(h,w,$("mUnit").value,type,qty,rate,customUnit);
   const fabric=clothMeters({type,height:h,width:w,qty},$("mUnit").value);
   rows.push({area:tr.querySelector(".mArea").value.trim(),type,customType,customUnit,shade:tr.querySelector(".mShade").value.trim(),height:h,width:w,qty,rate,unit:c.unit,areaValue:c.area,amount:c.amount,sqft:c.sqft,rft:c.rft,curtainMeters:fabric.curtain,sheerMeters:fabric.sheer,curtainPanels:fabric.mainPanels,sheerPanels:fabric.sheerPanels});
@@ -1381,14 +1391,14 @@ function renderQuotationItems(){
    const update=()=>{quotationItems[i][el.dataset.k]=el.value;calculateQuotation();};
    el.oninput=()=>{
     if(el.dataset.k==="name"){
-     const autoRate=applyPriceFromList(el.value);
+     const autoRate=applyPriceFromList(el.value,"quotation");
      if(autoRate!==null){quotationItems[i].rate=String(autoRate);const rateInput=d.querySelector('[data-k="rate"]');if(rateInput)rateInput.value=String(autoRate);}
     }
     update();
    };
    el.onchange=()=>{
     if(el.dataset.k==="name"){
-     const autoRate=applyPriceFromList(el.value);
+     const autoRate=applyPriceFromList(el.value,"quotation");
      if(autoRate!==null){quotationItems[i].rate=String(autoRate);const rateInput=d.querySelector('[data-k="rate"]');if(rateInput)rateInput.value=String(autoRate);}
     }
     update();
@@ -1670,7 +1680,7 @@ function renderInvoiceItems(){
  invoiceItems.forEach((it,i)=>{
   const d=document.createElement("div");d.className="item-card";
   d.innerHTML=`<div class="grid"><div class="field"><label>Item / Description</label><input data-k="name" list="invoicePriceListOptions" value="${esc(it.name)}"><datalist id="invoicePriceListOptions">${(settings.productPriceList||[]).map(p=>`<option value="${esc(p.name)}"></option>`).join("")}</datalist></div><div class="field"><label>Quantity</label><input data-k="qty" type="number" min="0" step=".01" value="${it.qty??''}"></div><div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div><div class="field"><label>Rate (₹)</label><input data-k="rate" type="number" min="0" step=".01" value="${it.rate??''}"></div></div><p>Amount: <b>₹${money(it.qty*it.rate)}</b></p><button class="btn-red" type="button">Delete Item</button>`;
-  d.querySelectorAll("[data-k]").forEach(el=>{const update=()=>{const k=el.dataset.k;invoiceItems[i][k]=el.value;calculateInvoice();};el.oninput=()=>{if(el.dataset.k==="name"){const autoRate=applyPriceFromList(el.value);if(autoRate!==null){invoiceItems[i].rate=String(autoRate);const rateInput=d.querySelector('[data-k="rate"]');if(rateInput)rateInput.value=String(autoRate);}}update();};el.onchange=el.oninput;});
+  d.querySelectorAll("[data-k]").forEach(el=>{const update=()=>{const k=el.dataset.k;invoiceItems[i][k]=el.value;calculateInvoice();};el.oninput=()=>{if(el.dataset.k==="name"){const autoRate=applyPriceFromList(el.value,"invoice");if(autoRate!==null){invoiceItems[i].rate=String(autoRate);const rateInput=d.querySelector('[data-k="rate"]');if(rateInput)rateInput.value=String(autoRate);}}update();};el.onchange=el.oninput;});
   d.querySelector("button").onclick=()=>{invoiceItems.splice(i,1);renderInvoiceItems();};
   $("invoiceItems").appendChild(d);
  });calculateInvoice();
