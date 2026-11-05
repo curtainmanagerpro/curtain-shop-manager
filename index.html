@@ -431,6 +431,7 @@ td input,td select{min-width:80px;padding:8px}
   </div>
   <div class="field" style="margin-top:12px"><label>Business Address</label><textarea id="sAddress"></textarea></div>
   <div class="field" style="margin-top:12px"><label>Business Logo</label><input id="sLogo" type="file" accept="image/*" onchange="loadLogo(event)"><img id="logoPreview" class="logo"></div>
+  <button class="btn-green" onclick="saveSettings()">Save Settings</button>
   <div class="field" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
    <label>Owner Signature / ഒപ്പ്</label>
    <p class="small">ഒപ്പിന്റെ ചിത്രം ചേർക്കുക, അല്ലെങ്കിൽ താഴെയുള്ള സ്ഥലത്ത് വിരൽ കൊണ്ട് ഒപ്പിടുക. സൂക്ഷിച്ച ഒപ്പ് ഈ അക്കൗണ്ടിന്റെ രസീതുകളിൽ മാത്രം വരും.</p>
@@ -449,19 +450,19 @@ td input,td select{min-width:80px;padding:8px}
   <div class="field" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
    <h3>Product Price List</h3>
    <p class="small">ഇവിടെ ചേർക്കുന്ന വില പുതിയ Quotations-ൽ മാത്രം സ്വയം വരും. പഴയ Quotations മാറില്ല.</p>
-   <div class="grid">
-    <div class="field"><label>Item Name</label><input id="priceItemName" placeholder="ഉദാ: Zebra Blinds"></div>
-    <div class="field"><label>Rate (₹)</label><input id="priceItemRate" type="number" min="0" step="0.01" placeholder="ഉദാ: 120"></div>
+   <div id="priceListRows"></div>
+   <div style="display:flex;justify-content:flex-end;margin-top:10px">
+    <button type="button" class="btn-blue" onclick="addPriceListRow()">＋ Add Row</button>
    </div>
-   <button type="button" class="btn-blue" onclick="addOrUpdatePriceItem()" id="priceItemSaveBtn">＋ Add Price</button>
-   <button type="button" class="btn-light hidden" onclick="cancelPriceItemEdit()" id="priceItemCancelBtn">Cancel Edit</button>
+   <button type="button" class="btn-green" onclick="saveProductPriceList()">Save Product Price List</button>
    <div id="priceListItems" style="margin-top:12px"></div>
-  </div>
-  <button class="btn-green" onclick="saveSettings()">Save Settings</button>
   <button class="btn-light" onclick="downloadBackup()">Download Backup</button>
   <button class="btn-light" onclick="document.getElementById('restoreFile').click()">Restore Backup</button>
   <input id="restoreFile" class="hidden" type="file" accept="application/json" onchange="restoreBackup(event)">
   <button class="btn-dark" onclick="signOut()">Sign Out</button>
+  </div>
+Save Settings</button>
+
  </div>
 </section>
 
@@ -817,47 +818,65 @@ function loadSettings(){
  $("logoPreview").src=settings.logo||"";
  updateSignaturePreview();
  clearSignatureCanvas();
- renderPriceList();
+ loadPriceListRows();
 }
 function saveSettings(){
  settings={...settings,name:$("sName").value.trim(),phone:$("sPhone").value.trim(),whatsapp:$("sWhatsapp").value.trim(),email:$("sEmail").value.trim(),gst:$("sGST").value.trim(),validity:$("sValidity").value.trim(),address:$("sAddress").value.trim(),logo:settings.logo||"",signature:settings.signature||"",productPriceList:Array.isArray(settings.productPriceList)?settings.productPriceList:[]};
  saveStorage();alert("Business settings saved.");
 }
-let editingPriceItemId=null;
+function priceListNormalized(item){
+ const name=String(item?.name||"");
+ const known=types.includes(name);
+ return {id:String(item?.id||newId()),type:known?name:"Other",customType:known?"":name,rate:item?.rate??"",customUnit:item?.customUnit||"Sq.Ft"};
+}
 function renderPriceList(){
  const host=$("priceListItems");if(!host)return;
  const list=Array.isArray(settings.productPriceList)?settings.productPriceList:[];
  if(!list.length){host.innerHTML='<div class="empty">Price List ഇതുവരെ ചേർത്തിട്ടില്ല.</div>';return;}
- host.innerHTML=list.map(item=>`<div class="item-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><b>${esc(item.name)}</b><div class="small">Rate: ₹${money(item.rate)}</div></div><div style="display:flex;gap:5px;flex-wrap:wrap"><button type="button" class="btn-blue" onclick="editPriceItem('${String(item.id)}')">Edit</button><button type="button" class="btn-red" onclick="deletePriceItem('${String(item.id)}')">Delete</button></div></div></div>`).join("");
+ host.innerHTML=list.map(item=>`<div class="item-card"><b>${esc(item.name)}</b><div class="small">Rate: ₹${money(item.rate)}</div><button type="button" class="btn-red" onclick="deletePriceListSavedItem('${String(item.id)}')">Delete</button></div>`).join("");
 }
-function addOrUpdatePriceItem(){
- const name=$("priceItemName").value.trim(),rateText=$("priceItemRate").value;
- if(!name){alert("Item Name നൽകുക.");return;}
- if(rateText===""||!Number.isFinite(Number(rateText))||Number(rateText)<0){alert("ശരിയായ Rate നൽകുക.");return;}
- if(!Array.isArray(settings.productPriceList))settings.productPriceList=[];
- const duplicate=settings.productPriceList.find(x=>x.name.trim().toLowerCase()===name.toLowerCase()&&String(x.id)!==String(editingPriceItemId));
- if(duplicate){alert("ഈ Item Name ഇതിനകം Price List-ൽ ഉണ്ട്. അതിനെ Edit ചെയ്യുക.");return;}
- const rate=Number(rateText);
- if(editingPriceItemId){const idx=settings.productPriceList.findIndex(x=>String(x.id)===String(editingPriceItemId));if(idx>=0)settings.productPriceList[idx]={...settings.productPriceList[idx],name,rate};}
- else settings.productPriceList.push({id:String(newId()),name,rate});
- settings.productPriceList.sort((a,b)=>a.name.localeCompare(b.name));
- saveStorage();cancelPriceItemEdit();renderPriceList();alert("Price List Save ചെയ്തു.");
+function addPriceListRow(item={}){
+ const row=priceListNormalized(item),host=$("priceListRows");
+ const div=document.createElement("div");div.className="item-card price-list-row";
+ div.innerHTML=`<div class="grid">
+  <div class="field"><label>Product Name</label><select class="plType">${types.map(t=>`<option value="${esc(t)}" ${row.type===t?"selected":""}>${esc(t)}</option>`).join("")}</select><input class="plCustom" placeholder="Other product name" style="display:none;margin-top:6px" value="${esc(row.customType)}"></div>
+  <div class="field"><label>Rate (₹)</label><input class="plRate" type="number" min="0" step=".01" value="${esc(row.rate)}" placeholder="Rate"></div>
+ </div><button type="button" class="btn-red plDelete">Delete Row</button>`;
+ const type=div.querySelector(".plType"),custom=div.querySelector(".plCustom");
+ const update=()=>{custom.style.display=type.value==="Other"?"block":"none";};
+ type.onchange=update;update();
+ div.querySelector(".plDelete").onclick=()=>div.remove();
+ div.dataset.id=row.id;
+ host.appendChild(div);
 }
-function editPriceItem(id){
- const item=(settings.productPriceList||[]).find(x=>String(x.id)===String(id));if(!item)return;
- editingPriceItemId=String(id);$("priceItemName").value=item.name;$("priceItemRate").value=item.rate;
- $("priceItemSaveBtn").textContent="Save Changes";$("priceItemCancelBtn").classList.remove("hidden");$("priceItemName").focus();
+function loadPriceListRows(){
+ const host=$("priceListRows");if(!host)return;host.innerHTML="";
+ const list=Array.isArray(settings.productPriceList)?settings.productPriceList:[];
+ if(list.length)list.forEach(item=>addPriceListRow(item));else addPriceListRow();
+ renderPriceList();
 }
-function cancelPriceItemEdit(){
- editingPriceItemId=null;$("priceItemName").value="";$("priceItemRate").value="";
- if($("priceItemSaveBtn"))$("priceItemSaveBtn").textContent="＋ Add Price";
- if($("priceItemCancelBtn"))$("priceItemCancelBtn").classList.add("hidden");
+function saveProductPriceList(){
+ const rows=[...document.querySelectorAll("#priceListRows .price-list-row")];
+ const next=[];
+ for(const row of rows){
+  const type=row.querySelector(".plType").value;
+  const custom=row.querySelector(".plCustom").value.trim();
+  const name=type==="Other"?custom:type;
+  const rateText=row.querySelector(".plRate").value;
+  if(!name && rateText==="")continue;
+  if(!name){alert("Product Name തിരഞ്ഞെടുക്കുക അല്ലെങ്കിൽ Other-ൽ പേര് നൽകുക.");return;}
+  if(rateText===""||!Number.isFinite(Number(rateText))||Number(rateText)<0){alert("“"+name+"” എന്നതിന് ശരിയായ Rate നൽകുക.");return;}
+  if(next.some(x=>x.name.toLowerCase()===name.toLowerCase())){alert("ഒരേ Product Name ഒന്നിലധികം തവണ ചേർത്തിട്ടുണ്ട്: "+name);return;}
+  next.push({id:String(row.dataset.id||newId()),name,rate:Number(rateText),type,customType:custom,customUnit:"Sq.Ft"});
+ }
+ settings.productPriceList=next.sort((a,b)=>a.name.localeCompare(b.name));
+ saveStorage();renderPriceList();alert("Product Price List സേവ് ചെയ്തു.");
 }
-function deletePriceItem(id){
+function deletePriceListSavedItem(id){
  const item=(settings.productPriceList||[]).find(x=>String(x.id)===String(id));if(!item)return;
  if(!confirm(`“${item.name}” Price List-ൽ നിന്ന് Delete ചെയ്യണോ?`))return;
  settings.productPriceList=settings.productPriceList.filter(x=>String(x.id)!==String(id));
- if(String(editingPriceItemId)===String(id))cancelPriceItemEdit();saveStorage();renderPriceList();
+ saveStorage();renderPriceList();loadPriceListRows();
 }
 function applyPriceFromList(itemName){
  const name=String(itemName||"").trim().toLowerCase();if(!name)return null;
