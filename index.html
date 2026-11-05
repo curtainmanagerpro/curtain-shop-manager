@@ -1272,7 +1272,7 @@ function measurementToQuotation(){
   if(!grouped[key])grouped[key]={qty:0,unit,name:baseName};
   grouped[key].qty+=qty;
  });
- quotationItems=Object.values(grouped).map(g=>({name:g.name,qty:Number(g.qty.toFixed(2)),rate:"",unit:g.unit}));
+ quotationItems=Object.values(grouped).map(g=>({name:g.name,qty:Number(g.qty.toFixed(2)),rate:(priceListEnabled("quotation")?applyPriceFromList(g.name,"quotation"):null)??"",unit:g.unit}));
  if(curtainMeters>0)quotationItems.push({name:"TOTAL CURTAIN CLOTH",qty:Number(curtainMeters.toFixed(2)),rate:"",unit:"Meter"});
  if(sheerMeters>0)quotationItems.push({name:"TOTAL SHEER CLOTH",qty:Number(sheerMeters.toFixed(2)),rate:"",unit:"Meter"});
  renderQuotationItems();
@@ -1289,7 +1289,7 @@ function measurementToInvoice(id){
   const fabric=blind?{curtain:0,sheer:0}:clothMeters(r,m.unit||"cm");
   curtainMeters+=Number(fabric.curtain||0);sheerMeters+=Number(fabric.sheer||0);
   const name=(r.type==="Other"?(r.customType||"Other"):r.type);
-  return {name,qty:Number((blind?(r.sqft||r.areaValue):(r.rft||r.areaValue))||0).toFixed(2),unit:blind?"Sq.Ft":"RFT",rate:""};
+  return {name,qty:Number((blind?(r.sqft||r.areaValue):(r.rft||r.areaValue))||0).toFixed(2),unit:blind?"Sq.Ft":"RFT",rate:(priceListEnabled("invoice")?applyPriceFromList(name,"invoice"):null)??""};
  });
  if(curtainMeters>0)invoiceItems.push({name:"TOTAL CURTAIN CLOTH",qty:Number(curtainMeters.toFixed(2)),unit:"Meter",rate:""});
  if(sheerMeters>0)invoiceItems.push({name:"TOTAL SHEER CLOTH",qty:Number(sheerMeters.toFixed(2)),unit:"Meter",rate:""});
