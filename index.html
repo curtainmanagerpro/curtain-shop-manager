@@ -186,7 +186,7 @@ td input,td select{min-width:80px;padding:8px}
 @media(min-width:700px){#measurementPreview .measurement-print{max-width:210mm;min-height:297mm;padding:12mm}}
 @media print{ @page{size:A4 portrait;margin:8mm} #measurementPreview{padding:0;background:#fff} #measurementPreview .measurement-print{width:194mm;max-width:194mm;min-height:281mm;box-shadow:none;margin:0;padding:0} }
 
-</style>
+ .price-auto-switches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:start}.price-auto-switches label{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;gap:7px;font-size:13px;font-weight:700;min-width:0}.price-auto-switches input[type=checkbox]{width:28px;height:28px;margin:0;flex:0 0 auto}@media(max-width:420px){.price-auto-switches label{font-size:11px}}</style>
  <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#24445c">
 
@@ -256,7 +256,7 @@ td input,td select{min-width:80px;padding:8px}
 
  
   <div class="notice" style="margin-bottom:10px">ഒരേ റൂമിലെ ഓരോ വിൻഡോയ്ക്കും ഓരോ വരി ചേർക്കുക. Room / Area ഒരേ പേരിൽ നൽകിയാൽ PDF-ൽ അവ ഒരുമിച്ച് വരും.</div>
-  <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Type</th><th>Custom Type</th><th>Width</th><th>Height</th><th>Shade No.</th><th>Unit</th><th>Qty</th><th>Value</th><th>Delete</th></tr></thead><tbody id="measurementBody"></tbody></table></div>
+  <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Type</th><th>Custom Type</th><th>Width</th><th>Height</th><th>Shade No.</th><th>Unit</th><th>Qty</th><th>Rate (₹)</th><th>Delete</th></tr></thead><tbody id="measurementBody"></tbody></table></div>
 
   <div class="row-add-bottom" style="display:flex;justify-content:flex-end;margin-top:10px">
     <button class="btn-blue" type="button" onclick="addMeasurementRow()">＋ Add Row</button>
@@ -451,7 +451,7 @@ td input,td select{min-width:80px;padding:8px}
   </div>
   <div class="field" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
    <h3>Product Price List</h3>
-   <div class="item-card" style="display:flex;flex-wrap:wrap;gap:16px;align-items:center"><label><input type="checkbox" id="priceAutoMeasurement" onchange="savePriceAutoOptions()"> Measurement Sheet ON</label><label><input type="checkbox" id="priceAutoQuotation" onchange="savePriceAutoOptions()"> Quotation ON</label><label><input type="checkbox" id="priceAutoInvoice" onchange="savePriceAutoOptions()"> Invoice ON</label></div>
+   <div class="item-card price-auto-switches"><label><input type="checkbox" id="priceAutoMeasurement" onchange="savePriceAutoOptions()"> Measurement Sheet ON</label><label><input type="checkbox" id="priceAutoQuotation" onchange="savePriceAutoOptions()"> Quotation ON</label><label><input type="checkbox" id="priceAutoInvoice" onchange="savePriceAutoOptions()"> Invoice ON</label></div>
    <div id="priceListRows"></div>
    <div style="display:flex;justify-content:flex-end;margin-top:10px">
     <button type="button" class="btn-blue" onclick="addPriceListRow()">＋ Add Row</button>
@@ -981,7 +981,7 @@ function addMeasurementRow(data){
   <td data-label="Shade No."><input class="mShade" placeholder="Optional"></td>
   <td class="mUnitCell" data-label="Unit">Sq.Ft</td>
   <td data-label="Qty"><input class="mQty" type="number" min="1" value="1"></td>
-  <td class="mAreaCell" data-label="Value"><div class="mAreaValue">0.00</div><div class="mPriceCalc" style="font-size:12px;margin-top:4px"><label>Rate (₹) <input class="mRate" type="number" min="0" step=".01" style="width:90px;padding:4px" value=""></label></div><div class="mFabricCalc" style="font-size:12px;line-height:1.35;font-weight:700;color:#17613a;margin-top:4px"></div></td>
+  <td class="mAreaCell" data-label="Rate (₹)"><div class="mAreaValue" style="display:none">0.00</div><input class="mRate" type="number" min="0" step=".01" style="width:100%;max-width:140px;padding:8px" value=""><div class="mFabricCalc" style="font-size:12px;line-height:1.35;font-weight:700;color:#17613a;margin-top:4px"></div></td>
   <td data-label="Delete"><button class="btn-red" type="button" style="padding:5px 9px;font-size:12px;margin:0">Delete</button></td>`;
  $("measurementBody").appendChild(tr);
  const typeSelect=tr.querySelector(".mType");
