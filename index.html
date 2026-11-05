@@ -1434,7 +1434,7 @@ function waitForImages(container) {
       try {
         await navigator.share({
           title: "Quotation " + q.number,
-          text: "Quotation from " + (settings.name || "Curtain Shop"),
+          text: "Quotation from " + (settings.name || "Curtain Shop") + (q.phone ? "\nCustomer WhatsApp: " + q.phone : ""),
           files: [file]
         });
         return;
@@ -1748,7 +1748,7 @@ function renderReceipts(){
 }
 function previewSavedReceipt(id){const d=receipts.find(x=>String(x.id)===String(id));if(!d)return;showSavedDocumentPreview("Payment Receipt · "+(d.number||""),receiptHTML(d));applyReceiptPreviewResponsive();}
 async function deleteReceipt(id){if(!confirm("Delete this payment receipt?"))return;addDeletedRecordId("receipts",id);receipts=receipts.filter(x=>String(x.id)!==String(id));renderReceipts();await persistDeleteAndNotify();}
-async function makeDocumentPDF(html,filename,title){
+async function makeDocumentPDF(html,filename,title,customerPhone=""){
  if(!window.jspdf||!window.html2canvas)return alert("PDF libraries did not load. Check your internet connection and try again.");
  const host=$("pdfSheet");host.innerHTML=html;host.style.width="794px";
  try{
@@ -1758,14 +1758,14 @@ async function makeDocumentPDF(html,filename,title){
   let remaining=h,pos=margin;pdf.addImage(img,"JPEG",margin,pos,w,h);remaining-=ph-2*margin;
   while(remaining>0){pos=margin-(h-remaining);pdf.addPage();pdf.addImage(img,"JPEG",margin,pos,w,h);remaining-=ph-2*margin;}
   const blob=pdf.output("blob"),file=new File([blob],filename,{type:"application/pdf"});
-  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({title,text:"From "+(settings.name||"Curtain Shop"),files:[file]});return;}catch(e){if(e&&e.name==="AbortError")return;}}
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({title,text:"From "+(settings.name||"Curtain Shop")+(customerPhone?"\nCustomer WhatsApp: "+customerPhone:""),files:[file]});return;}catch(e){if(e&&e.name==="AbortError")return;}}
   const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);alert("PDF downloaded. Open WhatsApp and attach the downloaded PDF.");
  }catch(e){alert("PDF Error: "+(e.message||e.name||"Unknown error"));}finally{host.innerHTML="";}
 }
-async function shareInvoicePDF(){const d=currentInvoice();if(!d.customer)return alert("Please enter Customer Name.");if(!d.items.some(x=>x.name.trim()))return alert("Add an item description.");await makeDocumentPDF(invoiceHTML(d),"Invoice-"+d.number+".pdf","Invoice "+d.number);}
-async function shareSavedInvoicePDF(id){const d=invoices.find(x=>String(x.id)===String(id));if(d)await makeDocumentPDF(invoiceHTML(d),"Invoice-"+d.number+".pdf","Invoice "+d.number);}
-async function shareReceiptPDF(){const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");await makeDocumentPDF(receiptHTML(d),"Receipt-"+d.number+".pdf","Receipt "+d.number);}
-async function shareSavedReceiptPDF(id){const d=receipts.find(x=>String(x.id)===String(id));if(d)await makeDocumentPDF(receiptHTML(d),"Receipt-"+d.number+".pdf","Receipt "+d.number);}
+async function shareInvoicePDF(){const d=currentInvoice();if(!d.customer)return alert("Please enter Customer Name.");if(!d.items.some(x=>x.name.trim()))return alert("Add an item description.");await makeDocumentPDF(invoiceHTML(d),"Invoice-"+d.number+".pdf","Invoice "+d.number,d.phone||"");}
+async function shareSavedInvoicePDF(id){const d=invoices.find(x=>String(x.id)===String(id));if(d)await makeDocumentPDF(invoiceHTML(d),"Invoice-"+d.number+".pdf","Invoice "+d.number,d.phone||"");}
+async function shareReceiptPDF(){const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");await makeDocumentPDF(receiptHTML(d),"Receipt-"+d.number+".pdf","Receipt "+d.number,d.phone||"");}
+async function shareSavedReceiptPDF(id){const d=receipts.find(x=>String(x.id)===String(id));if(d)await makeDocumentPDF(receiptHTML(d),"Receipt-"+d.number+".pdf","Receipt "+d.number,d.phone||"");}
 
 /* ADMIN USER MANAGEMENT: admin-only UI; Supabase RLS must also protect this table. */
 let adminUsersCache=[];
