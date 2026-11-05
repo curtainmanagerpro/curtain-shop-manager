@@ -446,6 +446,17 @@ td input,td select{min-width:80px;padding:8px}
    <img id="signaturePreview" alt="സൂക്ഷിച്ച ഒപ്പിന്റെ മാതൃക" style="display:none;max-width:260px;max-height:90px;object-fit:contain;background:#fff;border:1px dashed #d5dce2;border-radius:8px;padding:6px;margin-top:6px">
    <div id="signatureStatus" class="small" style="margin-top:5px">ഇതുവരെ ഒപ്പ് ചേർത്തിട്ടില്ല.</div>
   </div>
+  <div class="field" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
+   <h3>Product Price List</h3>
+   <p class="small">ഇവിടെ ചേർക്കുന്ന വില പുതിയ Quotations-ൽ മാത്രം സ്വയം വരും. പഴയ Quotations മാറില്ല.</p>
+   <div class="grid">
+    <div class="field"><label>Item Name</label><input id="priceItemName" placeholder="ഉദാ: Zebra Blinds"></div>
+    <div class="field"><label>Rate (₹)</label><input id="priceItemRate" type="number" min="0" step="0.01" placeholder="ഉദാ: 120"></div>
+   </div>
+   <button type="button" class="btn-blue" onclick="addOrUpdatePriceItem()" id="priceItemSaveBtn">＋ Add Price</button>
+   <button type="button" class="btn-light hidden" onclick="cancelPriceItemEdit()" id="priceItemCancelBtn">Cancel Edit</button>
+   <div id="priceListItems" style="margin-top:12px"></div>
+  </div>
   <button class="btn-green" onclick="saveSettings()">Save Settings</button>
   <button class="btn-light" onclick="downloadBackup()">Download Backup</button>
   <button class="btn-light" onclick="document.getElementById('restoreFile').click()">Restore Backup</button>
@@ -806,11 +817,54 @@ function loadSettings(){
  $("logoPreview").src=settings.logo||"";
  updateSignaturePreview();
  clearSignatureCanvas();
+ renderPriceList();
 }
 function saveSettings(){
- settings={...settings,name:$("sName").value.trim(),phone:$("sPhone").value.trim(),whatsapp:$("sWhatsapp").value.trim(),email:$("sEmail").value.trim(),gst:$("sGST").value.trim(),validity:$("sValidity").value.trim(),address:$("sAddress").value.trim(),logo:settings.logo||"",signature:settings.signature||""};
+ settings={...settings,name:$("sName").value.trim(),phone:$("sPhone").value.trim(),whatsapp:$("sWhatsapp").value.trim(),email:$("sEmail").value.trim(),gst:$("sGST").value.trim(),validity:$("sValidity").value.trim(),address:$("sAddress").value.trim(),logo:settings.logo||"",signature:settings.signature||"",productPriceList:Array.isArray(settings.productPriceList)?settings.productPriceList:[]};
  saveStorage();alert("Business settings saved.");
 }
+let editingPriceItemId=null;
+function renderPriceList(){
+ const host=$("priceListItems");if(!host)return;
+ const list=Array.isArray(settings.productPriceList)?settings.productPriceList:[];
+ if(!list.length){host.innerHTML='<div class="empty">Price List ഇതുവരെ ചേർത്തിട്ടില്ല.</div>';return;}
+ host.innerHTML=list.map(item=>`<div class="item-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><b>${esc(item.name)}</b><div class="small">Rate: ₹${money(item.rate)}</div></div><div style="display:flex;gap:5px;flex-wrap:wrap"><button type="button" class="btn-blue" onclick="editPriceItem('${String(item.id)}')">Edit</button><button type="button" class="btn-red" onclick="deletePriceItem('${String(item.id)}')">Delete</button></div></div></div>`).join("");
+}
+function addOrUpdatePriceItem(){
+ const name=$("priceItemName").value.trim(),rateText=$("priceItemRate").value;
+ if(!name){alert("Item Name നൽകുക.");return;}
+ if(rateText===""||!Number.isFinite(Number(rateText))||Number(rateText)<0){alert("ശരിയായ Rate നൽകുക.");return;}
+ if(!Array.isArray(settings.productPriceList))settings.productPriceList=[];
+ const duplicate=settings.productPriceList.find(x=>x.name.trim().toLowerCase()===name.toLowerCase()&&String(x.id)!==String(editingPriceItemId));
+ if(duplicate){alert("ഈ Item Name ഇതിനകം Price List-ൽ ഉണ്ട്. അതിനെ Edit ചെയ്യുക.");return;}
+ const rate=Number(rateText);
+ if(editingPriceItemId){const idx=settings.productPriceList.findIndex(x=>String(x.id)===String(editingPriceItemId));if(idx>=0)settings.productPriceList[idx]={...settings.productPriceList[idx],name,rate};}
+ else settings.productPriceList.push({id:String(newId()),name,rate});
+ settings.productPriceList.sort((a,b)=>a.name.localeCompare(b.name));
+ saveStorage();cancelPriceItemEdit();renderPriceList();alert("Price List Save ചെയ്തു.");
+}
+function editPriceItem(id){
+ const item=(settings.productPriceList||[]).find(x=>String(x.id)===String(id));if(!item)return;
+ editingPriceItemId=String(id);$("priceItemName").value=item.name;$("priceItemRate").value=item.rate;
+ $("priceItemSaveBtn").textContent="Save Changes";$("priceItemCancelBtn").classList.remove("hidden");$("priceItemName").focus();
+}
+function cancelPriceItemEdit(){
+ editingPriceItemId=null;$("priceItemName").value="";$("priceItemRate").value="";
+ if($("priceItemSaveBtn"))$("priceItemSaveBtn").textContent="＋ Add Price";
+ if($("priceItemCancelBtn"))$("priceItemCancelBtn").classList.add("hidden");
+}
+function deletePriceItem(id){
+ const item=(settings.productPriceList||[]).find(x=>String(x.id)===String(id));if(!item)return;
+ if(!confirm(`“${item.name}” Price List-ൽ നിന്ന് Delete ചെയ്യണോ?`))return;
+ settings.productPriceList=settings.productPriceList.filter(x=>String(x.id)!==String(id));
+ if(String(editingPriceItemId)===String(id))cancelPriceItemEdit();saveStorage();renderPriceList();
+}
+function applyPriceFromList(itemName){
+ const name=String(itemName||"").trim().toLowerCase();if(!name)return null;
+ const match=(Array.isArray(settings.productPriceList)?settings.productPriceList:[]).find(x=>String(x.name||"").trim().toLowerCase()===name);
+ return match?Number(match.rate):null;
+}
+
 function loadLogo(e){
  const f=e.target.files[0];if(!f)return;
  const r=new FileReader();r.onload=ev=>{settings.logo=ev.target.result;$("logoPreview").src=settings.logo;saveStorage();};r.readAsDataURL(f);
@@ -1306,7 +1360,20 @@ function renderQuotationItems(){
   </div><p>Amount: <b>₹${money((Number(it.qty)||0)*(Number(it.rate)||0))}</b></p><button class="btn-red" type="button">Delete Item</button>`;
   d.querySelectorAll("[data-k]").forEach(el=>{
    const update=()=>{quotationItems[i][el.dataset.k]=el.value;calculateQuotation();};
-   el.oninput=update;el.onchange=update;
+   el.oninput=()=>{
+    if(el.dataset.k==="name"){
+     const autoRate=applyPriceFromList(el.value);
+     if(autoRate!==null){quotationItems[i].rate=String(autoRate);const rateInput=d.querySelector('[data-k="rate"]');if(rateInput)rateInput.value=String(autoRate);}
+    }
+    update();
+   };
+   el.onchange=()=>{
+    if(el.dataset.k==="name"){
+     const autoRate=applyPriceFromList(el.value);
+     if(autoRate!==null){quotationItems[i].rate=String(autoRate);const rateInput=d.querySelector('[data-k="rate"]');if(rateInput)rateInput.value=String(autoRate);}
+    }
+    update();
+   };
   });
   d.querySelector("button").onclick=()=>{quotationItems.splice(i,1);renderQuotationItems();};
   $("quotationItems").appendChild(d);
