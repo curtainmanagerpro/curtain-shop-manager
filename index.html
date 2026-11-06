@@ -186,7 +186,27 @@ td input,td select{min-width:80px;padding:8px}
 @media(min-width:700px){#measurementPreview .measurement-print{max-width:210mm;min-height:297mm;padding:12mm}}
 @media print{ @page{size:A4 portrait;margin:8mm} #measurementPreview{padding:0;background:#fff} #measurementPreview .measurement-print{width:194mm;max-width:194mm;min-height:281mm;box-shadow:none;margin:0;padding:0} }
 
- .price-auto-switches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:start}.price-auto-switches label{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;gap:7px;font-size:13px;font-weight:700;min-width:0}.price-auto-switches input[type=checkbox]{width:28px;height:28px;margin:0;flex:0 0 auto}@media(max-width:420px){.price-auto-switches label{font-size:11px}}</style>
+ /* Home dashboard visual refinement: layout-only, existing actions preserved */
+.home-business-heading{display:flex;align-items:center;gap:9px;margin:0 0 7px;min-height:38px}
+.home-business-heading h2{margin:0;font-size:27px;overflow-wrap:anywhere}
+.home-business-logo{width:38px;height:38px;object-fit:contain;border-radius:7px;flex:0 0 38px}
+.home-primary-buttons{display:grid;grid-template-columns:1fr;gap:12px;margin:16px 0 18px}
+.home-primary-buttons button{width:100%;min-height:82px;margin:0;padding:12px 16px;border-radius:15px;display:flex;align-items:center;justify-content:center;gap:15px;font-size:20px;box-shadow:0 3px 9px #172b3b18}
+.home-action-icon{width:48px;height:48px;flex:0 0 48px;border:2px solid rgba(255,255,255,.95);border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:27px;line-height:1;background:rgba(255,255,255,.10);box-shadow:inset 0 0 0 2px rgba(255,255,255,.13)}
+.home-secondary-buttons{display:grid;grid-template-columns:1fr;gap:10px}
+.home-secondary-buttons button{width:100%;min-height:62px;margin:0;padding:9px 13px;display:grid;grid-template-columns:48px minmax(0,1fr) 20px;align-items:center;gap:12px;text-align:left;border:1.5px solid var(--saved-border);border-radius:13px;background:var(--saved-bg);color:#203040;font-size:17px;box-shadow:0 3px 9px #172b3b0d}
+.saved-icon{width:44px;height:44px;border:1px solid var(--saved-border);border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:25px}
+.saved-arrow{font-size:30px;line-height:1;color:var(--saved-border);font-weight:700;text-align:center}
+.saved-measurements{--saved-border:#2385d5;--saved-bg:#eef7ff}
+.saved-quotations{--saved-border:#7650a8;--saved-bg:#f6f0ff}
+.saved-blinds{--saved-border:#168b83;--saved-bg:#edfaf8}
+.saved-invoices{--saved-border:#d66b25;--saved-bg:#fff5eb}
+.saved-receipts{--saved-border:#c42b83;--saved-bg:#fff0f7}
+.saved-customers{--saved-border:#2385d5;--saved-bg:#eef7ff}
+.saved-settings{--saved-border:#687b90;--saved-bg:#f0f3f6}
+@media(min-width:701px){.home-secondary-buttons{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.home-primary-buttons button{min-height:76px;font-size:18px;gap:12px}.home-action-icon{width:44px;height:44px;flex-basis:44px;font-size:25px}.home-secondary-buttons button{min-height:64px;font-size:16px;gap:10px;padding:9px 11px}.home-business-heading h2{font-size:24px}}
+.price-auto-switches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:start}.price-auto-switches label{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;gap:7px;font-size:13px;font-weight:700;min-width:0}.price-auto-switches input[type=checkbox]{width:28px;height:28px;margin:0;flex:0 0 auto}@media(max-width:420px){.price-auto-switches label{font-size:11px}}</style>
  <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#24445c">
 
@@ -223,17 +243,29 @@ td input,td select{min-width:80px;padding:8px}
 
 
 <section id="home" class="page active">
- <div class="card"><h2 id="homeBusinessName" style="margin-bottom:6px"></h2><div class="small" id="homeAccountInfo"></div>
-  <div class="home-buttons">
-   <button class="home-primary" onclick="newMeasurement()">＋ New Measurement</button><button class="home-blue" onclick="newQuotation()">＋ New Quotation</button>
-   <button class="home-blue" onclick="newBlindOrder()">＋ New Blinds Order</button><button class="home-green" onclick="newInvoice()">＋ New Invoice</button>
-   <button class="home-purple" onclick="newReceipt()">＋ New Payment Receipt</button>
-  </div><h3 class="home-section-title">Saved Records</h3><div class="home-buttons">
-   <button class="btn-light" onclick="showPage('savedMeasurements')">Saved Measurements</button><button class="btn-light" onclick="showPage('savedQuotes')">Saved Quotations</button>
-   <button class="btn-light" onclick="showPage('savedBlindOrders')">Saved Blinds Orders</button><button class="btn-light" onclick="showPage('savedInvoices')">Saved Invoices</button>
-   <button class="btn-light" onclick="showPage('savedReceipts')">Saved Payment Receipts</button><button class="btn-light" onclick="showPage('customers')">Customers</button><button class="btn-light" onclick="showPage('settings')">Settings</button>
-  </div><div id="homeAdminButton" class="hidden" style="margin-top:10px"><button class="btn-dark" style="width:100%" onclick="showPage('admin')">Admin Panel</button></div>
- </div><div class="card"><h3>Quick Summary</h3><div class="grid"><div class="notice">Saved Measurements: <b id="homeMeasurementCount">0</b></div><div class="notice">Saved Quotations: <b id="homeQuoteCount">0</b></div><div class="notice">Saved Invoices: <b id="homeInvoiceCount">0</b></div><div class="notice">Saved Receipts: <b id="homeReceiptCount">0</b></div></div></div>
+ <div class="card">
+  <div class="home-business-heading"><img id="homeBusinessLogo" class="home-business-logo hidden" alt="Business logo"><h2 id="homeBusinessName"></h2></div>
+  <div class="small" id="homeAccountInfo"></div>
+  <div class="home-primary-buttons">
+   <button class="home-primary" onclick="newMeasurement()"><span class="home-action-icon">📏</span><span>New Measurement</span></button>
+   <button class="home-blue" onclick="newQuotation()"><span class="home-action-icon">📋</span><span>New Quotation</span></button>
+   <button class="home-blue" onclick="newBlindOrder()"><span class="home-action-icon">🪟</span><span>New Blinds Order</span></button>
+   <button class="home-green" onclick="newInvoice()"><span class="home-action-icon">🧾</span><span>New Invoice</span></button>
+   <button class="home-purple" onclick="newReceipt()"><span class="home-action-icon">💳</span><span>New Payment Receipt</span></button>
+  </div>
+  <h3 class="home-section-title">📁 Saved Records</h3>
+  <div class="home-secondary-buttons">
+   <button class="saved-measurements" onclick="showPage('savedMeasurements')"><span class="saved-icon">📐</span><span>Saved Measurements</span><span class="saved-arrow">›</span></button>
+   <button class="saved-quotations" onclick="showPage('savedQuotes')"><span class="saved-icon">📋</span><span>Saved Quotations</span><span class="saved-arrow">›</span></button>
+   <button class="saved-blinds" onclick="showPage('savedBlindOrders')"><span class="saved-icon">🪟</span><span>Saved Blinds Orders</span><span class="saved-arrow">›</span></button>
+   <button class="saved-invoices" onclick="showPage('savedInvoices')"><span class="saved-icon">🧾</span><span>Saved Invoices</span><span class="saved-arrow">›</span></button>
+   <button class="saved-receipts" onclick="showPage('savedReceipts')"><span class="saved-icon">₹</span><span>Saved Payment Receipts</span><span class="saved-arrow">›</span></button>
+   <button class="saved-customers" onclick="showPage('customers')"><span class="saved-icon">👥</span><span>Customers</span><span class="saved-arrow">›</span></button>
+   <button class="saved-settings" onclick="showPage('settings')"><span class="saved-icon">⚙️</span><span>Settings</span><span class="saved-arrow">›</span></button>
+  </div>
+  <div id="homeAdminButton" class="hidden" style="margin-top:10px"><button class="btn-dark" style="width:100%" onclick="showPage('admin')">Admin Panel</button></div>
+ </div>
+ <div class="card"><h3>Quick Summary</h3><div class="grid"><div class="notice">Saved Measurements: <b id="homeMeasurementCount">0</b></div><div class="notice">Saved Quotations: <b id="homeQuoteCount">0</b></div><div class="notice">Saved Invoices: <b id="homeInvoiceCount">0</b></div><div class="notice">Saved Receipts: <b id="homeReceiptCount">0</b></div></div></div>
 </section>
 
 <section id="measurement" class="page">
@@ -934,6 +966,7 @@ function updateHome(){
  if($("homeInvoiceCount"))$("homeInvoiceCount").textContent=invoices.length;
  if($("homeReceiptCount"))$("homeReceiptCount").textContent=receipts.length;
  if($("homeBusinessName")){const businessName=String(settings.name||"").trim();$("homeBusinessName").textContent=businessName;$("homeBusinessName").classList.toggle("hidden",!businessName);}
+  if($("homeBusinessLogo")){const logo=String(settings.logo||"").trim();$("homeBusinessLogo").src=logo;$("homeBusinessLogo").classList.toggle("hidden",!logo);}
  if($("homeAccountEmail"))$("homeAccountEmail").textContent=authUser?.email||"";
 }
 let pageHistory=[];
