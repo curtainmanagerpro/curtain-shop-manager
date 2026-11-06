@@ -1101,15 +1101,15 @@ function showDeleteSyncNotice(message,success=true){
  let el=document.getElementById("deleteSyncNotice");
  if(!el){el=document.createElement("div");el.id="deleteSyncNotice";el.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:999999;padding:20px 30px;border-radius:16px;color:#fff;font:700 20px Arial,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.32);max-width:88vw;text-align:center;min-width:220px";document.body.appendChild(el);}
  el.style.background=success?"#16803c":"#b42323";el.textContent=(success?"✓ ":"⚠ ")+message;el.style.display="block";
- clearTimeout(window.deleteSyncNoticeTimer);window.deleteSyncNoticeTimer=setTimeout(()=>{el.style.display="none";},3000);
+ clearTimeout(window.deleteSyncNoticeTimer);window.deleteSyncNoticeTimer=setTimeout(()=>{el.style.display="none";},1800);
 }
 async function persistDeleteAndNotify(){
- // Instant centered feedback immediately after the user's confirmation.
- showDeleteSyncNotice("Deleted Successfully ✓",true);
+ // Show one quick confirmation only. Cloud sync continues silently in the background.
+ showDeleteSyncNotice("Deleted Successfully",true);
  saveStorage();
- if(!sb||!authUser){showDeleteSyncNotice("Deleted on this device · Cloud login unavailable",false);return false;}
- try{const result=await saveCloudData();if(!result.ok){showDeleteSyncNotice("Deleted locally · Cloud Sync failed",false);return false;}showDeleteSyncNotice("Deleted Successfully · Synced to Cloud ✓",true);return true;}
- catch(e){showDeleteSyncNotice("Deleted locally · Cloud Sync failed",false);return false;}
+ if(!sb||!authUser)return false;
+ try{const result=await saveCloudData();return !!result.ok;}
+ catch(e){console.error("Delete cloud sync failed:",e);return false;}
 }
 
 async function deleteMeasurement(id){
@@ -1449,6 +1449,7 @@ function renderSavedQuotes(){
  <button class="btn-blue" onclick="editQuotation(${q.id})">Edit</button>
  <button class="btn-green" onclick="openQuote(${q.id})">View / Print</button>
  <button class="btn-dark" onclick="shareQuotePDF(${q.id})">📤 Share PDF</button>
+ <button class="btn-purple" onclick="createReceiptFromSavedDocument('quotation','${String(q.id)}')">Create Receipt</button>
  <button class="btn-red" onclick="deleteQuote(${q.id})">Delete</button>
  </div>`).join("")||'<div class="empty">No saved quotations.</div>';
 }
@@ -1718,10 +1719,34 @@ function invoiceHTML(d){
 function previewInvoice(){const d=currentInvoice();if(!d.customer)return alert("Please enter Customer Name.");if(!d.items.some(x=>x.name.trim()))return alert("Add an item description.");const el=$("invoicePreview");el.innerHTML=invoiceHTML(d);el.classList.remove("hidden");el.scrollIntoView({behavior:"smooth",block:"start"});}
 function renderInvoices(){
  const q=($("invoiceSearch")?.value||"").toLowerCase();
- $("invoiceList").innerHTML=invoices.filter(d=>[d.number,d.customer,d.phone,d.date].join(" ").toLowerCase().includes(q)).slice().reverse().map(d=>`<div class="customer-card"><h3>${esc(d.number)}</h3><b>${esc(d.customer)}</b><p class="small">${esc(formatDateDMY(d.date))}</p><p>Grand Total: <b>₹${money(d.grand)}</b> · Balance: <b>₹${money(d.balance)}</b></p><div class="doc-actions"><button class="btn-blue" onclick="editInvoice('${String(d.id)}')">Edit / Open</button><button class="btn-green" onclick="previewSavedInvoice('${String(d.id)}')">Preview</button><button class="btn-dark" onclick="shareSavedInvoicePDF('${String(d.id)}')">Share PDF</button><button class="btn-red" onclick="deleteInvoice('${String(d.id)}')">Delete</button></div></div>`).join("")||'<div class="empty">No saved invoices.</div>';
+ $("invoiceList").innerHTML=invoices.filter(d=>[d.number,d.customer,d.phone,d.date].join(" ").toLowerCase().includes(q)).slice().reverse().map(d=>`<div class="customer-card"><h3>${esc(d.number)}</h3><b>${esc(d.customer)}</b><p class="small">${esc(formatDateDMY(d.date))}</p><p>Grand Total: <b>₹${money(d.grand)}</b> · Balance: <b>₹${money(d.balance)}</b></p><div class="doc-actions"><button class="btn-blue" onclick="editInvoice('${String(d.id)}')">Edit / Open</button><button class="btn-green" onclick="previewSavedInvoice('${String(d.id)}')">Preview</button><button class="btn-dark" onclick="shareSavedInvoicePDF('${String(d.id)}')">Share PDF</button><button class="btn-purple" onclick="createReceiptFromSavedDocument('invoice','${String(d.id)}')">Create Receipt</button><button class="btn-red" onclick="deleteInvoice('${String(d.id)}')">Delete</button></div></div>`).join("")||'<div class="empty">No saved invoices.</div>';
 }
 function previewSavedInvoice(id){const d=invoices.find(x=>String(x.id)===String(id));if(!d)return;showSavedDocumentPreview("Invoice · "+(d.number||""),invoiceHTML(d));}
 async function deleteInvoice(id){if(!confirm("Delete this invoice?"))return;addDeletedRecordId("invoices",id);invoices=invoices.filter(x=>String(x.id)!==String(id));renderInvoices();await persistDeleteAndNotify();}
+function inferReceiptReference(doc){
+ const names=(doc.items||[]).map(x=>String(x.name||"").toLowerCase()).join(" ");
+ const notes=String(doc.notes||doc.terms||"").toLowerCase();
+ const all=names+" "+notes;
+ const refs=[];
+ if(/zebra|roman|roller|venetian|wooden|bamboo|honeycomb|blind/.test(all))refs.push("Blinds Work");
+ if(/curtain|sheer|blackout|cloth|eyelet|ripple|pleat|കട്ടൻ/.test(all))refs.push("Curtain Work");
+ if(/fitting|installation|install/.test(all))refs.push("Fitting Work");
+ return refs.length? [...new Set(refs)].join(" + "):"Work";
+}
+function createReceiptFromSavedDocument(kind,id){
+ const doc=kind==="quotation"?quotations.find(x=>String(x.id)===String(id)):invoices.find(x=>String(x.id)===String(id));
+ if(!doc)return;
+ newReceipt();
+ $("rCustomer").value=doc.customer||"";
+ $("rPhone").value=doc.phone||"";
+ $("rAddress").value=doc.address||"";
+ $("rTotal").value=Number(doc.grand)||0;
+ $("rReference").value=inferReceiptReference(doc);
+ $("rReceived").value="";
+ calculateReceipt();
+ showPage("receipt");
+ window.scrollTo({top:0,behavior:"smooth"});
+}
 function newReceipt(){
  currentReceiptId=null;$("rCustomer").value="";$("rPhone").value="";$("rAddress").value="";$("rNumber").value=nextReceiptNumber();$("rDate").value=today();$("rReference").value="";$("rTotal").value="";$("rReceived").value="";$("rMethod").value="Cash";$("rNote").value="";
  calculateReceipt();$("receiptPreview").classList.add("hidden");$("receiptPreview").innerHTML="";showPage("receipt");
