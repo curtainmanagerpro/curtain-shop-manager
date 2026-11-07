@@ -180,33 +180,7 @@ td input,td select{min-width:80px;padding:8px}
  .measurement-window-list{gap:12px}
 }
 @media print{.measurement-print{padding:0}}
-/* A4 proportional preview on screen; print/export use A4 dimensions */
-#measurementPreview{background:#eef2f5;padding:10px;overflow:auto}
-#measurementPreview .measurement-print{box-sizing:border-box;width:100%;max-width:100%;min-height:calc(100vw * 297 / 210);margin:0 auto;padding:clamp(8px,2.5vw,22px);background:#fff;box-shadow:0 2px 10px #0002;}
-@media(min-width:700px){#measurementPreview .measurement-print{max-width:210mm;min-height:297mm;padding:12mm}}
-@media print{ @page{size:A4 portrait;margin:8mm} #measurementPreview{padding:0;background:#fff} #measurementPreview .measurement-print{width:194mm;max-width:194mm;min-height:281mm;box-shadow:none;margin:0;padding:0} }
-
- /* Home dashboard visual refinement: layout-only, existing actions preserved */
-.home-business-heading{display:flex;align-items:center;gap:9px;margin:0 0 7px;min-height:38px}
-.home-business-heading h2{margin:0;font-size:27px;overflow-wrap:anywhere}
-.home-business-logo{width:38px;height:38px;object-fit:contain;border-radius:7px;flex:0 0 38px}
-.home-primary-buttons{display:grid;grid-template-columns:1fr;gap:12px;margin:16px 0 18px}
-.home-primary-buttons button{width:100%;min-height:82px;margin:0;padding:12px 18px;border-radius:15px;display:grid;grid-template-columns:48px minmax(0,1fr);align-items:center;justify-content:stretch;gap:12px;text-align:left;font-size:20px;box-shadow:0 3px 9px #172b3b18}
-.home-action-icon{width:48px;height:48px;flex:0 0 48px;border:2px solid rgba(255,255,255,.95);border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:27px;line-height:1;background:rgba(255,255,255,.10);box-shadow:inset 0 0 0 2px rgba(255,255,255,.13)}
-.home-secondary-buttons{display:grid;grid-template-columns:1fr;gap:10px}
-.home-secondary-buttons button{width:100%;min-height:62px;margin:0;padding:9px 13px;display:grid;grid-template-columns:48px minmax(0,1fr) 20px;align-items:center;gap:12px;text-align:left;border:1.5px solid var(--saved-border);border-radius:13px;background:var(--saved-bg);color:#203040;font-size:17px;box-shadow:0 3px 9px #172b3b0d}
-.saved-icon{width:44px;height:44px;border:1px solid var(--saved-border);border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:25px}
-.saved-arrow{font-size:30px;line-height:1;color:var(--saved-border);font-weight:700;text-align:center}
-.saved-measurements{--saved-border:#2385d5;--saved-bg:#eef7ff}
-.saved-quotations{--saved-border:#7650a8;--saved-bg:#f6f0ff}
-.saved-blinds{--saved-border:#168b83;--saved-bg:#edfaf8}
-.saved-invoices{--saved-border:#d66b25;--saved-bg:#fff5eb}
-.saved-receipts{--saved-border:#c42b83;--saved-bg:#fff0f7}
-.saved-customers{--saved-border:#2385d5;--saved-bg:#eef7ff}
-.saved-settings{--saved-border:#687b90;--saved-bg:#f0f3f6}
-@media(min-width:701px){.home-secondary-buttons{grid-template-columns:1fr 1fr}}
-@media(max-width:480px){.home-primary-buttons button{min-height:76px;font-size:17px;grid-template-columns:44px minmax(0,1fr);gap:10px;padding:10px 14px}.home-action-icon{width:44px;height:44px;flex-basis:44px;font-size:25px}.home-secondary-buttons button{min-height:64px;font-size:16px;gap:10px;padding:9px 11px}.home-business-heading h2{font-size:24px}}
-.price-auto-switches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:start}.price-auto-switches label{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;gap:7px;font-size:13px;font-weight:700;min-width:0}.price-auto-switches input[type=checkbox]{width:28px;height:28px;margin:0;flex:0 0 auto}@media(max-width:420px){.price-auto-switches label{font-size:11px}}</style>
+</style>
  <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#24445c">
 
@@ -243,29 +217,17 @@ td input,td select{min-width:80px;padding:8px}
 
 
 <section id="home" class="page active">
- <div class="card">
-  <div class="home-business-heading"><img id="homeBusinessLogo" class="home-business-logo hidden" alt="Business logo"><h2 id="homeBusinessName"></h2></div>
-  <div class="small" id="homeAccountInfo"></div>
-  <div class="home-primary-buttons">
-   <button class="home-primary" onclick="newMeasurement()"><span class="home-action-icon">📏</span><span>New Measurement</span></button>
-   <button class="home-blue" onclick="newQuotation()"><span class="home-action-icon">📋</span><span>New Quotation</span></button>
-   <button class="home-blue" onclick="newBlindOrder()"><span class="home-action-icon">🪟</span><span>New Blinds Order</span></button>
-   <button class="home-green" onclick="newInvoice()"><span class="home-action-icon">🧾</span><span>New Invoice</span></button>
-   <button class="home-purple" onclick="newReceipt()"><span class="home-action-icon">💳</span><span>New Payment Receipt</span></button>
-  </div>
-  <h3 class="home-section-title">📁 Saved Records</h3>
-  <div class="home-secondary-buttons">
-   <button class="saved-measurements" onclick="showPage('savedMeasurements')"><span class="saved-icon">📐</span><span>Saved Measurements</span><span class="saved-arrow">›</span></button>
-   <button class="saved-quotations" onclick="showPage('savedQuotes')"><span class="saved-icon">📋</span><span>Saved Quotations</span><span class="saved-arrow">›</span></button>
-   <button class="saved-blinds" onclick="showPage('savedBlindOrders')"><span class="saved-icon">🪟</span><span>Saved Blinds Orders</span><span class="saved-arrow">›</span></button>
-   <button class="saved-invoices" onclick="showPage('savedInvoices')"><span class="saved-icon">🧾</span><span>Saved Invoices</span><span class="saved-arrow">›</span></button>
-   <button class="saved-receipts" onclick="showPage('savedReceipts')"><span class="saved-icon">₹</span><span>Saved Payment Receipts</span><span class="saved-arrow">›</span></button>
-   <button class="saved-customers" onclick="showPage('customers')"><span class="saved-icon">👥</span><span>Customers</span><span class="saved-arrow">›</span></button>
-   <button class="saved-settings" onclick="showPage('settings')"><span class="saved-icon">⚙️</span><span>Settings</span><span class="saved-arrow">›</span></button>
-  </div>
-  <div id="homeAdminButton" class="hidden" style="margin-top:10px"><button class="btn-dark" style="width:100%" onclick="showPage('admin')">Admin Panel</button></div>
- </div>
- <div class="card"><h3>Quick Summary</h3><div class="grid"><div class="notice">Saved Measurements: <b id="homeMeasurementCount">0</b></div><div class="notice">Saved Quotations: <b id="homeQuoteCount">0</b></div><div class="notice">Saved Invoices: <b id="homeInvoiceCount">0</b></div><div class="notice">Saved Receipts: <b id="homeReceiptCount">0</b></div></div></div>
+ <div class="card"><h2 id="homeBusinessName" style="margin-bottom:6px"></h2><div class="small" id="homeAccountInfo"></div>
+  <div class="home-buttons">
+   <button class="home-primary" onclick="newMeasurement()">＋ New Measurement</button><button class="home-blue" onclick="newQuotation()">＋ New Quotation</button>
+   <button class="home-blue" onclick="newBlindOrder()">＋ New Blinds Order</button><button class="home-green" onclick="newInvoice()">＋ New Invoice</button>
+   <button class="home-purple" onclick="newReceipt()">＋ New Payment Receipt</button>
+  </div><h3 class="home-section-title">Saved Records</h3><div class="home-buttons">
+   <button class="btn-light" onclick="showPage('savedMeasurements')">Saved Measurements</button><button class="btn-light" onclick="showPage('savedQuotes')">Saved Quotations</button>
+   <button class="btn-light" onclick="showPage('savedBlindOrders')">Saved Blinds Orders</button><button class="btn-light" onclick="showPage('savedInvoices')">Saved Invoices</button>
+   <button class="btn-light" onclick="showPage('savedReceipts')">Saved Payment Receipts</button><button class="btn-light" onclick="showPage('customers')">Customers</button><button class="btn-light" onclick="showPage('settings')">Settings</button>
+  </div><div id="homeAdminButton" class="hidden" style="margin-top:10px"><button class="btn-dark" style="width:100%" onclick="showPage('admin')">Admin Panel</button></div>
+ </div><div class="card"><h3>Quick Summary</h3><div class="grid"><div class="notice">Saved Measurements: <b id="homeMeasurementCount">0</b></div><div class="notice">Saved Quotations: <b id="homeQuoteCount">0</b></div><div class="notice">Saved Invoices: <b id="homeInvoiceCount">0</b></div><div class="notice">Saved Receipts: <b id="homeReceiptCount">0</b></div><div class="notice">Saved Blinds Orders: <b id="homeBlindOrderCount">0</b></div></div></div>
 </section>
 
 <section id="measurement" class="page">
@@ -288,7 +250,7 @@ td input,td select{min-width:80px;padding:8px}
 
  
   <div class="notice" style="margin-bottom:10px">ഒരേ റൂമിലെ ഓരോ വിൻഡോയ്ക്കും ഓരോ വരി ചേർക്കുക. Room / Area ഒരേ പേരിൽ നൽകിയാൽ PDF-ൽ അവ ഒരുമിച്ച് വരും.</div>
-  <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Type</th><th>Custom Type</th><th>Width</th><th>Height</th><th>Shade No.</th><th>Unit</th><th>Qty</th><th>Rate (₹)</th><th>Delete</th></tr></thead><tbody id="measurementBody"></tbody></table></div>
+  <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Type</th><th>Custom Type</th><th>Width</th><th>Height</th><th>Shade No.</th><th>Unit</th><th>Qty</th><th>Value</th><th>Delete</th></tr></thead><tbody id="measurementBody"></tbody></table></div>
 
   <div class="row-add-bottom" style="display:flex;justify-content:flex-end;margin-top:10px">
     <button class="btn-blue" type="button" onclick="addMeasurementRow()">＋ Add Row</button>
@@ -300,7 +262,6 @@ td input,td select{min-width:80px;padding:8px}
   </div>
   <button class="btn-green" onclick="saveMeasurement()">Save Measurement</button>
   <button class="btn-blue" onclick="previewMeasurementSheet()">Preview Measurement Sheet</button>
-  <button class="btn-dark" onclick="printMeasurementSheet()">🖨️ Print A4</button>
   <button class="btn-dark" onclick="downloadMeasurementPDF()">Download / Share PDF</button>
   <button class="btn-blue" onclick="measurementToQuotation()">Create Quotation</button><button class="btn-blue" onclick="createBlindOrderFromCurrentMeasurement()">Create Blind Order</button><button class="btn-green" onclick="saveMeasurementJPG()">Save as JPG</button>
   <button class="btn-light" onclick="clearMeasurement()">Clear</button>
@@ -478,23 +439,11 @@ td input,td select{min-width:80px;padding:8px}
    <img id="signaturePreview" alt="സൂക്ഷിച്ച ഒപ്പിന്റെ മാതൃക" style="display:none;max-width:260px;max-height:90px;object-fit:contain;background:#fff;border:1px dashed #d5dce2;border-radius:8px;padding:6px;margin-top:6px">
    <div id="signatureStatus" class="small" style="margin-top:5px">ഇതുവരെ ഒപ്പ് ചേർത്തിട്ടില്ല.</div>
   </div>
-  <div class="field" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
-   <button type="button" class="btn-green" onclick="saveSettings()">Save Settings</button>
-  </div>
-  <div class="field" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
-   <h3>Product Price List</h3>
-   <div class="item-card price-auto-switches"><label><input type="checkbox" id="priceAutoMeasurement" onchange="savePriceAutoOptions()"> Measurement Sheet ON</label><label><input type="checkbox" id="priceAutoQuotation" onchange="savePriceAutoOptions()"> Quotation ON</label><label><input type="checkbox" id="priceAutoInvoice" onchange="savePriceAutoOptions()"> Invoice ON</label></div>
-   <div id="priceListRows"></div>
-   <div style="display:flex;justify-content:flex-end;margin-top:10px">
-    <button type="button" class="btn-blue" onclick="addPriceListRow()">＋ Add Row</button>
-   </div>
-   <button type="button" class="btn-green" onclick="saveProductPriceList()">Save Product Price List</button>
-   <div id="priceListItems" style="margin-top:12px"></div>
+  <button class="btn-green" onclick="saveSettings()">Save Settings</button>
   <button class="btn-light" onclick="downloadBackup()">Download Backup</button>
   <button class="btn-light" onclick="document.getElementById('restoreFile').click()">Restore Backup</button>
   <input id="restoreFile" class="hidden" type="file" accept="application/json" onchange="restoreBackup(event)">
   <button class="btn-dark" onclick="signOut()">Sign Out</button>
-  </div>
  </div>
 </section>
 
@@ -548,7 +497,7 @@ td input,td select{min-width:80px;padding:8px}
 </section>
 
 </div>
-<button id="fixedBackButton" type="button" onclick="goBackPage()" aria-label="Back" style="position:fixed;top:105px;left:12px;z-index:9999;background:#000;color:#fff;border:1px solid #222;border-radius:12px;padding:9px 14px;margin:0;font-size:14px;font-weight:700;box-shadow:0 2px 7px #0004;display:none">← Back</button>
+<button id="fixedBackButton" type="button" onclick="goBackPage()" aria-label="Back" style="position:fixed;top:12px;left:10px;z-index:9999;background:#e8eef3;color:#24445c;border:1px solid #d1dce5;border-radius:20px;padding:8px 12px;margin:0;font-size:14px;font-weight:600;box-shadow:0 2px 7px #0002;display:none">← Back</button>
 <div id="adminToast" role="status" aria-live="polite"></div>
 
 <script>
@@ -566,12 +515,7 @@ const DATA_KEY="curtain_manager_data_v4";
 const DELETED_MEASUREMENTS_KEY="curtain_manager_deleted_measurements_v1";
 const DELETED_RECORDS_KEY="curtain_manager_deleted_records_v1";
 const SETTINGS_KEY="curtain_manager_settings_v4";
-// Every authenticated user's browser cache is isolated by Supabase user ID.
-function userStorageKey(base){return authUser?.id?base+"_user_"+authUser.id:base+"_guest";}
-function settingsStorageKey(){return userStorageKey(SETTINGS_KEY);}
-function dataStorageKey(){return userStorageKey(DATA_KEY);}
-function deletedMeasurementsStorageKey(){return userStorageKey(DELETED_MEASUREMENTS_KEY);}
-function deletedRecordsStorageKey(){return userStorageKey(DELETED_RECORDS_KEY);}
+function settingsStorageKey(){return authUser?.id?SETTINGS_KEY+"_"+authUser.id:SETTINGS_KEY;}
 const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Blackout Curtain","Curtain with Sheer","Sheer Curtain","Zebra Blind","Roman Blind","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Other"];
 const rftTypes=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Curtain with Sheer","Sheer Curtain"];
 const $=id=>document.getElementById(id);
@@ -654,7 +598,6 @@ async function boot(){
   if(event==="SIGNED_IN"&&session?.user)setTimeout(()=>verifyUser(session.user),0);
   if(event==="SIGNED_OUT"){
    authUser=null;authRecord=null;accessCheckInProgress=false;
-   measurements=[];quotations=[];blindOrders=[];invoices=[];receipts=[];settings={};
    $("mainApp").classList.add("hidden");$("mainApp").style.display="none";
    $("loginScreen").classList.remove("hidden");$("loginScreen").style.display="grid";
    $("loginMessage").textContent="Signed out.";
@@ -667,7 +610,6 @@ async function signOut(){
   const {error}=await sb.auth.signOut({scope:"local"});
   if(error)throw error;
   authUser=null;authRecord=null;accessCheckInProgress=false;
-  measurements=[];quotations=[];blindOrders=[];invoices=[];receipts=[];settings={};
   $("mainApp").classList.add("hidden");$("mainApp").style.display="none";
   $("loginScreen").classList.remove("hidden");$("loginScreen").style.display="grid";
   $("loginMessage").textContent="Signed out. Please sign in again.";
@@ -685,7 +627,7 @@ async function loadCloudData(){
   loadStorage();
   const localSnapshot={measurements,quotations,blindOrders,invoices,receipts,settings};
   try{
-    const deletedIds=new Set(JSON.parse(localStorage.getItem(deletedMeasurementsStorageKey())||"[]").map(String));
+    const deletedIds=new Set(JSON.parse(localStorage.getItem(DELETED_MEASUREMENTS_KEY)||"[]").map(String));
     measurements=measurements.filter(x=>!deletedIds.has(String(x.id)));
   }catch(e){}
 
@@ -704,17 +646,17 @@ async function loadCloudData(){
   if(data&&data.data){
     const cloud=data.data;
     let localDeletedMeasurementIds=[];
-    try{localDeletedMeasurementIds=JSON.parse(localStorage.getItem(deletedMeasurementsStorageKey())||"[]").map(String);}catch(e){localDeletedMeasurementIds=[];}
+    try{localDeletedMeasurementIds=JSON.parse(localStorage.getItem(DELETED_MEASUREMENTS_KEY)||"[]").map(String);}catch(e){localDeletedMeasurementIds=[];}
     const cloudDeletedMeasurementIds=Array.isArray(cloud.deletedMeasurementIds)?cloud.deletedMeasurementIds.map(String):[];
     const deletedMeasurementSet=new Set([...localDeletedMeasurementIds,...cloudDeletedMeasurementIds]);
-    try{localStorage.setItem(deletedMeasurementsStorageKey(),JSON.stringify([...deletedMeasurementSet]));}catch(e){}
-    let localDeletedRecords={};try{localDeletedRecords=JSON.parse(localStorage.getItem(deletedRecordsStorageKey())||"{}");}catch(e){}
+    try{localStorage.setItem(DELETED_MEASUREMENTS_KEY,JSON.stringify([...deletedMeasurementSet]));}catch(e){}
+    let localDeletedRecords={};try{localDeletedRecords=JSON.parse(localStorage.getItem(DELETED_RECORDS_KEY)||"{}");}catch(e){}
     const cloudDeletedRecords=cloud.deletedRecordIds&&typeof cloud.deletedRecordIds==="object"?cloud.deletedRecordIds:{};
     const deletedRecordIds={};
     ["quotations","blindOrders","invoices","receipts"].forEach(k=>{
       deletedRecordIds[k]=[...new Set([...(Array.isArray(localDeletedRecords[k])?localDeletedRecords[k]:[]),...(Array.isArray(cloudDeletedRecords[k])?cloudDeletedRecords[k]:[])].map(String))];
     });
-    try{localStorage.setItem(deletedRecordsStorageKey(),JSON.stringify(deletedRecordIds));}catch(e){}
+    try{localStorage.setItem(DELETED_RECORDS_KEY,JSON.stringify(deletedRecordIds));}catch(e){}
     const mergeById=(localList,cloudList,deletedIds=[])=>{
       const deletedSet=new Set(deletedIds.map(String));const map=new Map();
       (Array.isArray(cloudList)?cloudList:[]).forEach(x=>{if(!deletedSet.has(String(x.id)))map.set(String(x.id),x);});
@@ -730,7 +672,7 @@ async function loadCloudData(){
   }
 
   try{
-    localStorage.setItem(dataStorageKey(),JSON.stringify({measurements,quotations,blindOrders,invoices,receipts}));
+    localStorage.setItem(DATA_KEY,JSON.stringify({measurements,quotations,blindOrders,invoices,receipts}));
     localStorage.setItem(settingsStorageKey(),JSON.stringify(settings));
   }catch(e){console.error("Local cache save failed:",e);}
 
@@ -754,7 +696,7 @@ async function saveCloudData(){
   if(!sb||!authUser)return {ok:false,message:"Cloud login is not ready."};
 
   let deletedMeasurementIds=[];
-  try{deletedMeasurementIds=JSON.parse(localStorage.getItem(deletedMeasurementsStorageKey())||"[]").map(String);}catch(e){deletedMeasurementIds=[];}
+  try{deletedMeasurementIds=JSON.parse(localStorage.getItem(DELETED_MEASUREMENTS_KEY)||"[]").map(String);}catch(e){deletedMeasurementIds=[];}
   const {data:existing,error:findError}=await sb
     .from("customer_data")
     .select("id,data")
@@ -764,14 +706,14 @@ async function saveCloudData(){
   const cloudDeleted=Array.isArray(existing?.data?.deletedMeasurementIds)?existing.data.deletedMeasurementIds.map(String):[];
   const deletedSet=new Set([...deletedMeasurementIds,...cloudDeleted]);
   deletedMeasurementIds=[...deletedSet];
-  try{localStorage.setItem(deletedMeasurementsStorageKey(),JSON.stringify(deletedMeasurementIds));}catch(e){}
-  let localDeletedRecords={};try{localDeletedRecords=JSON.parse(localStorage.getItem(deletedRecordsStorageKey())||"{}");}catch(e){}
+  try{localStorage.setItem(DELETED_MEASUREMENTS_KEY,JSON.stringify(deletedMeasurementIds));}catch(e){}
+  let localDeletedRecords={};try{localDeletedRecords=JSON.parse(localStorage.getItem(DELETED_RECORDS_KEY)||"{}");}catch(e){}
   const cloudDeletedRecords=existing?.data?.deletedRecordIds&&typeof existing.data.deletedRecordIds==="object"?existing.data.deletedRecordIds:{};
   const deletedRecordIds={};
   ["quotations","blindOrders","invoices","receipts"].forEach(k=>{
     deletedRecordIds[k]=[...new Set([...(Array.isArray(localDeletedRecords[k])?localDeletedRecords[k]:[]),...(Array.isArray(cloudDeletedRecords[k])?cloudDeletedRecords[k]:[])].map(String))];
   });
-  try{localStorage.setItem(deletedRecordsStorageKey(),JSON.stringify(deletedRecordIds));}catch(e){}
+  try{localStorage.setItem(DELETED_RECORDS_KEY,JSON.stringify(deletedRecordIds));}catch(e){}
   const filterDeleted=(list,ids)=>list.filter(x=>!new Set(ids.map(String)).has(String(x.id)));
   measurements=filterDeleted(measurements,[...deletedSet]);
   quotations=filterDeleted(quotations,deletedRecordIds.quotations);
@@ -797,7 +739,7 @@ async function saveCloudData(){
 
  function loadStorage(){
  try{
-   const d=JSON.parse(localStorage.getItem(dataStorageKey())||"{}");
+   const d=JSON.parse(localStorage.getItem(DATA_KEY)||"{}");
    measurements=Array.isArray(d.measurements)?d.measurements:[];
    quotations=Array.isArray(d.quotations)?d.quotations:[];
     blindOrders=Array.isArray(d.blindOrders)?d.blindOrders:[];
@@ -815,7 +757,7 @@ async function saveCloudData(){
 
 function saveStorage(){
   try{
-    localStorage.setItem(dataStorageKey(),JSON.stringify({measurements,quotations,blindOrders,invoices,receipts}));
+    localStorage.setItem(DATA_KEY,JSON.stringify({measurements,quotations,blindOrders,invoices,receipts}));
     localStorage.setItem(settingsStorageKey(),JSON.stringify(settings));
     updateHome();
   }catch(error){
@@ -850,78 +792,11 @@ function loadSettings(){
  $("logoPreview").src=settings.logo||"";
  updateSignaturePreview();
  clearSignatureCanvas();
- loadPriceListRows();
 }
 function saveSettings(){
- settings={...settings,name:$("sName").value.trim(),phone:$("sPhone").value.trim(),whatsapp:$("sWhatsapp").value.trim(),email:$("sEmail").value.trim(),gst:$("sGST").value.trim(),validity:$("sValidity").value.trim(),address:$("sAddress").value.trim(),logo:settings.logo||"",signature:settings.signature||"",productPriceList:Array.isArray(settings.productPriceList)?settings.productPriceList:[],priceAutoOptions:settings.priceAutoOptions||{measurement:false,quotation:true,invoice:true}};
+ settings={...settings,name:$("sName").value.trim(),phone:$("sPhone").value.trim(),whatsapp:$("sWhatsapp").value.trim(),email:$("sEmail").value.trim(),gst:$("sGST").value.trim(),validity:$("sValidity").value.trim(),address:$("sAddress").value.trim(),logo:settings.logo||"",signature:settings.signature||""};
  saveStorage();alert("Business settings saved.");
 }
-function getPriceAutoOptions(){return settings.priceAutoOptions||{measurement:false,quotation:true,invoice:true};}
-function savePriceAutoOptions(){settings.priceAutoOptions={measurement:$("priceAutoMeasurement").checked,quotation:$("priceAutoQuotation").checked,invoice:$("priceAutoInvoice").checked};saveStorage();}
-function loadPriceAutoOptions(){const o=getPriceAutoOptions();[ ["priceAutoMeasurement","measurement"],["priceAutoQuotation","quotation"],["priceAutoInvoice","invoice"] ].forEach(([id,k])=>{const el=$(id);if(el)el.checked=!!o[k];});}
-function priceListEnabled(where){return !!getPriceAutoOptions()[where];}
-function priceListNormalized(item){
- const name=String(item?.name||"");
- const known=types.includes(name);
- return {id:String(item?.id||newId()),type:known?name:"Other",customType:known?"":name,rate:item?.rate??"",customUnit:item?.customUnit||"Sq.Ft"};
-}
-function renderPriceList(){
- const host=$("priceListItems");if(!host)return;
- const list=Array.isArray(settings.productPriceList)?settings.productPriceList:[];
- if(!list.length){host.innerHTML='<div class="empty">Price List ഇതുവരെ ചേർത്തിട്ടില്ല.</div>';return;}
- host.innerHTML=list.map(item=>`<div class="item-card"><b>${esc(item.name)}</b><div class="small">Rate: ₹${money(item.rate)}</div><button type="button" class="btn-red" onclick="deletePriceListSavedItem('${String(item.id)}')">Delete</button></div>`).join("");
-}
-function addPriceListRow(item={}){
- const row=priceListNormalized(item),host=$("priceListRows");
- const div=document.createElement("div");div.className="item-card price-list-row";
- div.innerHTML=`<div class="grid">
-  <div class="field"><label>Product Name</label><select class="plType">${types.map(t=>`<option value="${esc(t)}" ${row.type===t?"selected":""}>${esc(t)}</option>`).join("")}</select><input class="plCustom" placeholder="Other product name" style="display:none;margin-top:6px" value="${esc(row.customType)}"></div>
-  <div class="field"><label>Rate (₹)</label><input class="plRate" type="number" min="0" step=".01" value="${esc(row.rate)}" placeholder="Rate"></div>
- </div><button type="button" class="btn-red plDelete">Delete Row</button>`;
- const type=div.querySelector(".plType"),custom=div.querySelector(".plCustom");
- const update=()=>{custom.style.display=type.value==="Other"?"block":"none";};
- type.onchange=update;update();
- div.querySelector(".plDelete").onclick=()=>div.remove();
- div.dataset.id=row.id;
- host.appendChild(div);
-}
-function loadPriceListRows(){
- loadPriceAutoOptions();
- const host=$("priceListRows");if(!host)return;host.innerHTML="";
- const list=Array.isArray(settings.productPriceList)?settings.productPriceList:[];
- if(list.length)list.forEach(item=>addPriceListRow(item));else addPriceListRow();
- renderPriceList();
-}
-function saveProductPriceList(){
- const rows=[...document.querySelectorAll("#priceListRows .price-list-row")];
- const next=[];
- for(const row of rows){
-  const type=row.querySelector(".plType").value;
-  const custom=row.querySelector(".plCustom").value.trim();
-  const name=type==="Other"?custom:type;
-  const rateText=row.querySelector(".plRate").value;
-  if(!name && rateText==="")continue;
-  if(!name){alert("Product Name തിരഞ്ഞെടുക്കുക അല്ലെങ്കിൽ Other-ൽ പേര് നൽകുക.");return;}
-  if(rateText===""||!Number.isFinite(Number(rateText))||Number(rateText)<0){alert("“"+name+"” എന്നതിന് ശരിയായ Rate നൽകുക.");return;}
-  if(next.some(x=>x.name.toLowerCase()===name.toLowerCase())){alert("ഒരേ Product Name ഒന്നിലധികം തവണ ചേർത്തിട്ടുണ്ട്: "+name);return;}
-  next.push({id:String(row.dataset.id||newId()),name,rate:Number(rateText),type,customType:custom,customUnit:"Sq.Ft"});
- }
- settings.productPriceList=next.sort((a,b)=>a.name.localeCompare(b.name));
- saveStorage();renderPriceList();alert("Product Price List സേവ് ചെയ്തു.");
-}
-function deletePriceListSavedItem(id){
- const item=(settings.productPriceList||[]).find(x=>String(x.id)===String(id));if(!item)return;
- if(!confirm(`“${item.name}” Price List-ൽ നിന്ന് Delete ചെയ്യണോ?`))return;
- settings.productPriceList=settings.productPriceList.filter(x=>String(x.id)!==String(id));
- saveStorage();renderPriceList();loadPriceListRows();
-}
-function applyPriceFromList(itemName,where="quotation"){
- if(!priceListEnabled(where))return null;
- const name=String(itemName||"").trim().toLowerCase();if(!name)return null;
- const match=(Array.isArray(settings.productPriceList)?settings.productPriceList:[]).find(x=>String(x.name||"").trim().toLowerCase()===name);
- return match?Number(match.rate):null;
-}
-
 function loadLogo(e){
  const f=e.target.files[0];if(!f)return;
  const r=new FileReader();r.onload=ev=>{settings.logo=ev.target.result;$("logoPreview").src=settings.logo;saveStorage();};r.readAsDataURL(f);
@@ -965,8 +840,8 @@ function updateHome(){
  if($("homeQuoteCount"))$("homeQuoteCount").textContent=quotations.length;
  if($("homeInvoiceCount"))$("homeInvoiceCount").textContent=invoices.length;
  if($("homeReceiptCount"))$("homeReceiptCount").textContent=receipts.length;
+ if($("homeBlindOrderCount"))$("homeBlindOrderCount").textContent=blindOrders.length;
  if($("homeBusinessName")){const businessName=String(settings.name||"").trim();$("homeBusinessName").textContent=businessName;$("homeBusinessName").classList.toggle("hidden",!businessName);}
-  if($("homeBusinessLogo")){const logo=String(settings.logo||"").trim();$("homeBusinessLogo").src=logo;$("homeBusinessLogo").classList.toggle("hidden",!logo);}
  if($("homeAccountEmail"))$("homeAccountEmail").textContent=authUser?.email||"";
 }
 let pageHistory=[];
@@ -1014,7 +889,7 @@ function addMeasurementRow(data){
   <td data-label="Shade No."><input class="mShade" placeholder="Optional"></td>
   <td class="mUnitCell" data-label="Unit">Sq.Ft</td>
   <td data-label="Qty"><input class="mQty" type="number" min="1" value="1"></td>
-  <td class="mAreaCell" data-label="Rate (₹)"><div class="mAreaValue" style="display:none">0.00</div><input class="mRate" type="number" min="0" step=".01" style="width:100%;max-width:140px;padding:8px" value=""><div class="mFabricCalc" style="font-size:12px;line-height:1.35;font-weight:700;color:#17613a;margin-top:4px"></div></td>
+  <td class="mAreaCell" data-label="Value"><div class="mAreaValue">0.00</div><div class="mFabricCalc" style="font-size:12px;line-height:1.35;font-weight:700;color:#17613a;margin-top:4px"></div></td>
   <td data-label="Delete"><button class="btn-red" type="button" style="padding:5px 9px;font-size:12px;margin:0">Delete</button></td>`;
  $("measurementBody").appendChild(tr);
  const typeSelect=tr.querySelector(".mType");
@@ -1026,10 +901,9 @@ function addMeasurementRow(data){
   customUnit.style.display=other?"block":"none";
   recalculateMeasurements();
  }
- typeSelect.onchange=()=>{updateCustom();updateMeasurementRate(tr);};
- customUnit.onchange=()=>{recalculateMeasurements();updateMeasurementRate(tr);};
- customInput.oninput=()=>updateMeasurementRate(tr);
- tr.querySelectorAll("input").forEach(i=>i.oninput=()=>{recalculateMeasurements();if(i.classList.contains("mRate"))return;updateMeasurementRate(tr);});
+ typeSelect.onchange=updateCustom;
+ customUnit.onchange=recalculateMeasurements;
+ tr.querySelectorAll("input").forEach(i=>i.oninput=recalculateMeasurements);
  tr.querySelector("button").onclick=()=>{tr.remove();recalculateMeasurements();};
  if(data){
   tr.querySelector(".mArea").value=data.area||"";
@@ -1040,12 +914,9 @@ function addMeasurementRow(data){
   tr.querySelector(".mWidth").value=data.width??"";
   tr.querySelector(".mQty").value=data.qty||1;
   tr.querySelector(".mShade").value=data.shade||"";
-  tr.querySelector(".mRate").value=data.rate??"";
  }
- updateCustom();updateMeasurementRate(tr);
+ updateCustom();
 }
-function measurementRowProductName(tr){const type=tr.querySelector(".mType").value;return type==="Other"?tr.querySelector(".mCustomType").value.trim():type;}
-function updateMeasurementRate(tr){const input=tr.querySelector(".mRate");if(!input||!priceListEnabled("measurement"))return;const found=applyPriceFromList(measurementRowProductName(tr),"measurement");if(found!==null)input.value=String(found);}
 function renumberRows(){document.querySelectorAll("#measurementBody tr").forEach((r,i)=>r.querySelector(".rowNo").textContent=i+1);}
 function getRowCalc(h,w,unit,type,qty,rate,customUnit){
  const rft=isRFT(type,customUnit);
@@ -1062,7 +933,7 @@ function clothMeters(row,unit){
  const main=type!=="Sheer Curtain";
  const sheer=type==="Sheer Curtain"||type==="Curtain with Sheer";
  const mainPanels=main?Math.ceil(width/50):0,
-      sheerPanels=sheer?Math.max(0,Math.ceil((width/60)-0.2-1e-9)):0;
+      sheerPanels=sheer?Math.floor(width/60):0;
  return {curtain:main?mainPanels*(height+30)/100*qty:0,sheer:sheer?sheerPanels*(height+25)/100*qty:0,mainPanels,sheerPanels};
 }
 function recalculateMeasurements(){
@@ -1096,7 +967,7 @@ function getMeasurementForm(){
   const type=tr.querySelector(".mType").value;
   const customType=tr.querySelector(".mCustomType").value.trim();
   const customUnit=tr.querySelector(".mCustomUnit").value;
-  const qty=Math.max(1,Number(tr.querySelector(".mQty").value)||1),rate=Number(tr.querySelector(".mRate").value)||0;
+  const qty=Math.max(1,Number(tr.querySelector(".mQty").value)||1),rate=0;
   const c=getRowCalc(h,w,$("mUnit").value,type,qty,rate,customUnit);
   const fabric=clothMeters({type,height:h,width:w,qty},$("mUnit").value);
   rows.push({area:tr.querySelector(".mArea").value.trim(),type,customType,customUnit,shade:tr.querySelector(".mShade").value.trim(),height:h,width:w,qty,rate,unit:c.unit,areaValue:c.area,amount:c.amount,sqft:c.sqft,rft:c.rft,curtainMeters:fabric.curtain,sheerMeters:fabric.sheer,curtainPanels:fabric.mainPanels,sheerPanels:fabric.sheerPanels});
@@ -1125,29 +996,29 @@ function editMeasurement(id){
 }
 
 function addDeletedRecordId(collection,id){
- let all={};try{all=JSON.parse(localStorage.getItem(deletedRecordsStorageKey())||"{}");}catch(e){}
+ let all={};try{all=JSON.parse(localStorage.getItem(DELETED_RECORDS_KEY)||"{}");}catch(e){}
  if(!Array.isArray(all[collection]))all[collection]=[];
  const idText=String(id);if(!all[collection].map(String).includes(idText))all[collection].push(idText);
- try{localStorage.setItem(deletedRecordsStorageKey(),JSON.stringify(all));}catch(e){console.error("Delete marker save failed:",e);}
+ try{localStorage.setItem(DELETED_RECORDS_KEY,JSON.stringify(all));}catch(e){console.error("Delete marker save failed:",e);}
 }
 function showDeleteSyncNotice(message,success=true){
  let el=document.getElementById("deleteSyncNotice");
  if(!el){el=document.createElement("div");el.id="deleteSyncNotice";el.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:999999;padding:20px 30px;border-radius:16px;color:#fff;font:700 20px Arial,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.32);max-width:88vw;text-align:center;min-width:220px";document.body.appendChild(el);}
  el.style.background=success?"#16803c":"#b42323";el.textContent=(success?"✓ ":"⚠ ")+message;el.style.display="block";
- clearTimeout(window.deleteSyncNoticeTimer);window.deleteSyncNoticeTimer=setTimeout(()=>{el.style.display="none";},1800);
+ clearTimeout(window.deleteSyncNoticeTimer);window.deleteSyncNoticeTimer=setTimeout(()=>{el.style.display="none";},3000);
 }
 async function persistDeleteAndNotify(){
- // Show one quick confirmation only. Cloud sync continues silently in the background.
- showDeleteSyncNotice("Deleted Successfully",true);
+ // Instant centered feedback immediately after the user's confirmation.
+ showDeleteSyncNotice("Deleted Successfully ✓",true);
  saveStorage();
- if(!sb||!authUser)return false;
- try{const result=await saveCloudData();return !!result.ok;}
- catch(e){console.error("Delete cloud sync failed:",e);return false;}
+ if(!sb||!authUser){showDeleteSyncNotice("Deleted on this device · Cloud login unavailable",false);return false;}
+ try{const result=await saveCloudData();if(!result.ok){showDeleteSyncNotice("Deleted locally · Cloud Sync failed",false);return false;}showDeleteSyncNotice("Deleted Successfully · Synced to Cloud ✓",true);return true;}
+ catch(e){showDeleteSyncNotice("Deleted locally · Cloud Sync failed",false);return false;}
 }
 
 async function deleteMeasurement(id){
  if(!confirm("Delete this measurement sheet?"))return;
- const key=deletedMeasurementsStorageKey();
+ const key=DELETED_MEASUREMENTS_KEY;
  let deleted=[];try{deleted=JSON.parse(localStorage.getItem(key)||"[]");}catch(e){deleted=[];}
  const idText=String(id);if(!deleted.map(String).includes(idText))deleted.push(idText);
  try{localStorage.setItem(key,JSON.stringify(deleted));}catch(e){console.error("Measurement deletion marker save failed:",e);}
@@ -1179,7 +1050,7 @@ function renderMeasurements(){
  $("measurementList").innerHTML=list.slice().reverse().map(m=>{
   const sqft=m.rows.reduce((a,r)=>a+Number(r.sqft||0),0);
   const rft=m.rows.reduce((a,r)=>a+Number(r.rft||0),0);
-  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(formatDateDMY(m.date))}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></p><div class="measurement-action-grid"><button class="btn-blue" onclick="viewMeasurement(${m.id})">View</button><button class="btn-green" onclick="editMeasurement(${m.id})">Edit</button><button class="btn-dark" onclick="downloadSavedMeasurementPDF(${m.id})">Share PDF</button><button class="btn-green" onclick="saveSavedMeasurementJPG(${m.id})">Save as JPG</button><button class="btn-blue" onclick="measurementToQuotationSaved(${m.id})">Create Quotation</button><button class="btn-green" onclick="measurementToInvoice(${m.id})">Create Invoice</button><button class="btn-blue" onclick="measurementToBlindOrder(${m.id})">Create Blind Order</button><button class="btn-dark" onclick="measurementToReceipt(${m.id})">Create Receipt</button><button class="btn-red" onclick="deleteMeasurement(${m.id})">Delete</button><button class="btn-dark" onclick="printSavedMeasurementSheet(${m.id})">🖨️ Print A4</button></div></div>`;
+  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(formatDateDMY(m.date))}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></p><div class="measurement-action-grid"><button class="btn-blue" onclick="viewMeasurement(${m.id})">View</button><button class="btn-green" onclick="editMeasurement(${m.id})">Edit</button><button class="btn-dark" onclick="downloadSavedMeasurementPDF(${m.id})">Share PDF</button><button class="btn-green" onclick="saveSavedMeasurementJPG(${m.id})">Save as JPG</button><button class="btn-blue" onclick="measurementToQuotationSaved(${m.id})">Create Quotation</button><button class="btn-green" onclick="measurementToInvoice(${m.id})">Create Invoice</button><button class="btn-blue" onclick="measurementToBlindOrder(${m.id})">Create Blind Order</button><button class="btn-dark" onclick="measurementToReceipt(${m.id})">Create Receipt</button><button class="btn-red" onclick="deleteMeasurement(${m.id})">Delete</button></div></div>`;
  }).join("")||'<div class="card empty">No saved measurements found.</div>';
 }
 function measurementSheetHTML(m){
@@ -1232,62 +1103,6 @@ function previewMeasurementSheet(){
  const el=$("measurementPreview");el.innerHTML=measurementSheetHTML(m);el.classList.remove("hidden");
  el.scrollIntoView({behavior:"smooth",block:"start"});
 }
-function printMeasurementSheet(){
- const m=getMeasurementForm();
- if(!m.rows.length)return alert("Enter at least one valid width and height.");
- if(m.rows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
- printMeasurementData(m);
-}
-function printSavedMeasurementSheet(id){
- const m=measurements.find(x=>String(x.id)===String(id));
- if(!m)return alert("Saved measurement not found.");
- if(!m.rows||!m.rows.length)return alert("No measurement rows found.");
- if(m.rows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
- printMeasurementData(m);
-}
-function printMeasurementData(m){
- const printWindow=window.open("","_blank");
- if(!printWindow)return alert("Print window blocked. Please allow pop-ups and try again.");
- const html=measurementSheetHTML(m);
- printWindow.document.open();
- printWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Measurement Sheet</title><style>
- @page{size:A4 portrait;margin:8mm}
- *{box-sizing:border-box}
- html,body{margin:0;padding:0;background:#fff;color:#203040;font-family:Arial,sans-serif}
- body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
- .measurement-print{width:194mm;max-width:194mm;min-height:0;margin:0;padding:0;background:#fff;font-family:Arial,sans-serif}
- .measurement-print-head{text-align:center;border-bottom:2px solid #24445c;padding-bottom:8px;margin-bottom:9px}
- .measurement-print-head h2{margin:4px 0;font-size:19px}
- .measurement-print-head h3{font-size:14px}
- .measurement-print-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;margin:8px 0 10px;font-size:12px}
- .measurement-room{display:grid;grid-template-columns:105px minmax(0,1fr) 95px 85px;gap:8px;align-items:stretch;border-top:1.5px solid #647586;padding:5px 4px;break-inside:avoid;page-break-inside:avoid}
- .measurement-room-name{font-weight:bold;overflow-wrap:anywhere;padding-top:8px;font-size:12px}
- .measurement-window-list{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-start}
- .measurement-window{width:112px;min-height:0;display:flex;flex-direction:column;align-items:flex-start;break-inside:avoid;page-break-inside:avoid}
- .measurement-seven{position:relative;width:max-content;height:52px;margin:6px 0 3px 4px}
- .measurement-seven:after{content:"";position:absolute;left:100%;top:22px;height:28px;border-right:2px solid #243c55}
- .measurement-width{position:relative;display:inline-block;left:auto;top:auto;font-weight:800;font-size:16px;white-space:nowrap;padding-bottom:2px;border-bottom:2px solid #243c55}
- .measurement-width:after{content:"";position:absolute;left:100%;top:100%;height:36px;border-right:2px solid #243c55}
- .measurement-height{position:absolute;left:calc(100% + 7px);top:36px;font-weight:800;font-size:13px;line-height:1.1;white-space:nowrap;z-index:2;background:#fff;padding:0 2px}
- .measurement-window-detail{font-size:10px;line-height:1.3;margin-top:4px;overflow-wrap:anywhere}
- .measurement-fabric{font-size:11px;font-weight:800;margin-top:2px}
- .measurement-room-total{font-weight:bold;text-align:right;padding-top:8px;font-size:11px}
- .measurement-shade{font-size:10px;font-weight:bold;margin-top:2px;overflow-wrap:anywhere}
- .measurement-grand{border-top:2px solid #24445c;margin-top:8px;padding-top:8px;text-align:left;font-weight:bold;font-size:11px;break-inside:avoid;page-break-inside:avoid}
- @media print{
-  html,body{width:194mm;margin:0!important;padding:0!important}
-  .measurement-print{width:194mm;max-width:194mm;min-height:0!important;margin:0!important;padding:0!important}
-  .measurement-room,.measurement-window,.measurement-grand{break-inside:avoid;page-break-inside:avoid}
- }
- </style></head><body>${html}<script>
- window.addEventListener("load",()=>{
-  const go=()=>setTimeout(()=>{try{window.focus();window.print();}catch(e){}},350);
-  if(document.fonts&&document.fonts.ready){document.fonts.ready.then(go).catch(go);}else go();
- });
- <\/script></body></html>`);
- printWindow.document.close();
-}
-
 async function createMeasurementPDF(m){
  if(!m.rows||!m.rows.length)return alert("Enter at least one measurement.");
  if(!window.jspdf||!window.html2canvas)return alert("PDF libraries did not load. Check your internet connection.");
@@ -1330,7 +1145,7 @@ function measurementToQuotation(){
   if(!grouped[key])grouped[key]={qty:0,unit,name:baseName};
   grouped[key].qty+=qty;
  });
- quotationItems=Object.values(grouped).map(g=>({name:g.name,qty:Number(g.qty.toFixed(2)),rate:(priceListEnabled("quotation")?applyPriceFromList(g.name,"quotation"):null)??"",unit:g.unit}));
+ quotationItems=Object.values(grouped).map(g=>({name:g.name,qty:Number(g.qty.toFixed(2)),rate:"",unit:g.unit}));
  if(curtainMeters>0)quotationItems.push({name:"TOTAL CURTAIN CLOTH",qty:Number(curtainMeters.toFixed(2)),rate:"",unit:"Meter"});
  if(sheerMeters>0)quotationItems.push({name:"TOTAL SHEER CLOTH",qty:Number(sheerMeters.toFixed(2)),rate:"",unit:"Meter"});
  renderQuotationItems();
@@ -1347,7 +1162,7 @@ function measurementToInvoice(id){
   const fabric=blind?{curtain:0,sheer:0}:clothMeters(r,m.unit||"cm");
   curtainMeters+=Number(fabric.curtain||0);sheerMeters+=Number(fabric.sheer||0);
   const name=(r.type==="Other"?(r.customType||"Other"):r.type);
-  return {name,qty:Number((blind?(r.sqft||r.areaValue):(r.rft||r.areaValue))||0).toFixed(2),unit:blind?"Sq.Ft":"RFT",rate:(priceListEnabled("invoice")?applyPriceFromList(name,"invoice"):null)??""};
+  return {name,qty:Number((blind?(r.sqft||r.areaValue):(r.rft||r.areaValue))||0).toFixed(2),unit:blind?"Sq.Ft":"RFT",rate:""};
  });
  if(curtainMeters>0)invoiceItems.push({name:"TOTAL CURTAIN CLOTH",qty:Number(curtainMeters.toFixed(2)),unit:"Meter",rate:""});
  if(sheerMeters>0)invoiceItems.push({name:"TOTAL SHEER CLOTH",qty:Number(sheerMeters.toFixed(2)),unit:"Meter",rate:""});
@@ -1389,13 +1204,13 @@ async function saveMeasurementJPG(){
  let capture=null;
  try{
   capture=source.cloneNode(true);
-  capture.style.cssText="position:fixed;left:-100000px;top:0;width:794px;max-width:none;height:auto;overflow:visible;background:#fff;padding:0;z-index:-1;";
+  capture.style.cssText="position:fixed;left:-100000px;top:0;width:1100px;max-width:none;height:auto;overflow:visible;background:#fff;padding:24px;z-index:-1;";
   capture.querySelectorAll(".measurement-room").forEach(el=>el.style.cssText="display:grid;grid-template-columns:105px minmax(0,1fr) 95px 85px;gap:8px;align-items:stretch;border-top:1.5px solid #647586;padding:5px 4px;");
   capture.querySelectorAll(".measurement-window-list").forEach(el=>el.style.cssText="display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-start;");
   capture.querySelectorAll(".measurement-window").forEach(el=>el.style.cssText="width:112px;min-height:120px;display:flex;flex-direction:column;align-items:flex-start;flex-shrink:0;");
   document.body.appendChild(capture);
   await waitForImages(capture);
-  const canvas=await html2canvas(capture,{scale:3.125,useCORS:true,backgroundColor:"#ffffff",logging:false,windowWidth:794,windowHeight:1123,scrollX:0,scrollY:0});
+  const canvas=await html2canvas(capture,{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,windowWidth:1200,scrollX:0,scrollY:0});
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.95));
   if(!blob)throw new Error("JPG ഫയൽ തയ്യാറാക്കാൻ കഴിഞ്ഞില്ല.");
   const url=URL.createObjectURL(blob),a=document.createElement("a");
@@ -1411,10 +1226,10 @@ async function saveSavedMeasurementJPG(id){
  let capture=null;
  try{
   capture=document.createElement("div");capture.innerHTML=measurementSheetHTML(m);
-  capture.style.cssText="position:fixed;left:-100000px;top:0;width:794px;max-width:none;height:auto;overflow:visible;background:#fff;padding:0;z-index:-1;";
-  const sheet=capture.querySelector(".measurement-print");if(sheet){sheet.style.width="794px";sheet.style.maxWidth="none";sheet.style.minHeight="1123px";sheet.style.background="#fff";}
+  capture.style.cssText="position:fixed;left:-100000px;top:0;width:1100px;max-width:none;height:auto;overflow:visible;background:#fff;padding:24px;z-index:-1;";
+  const sheet=capture.querySelector(".measurement-print");if(sheet){sheet.style.width="1050px";sheet.style.maxWidth="none";sheet.style.background="#fff";}
   document.body.appendChild(capture);await waitForImages(capture);
-  const canvas=await html2canvas(capture,{scale:3.125,useCORS:true,backgroundColor:"#ffffff",logging:false,windowWidth:794,windowHeight:1123,scrollX:0,scrollY:0});
+  const canvas=await html2canvas(capture,{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,windowWidth:1200,scrollX:0,scrollY:0});
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.95));if(!blob)throw new Error("JPG export failed");
   const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="Measurement-"+((m.customer||"Customer").replace(/[^a-z0-9-_]/gi,"-"))+".jpg";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
  }catch(e){alert("JPG Error: "+(e.message||e.name||"Unknown error"));}finally{if(capture?.parentNode)capture.remove();}
@@ -1440,27 +1255,14 @@ function renderQuotationItems(){
  quotationItems.forEach((it,i)=>{
   const d=document.createElement("div");d.className="item-card";
   d.innerHTML=`<div class="grid">
-   <div class="field"><label>Item / Description</label><input data-k="name" list="quotationPriceListOptions" value="${esc(it.name)}"><datalist id="quotationPriceListOptions">${(settings.productPriceList||[]).map(p=>`<option value="${esc(p.name)}"></option>`).join("")}</datalist></div>
+   <div class="field"><label>Item / Description</label><input data-k="name" value="${esc(it.name)}"></div>
    <div class="field"><label>Quantity</label><input data-k="qty" type="number" min="0" step=".01" value="${it.qty??""}"></div>
    <div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option value="${u}" ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div>
    <div class="field"><label>Rate (₹)</label><input data-k="rate" type="number" min="0" step=".01" value="${it.rate??""}"></div>
   </div><p>Amount: <b>₹${money((Number(it.qty)||0)*(Number(it.rate)||0))}</b></p><button class="btn-red" type="button">Delete Item</button>`;
   d.querySelectorAll("[data-k]").forEach(el=>{
    const update=()=>{quotationItems[i][el.dataset.k]=el.value;calculateQuotation();};
-   el.oninput=()=>{
-    if(el.dataset.k==="name"){
-     const autoRate=applyPriceFromList(el.value,"quotation");
-     if(autoRate!==null){quotationItems[i].rate=String(autoRate);const rateInput=d.querySelector('[data-k="rate"]');if(rateInput)rateInput.value=String(autoRate);}
-    }
-    update();
-   };
-   el.onchange=()=>{
-    if(el.dataset.k==="name"){
-     const autoRate=applyPriceFromList(el.value,"quotation");
-     if(autoRate!==null){quotationItems[i].rate=String(autoRate);const rateInput=d.querySelector('[data-k="rate"]');if(rateInput)rateInput.value=String(autoRate);}
-    }
-    update();
-   };
+   el.oninput=update;el.onchange=update;
   });
   d.querySelector("button").onclick=()=>{quotationItems.splice(i,1);renderQuotationItems();};
   $("quotationItems").appendChild(d);
@@ -1507,7 +1309,6 @@ function renderSavedQuotes(){
  <button class="btn-blue" onclick="editQuotation(${q.id})">Edit</button>
  <button class="btn-green" onclick="openQuote(${q.id})">View / Print</button>
  <button class="btn-dark" onclick="shareQuotePDF(${q.id})">📤 Share PDF</button>
- <button class="btn-purple" onclick="createReceiptFromSavedDocument('quotation','${String(q.id)}')">Create Receipt</button>
  <button class="btn-red" onclick="deleteQuote(${q.id})">Delete</button>
  </div>`).join("")||'<div class="empty">No saved quotations.</div>';
 }
@@ -1589,7 +1390,7 @@ function waitForImages(container) {
       try {
         await navigator.share({
           title: "Quotation " + q.number,
-          text: "Quotation from " + (settings.name || "Curtain Shop") + (q.phone ? "\nCustomer WhatsApp: " + q.phone : ""),
+          text: "Quotation from " + (settings.name || "Curtain Shop"),
           files: [file]
         });
         return;
@@ -1647,78 +1448,12 @@ function downloadBackup(){
  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="curtain-shop-backup.json";a.click();URL.revokeObjectURL(a.href);
 }
 async function restoreBackup(e){
- const file=e?.target?.files?.[0];
- if(!file){alert("Please select a backup file.");return;}
- try{
-  const raw=await file.text();
-  const d=JSON.parse(raw);
-  if(!d||typeof d!=="object")throw new Error("Invalid backup structure");
-  const backupData=d.data&&typeof d.data==="object"?d.data:d;
-  const requiredLists=["measurements","quotations","blindOrders","invoices","receipts"];
-  if(!requiredLists.some(k=>Array.isArray(backupData[k])))throw new Error("Backup lists not found");
-  if(!confirm("Restore the records saved in this backup? Current records will be replaced."))return;
-
-  // Keep a frozen snapshot of the selected backup. Restore must not merge with current data.
-  const snapshot={
-   measurements:Array.isArray(backupData.measurements)?backupData.measurements:[],
-   quotations:Array.isArray(backupData.quotations)?backupData.quotations:[],
-   blindOrders:Array.isArray(backupData.blindOrders)?backupData.blindOrders:[],
-   invoices:Array.isArray(backupData.invoices)?backupData.invoices:[],
-   receipts:Array.isArray(backupData.receipts)?backupData.receipts:[],
-   settings:backupData.settings&&typeof backupData.settings==="object"?backupData.settings:{}
-  };
-  const cleanCloudSnapshot={...snapshot,deletedMeasurementIds:[],deletedRecordIds:{quotations:[],blindOrders:[],invoices:[],receipts:[]}};
-
-  // First clear this signed-in user's tombstones, then write the exact backup locally.
-  localStorage.setItem(deletedMeasurementsStorageKey(),"[]");
-  localStorage.setItem(deletedRecordsStorageKey(),JSON.stringify({quotations:[],blindOrders:[],invoices:[],receipts:[]}));
-  measurements=snapshot.measurements;
-  quotations=snapshot.quotations;
-  blindOrders=snapshot.blindOrders;
-  invoices=snapshot.invoices;
-  receipts=snapshot.receipts;
-  settings=snapshot.settings;
-  localStorage.setItem(dataStorageKey(),JSON.stringify({measurements,quotations,blindOrders,invoices,receipts}));
-  localStorage.setItem(settingsStorageKey(),JSON.stringify(settings));
-  loadSettings();
-  renderMeasurements();
-  if(typeof renderSavedQuotes==="function")renderSavedQuotes();
-  if(typeof renderBlindOrders==="function")renderBlindOrders();
-  if(typeof renderInvoices==="function")renderInvoices();
-  if(typeof renderReceipts==="function")renderReceipts();
-  updateHome();
-
-  // Replace the authenticated user's cloud row and verify that Postgres returned the row.
-  if(sb&&authUser){
-   const {data:existing,error:findError}=await sb.from("customer_data").select("id").eq("user_id",authUser.id).maybeSingle();
-   if(findError)throw findError;
-   let writeResult;
-   if(existing){
-    writeResult=await sb.from("customer_data")
-      .update({data:cleanCloudSnapshot,updated_at:new Date().toISOString()})
-      .eq("id",existing.id).eq("user_id",authUser.id).select("id").maybeSingle();
-   }else{
-    writeResult=await sb.from("customer_data")
-      .insert({user_id:authUser.id,data:cleanCloudSnapshot}).select("id").maybeSingle();
-   }
-   if(writeResult.error)throw writeResult.error;
-   if(!writeResult.data?.id)throw new Error("Cloud write did not return a row. Check the UPDATE/INSERT RLS policy.");
-
-   // Read back the cloud snapshot to verify the restore actually persisted.
-   const {data:verifyRow,error:verifyError}=await sb.from("customer_data").select("data").eq("user_id",authUser.id).maybeSingle();
-   if(verifyError)throw verifyError;
-   if(!verifyRow?.data)throw new Error("Cloud verification returned no data.");
-   const restoredCount=Array.isArray(verifyRow.data.measurements)?verifyRow.data.measurements.length:0;
-   if(restoredCount!==snapshot.measurements.length)throw new Error(`Cloud verification mismatch: expected ${snapshot.measurements.length} measurements, found ${restoredCount}.`);
-  }
-  alert(sb&&authUser?"Backup restored and verified in Cloud successfully.":"Backup restored on this device. Sign in to sync it to Cloud.");
- }catch(error){
-  console.error("Backup restore failed:",error);
-  alert("Restore could not be verified: "+(error?.message||"Unknown error")+". Please check Console/Supabase and try again.");
- }finally{
-  if(e?.target)e.target.value="";
- }
+ try{const d=JSON.parse(await e.target.files[0].text());if(!confirm("Replace the current local records with this backup?"))return;
+ measurements=Array.isArray(d.measurements)?d.measurements:[];quotations=Array.isArray(d.quotations)?d.quotations:[];
+    blindOrders=Array.isArray(d.blindOrders)?d.blindOrders:[];invoices=Array.isArray(d.invoices)?d.invoices:[];receipts=Array.isArray(d.receipts)?d.receipts:[];settings=d.settings||{};
+ saveStorage();loadSettings();alert("Backup restored.");}catch{alert("Invalid backup file.");}
 }
+
 
 /* INVOICES AND PAYMENT RECEIPTS */
 function nextInvoiceNumber(){return "INV-"+String(invoices.length+1).padStart(4,"0");}
@@ -1738,8 +1473,8 @@ function renderInvoiceItems(){
  $("invoiceItems").innerHTML="";
  invoiceItems.forEach((it,i)=>{
   const d=document.createElement("div");d.className="item-card";
-  d.innerHTML=`<div class="grid"><div class="field"><label>Item / Description</label><input data-k="name" list="invoicePriceListOptions" value="${esc(it.name)}"><datalist id="invoicePriceListOptions">${(settings.productPriceList||[]).map(p=>`<option value="${esc(p.name)}"></option>`).join("")}</datalist></div><div class="field"><label>Quantity</label><input data-k="qty" type="number" min="0" step=".01" value="${it.qty??''}"></div><div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div><div class="field"><label>Rate (₹)</label><input data-k="rate" type="number" min="0" step=".01" value="${it.rate??''}"></div></div><p>Amount: <b>₹${money(it.qty*it.rate)}</b></p><button class="btn-red" type="button">Delete Item</button>`;
-  d.querySelectorAll("[data-k]").forEach(el=>{const update=()=>{const k=el.dataset.k;invoiceItems[i][k]=el.value;calculateInvoice();};el.oninput=()=>{if(el.dataset.k==="name"){const autoRate=applyPriceFromList(el.value,"invoice");if(autoRate!==null){invoiceItems[i].rate=String(autoRate);const rateInput=d.querySelector('[data-k="rate"]');if(rateInput)rateInput.value=String(autoRate);}}update();};el.onchange=el.oninput;});
+  d.innerHTML=`<div class="grid"><div class="field"><label>Item / Description</label><input data-k="name" value="${esc(it.name)}"></div><div class="field"><label>Quantity</label><input data-k="qty" type="number" min="0" step=".01" value="${it.qty??''}"></div><div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div><div class="field"><label>Rate (₹)</label><input data-k="rate" type="number" min="0" step=".01" value="${it.rate??''}"></div></div><p>Amount: <b>₹${money(it.qty*it.rate)}</b></p><button class="btn-red" type="button">Delete Item</button>`;
+  d.querySelectorAll("[data-k]").forEach(el=>{const update=()=>{const k=el.dataset.k;invoiceItems[i][k]=el.value;calculateInvoice();};el.oninput=update;el.onchange=update;});
   d.querySelector("button").onclick=()=>{invoiceItems.splice(i,1);renderInvoiceItems();};
   $("invoiceItems").appendChild(d);
  });calculateInvoice();
@@ -1777,34 +1512,10 @@ function invoiceHTML(d){
 function previewInvoice(){const d=currentInvoice();if(!d.customer)return alert("Please enter Customer Name.");if(!d.items.some(x=>x.name.trim()))return alert("Add an item description.");const el=$("invoicePreview");el.innerHTML=invoiceHTML(d);el.classList.remove("hidden");el.scrollIntoView({behavior:"smooth",block:"start"});}
 function renderInvoices(){
  const q=($("invoiceSearch")?.value||"").toLowerCase();
- $("invoiceList").innerHTML=invoices.filter(d=>[d.number,d.customer,d.phone,d.date].join(" ").toLowerCase().includes(q)).slice().reverse().map(d=>`<div class="customer-card"><h3>${esc(d.number)}</h3><b>${esc(d.customer)}</b><p class="small">${esc(formatDateDMY(d.date))}</p><p>Grand Total: <b>₹${money(d.grand)}</b> · Balance: <b>₹${money(d.balance)}</b></p><div class="doc-actions"><button class="btn-blue" onclick="editInvoice('${String(d.id)}')">Edit / Open</button><button class="btn-green" onclick="previewSavedInvoice('${String(d.id)}')">Preview</button><button class="btn-dark" onclick="shareSavedInvoicePDF('${String(d.id)}')">Share PDF</button><button class="btn-purple" onclick="createReceiptFromSavedDocument('invoice','${String(d.id)}')">Create Receipt</button><button class="btn-red" onclick="deleteInvoice('${String(d.id)}')">Delete</button></div></div>`).join("")||'<div class="empty">No saved invoices.</div>';
+ $("invoiceList").innerHTML=invoices.filter(d=>[d.number,d.customer,d.phone,d.date].join(" ").toLowerCase().includes(q)).slice().reverse().map(d=>`<div class="customer-card"><h3>${esc(d.number)}</h3><b>${esc(d.customer)}</b><p class="small">${esc(formatDateDMY(d.date))}</p><p>Grand Total: <b>₹${money(d.grand)}</b> · Balance: <b>₹${money(d.balance)}</b></p><div class="doc-actions"><button class="btn-blue" onclick="editInvoice('${String(d.id)}')">Edit / Open</button><button class="btn-green" onclick="previewSavedInvoice('${String(d.id)}')">Preview</button><button class="btn-dark" onclick="shareSavedInvoicePDF('${String(d.id)}')">Share PDF</button><button class="btn-red" onclick="deleteInvoice('${String(d.id)}')">Delete</button></div></div>`).join("")||'<div class="empty">No saved invoices.</div>';
 }
 function previewSavedInvoice(id){const d=invoices.find(x=>String(x.id)===String(id));if(!d)return;showSavedDocumentPreview("Invoice · "+(d.number||""),invoiceHTML(d));}
 async function deleteInvoice(id){if(!confirm("Delete this invoice?"))return;addDeletedRecordId("invoices",id);invoices=invoices.filter(x=>String(x.id)!==String(id));renderInvoices();await persistDeleteAndNotify();}
-function inferReceiptReference(doc){
- const names=(doc.items||[]).map(x=>String(x.name||"").toLowerCase()).join(" ");
- const notes=String(doc.notes||doc.terms||"").toLowerCase();
- const all=names+" "+notes;
- const refs=[];
- if(/zebra|roman|roller|venetian|wooden|bamboo|honeycomb|blind/.test(all))refs.push("Blinds Work");
- if(/curtain|sheer|blackout|cloth|eyelet|ripple|pleat|കട്ടൻ/.test(all))refs.push("Curtain Work");
- if(/fitting|installation|install/.test(all))refs.push("Fitting Work");
- return refs.length? [...new Set(refs)].join(" + "):"Work";
-}
-function createReceiptFromSavedDocument(kind,id){
- const doc=kind==="quotation"?quotations.find(x=>String(x.id)===String(id)):invoices.find(x=>String(x.id)===String(id));
- if(!doc)return;
- newReceipt();
- $("rCustomer").value=doc.customer||"";
- $("rPhone").value=doc.phone||"";
- $("rAddress").value=doc.address||"";
- $("rTotal").value=Number(doc.grand)||0;
- $("rReference").value=inferReceiptReference(doc);
- $("rReceived").value="";
- calculateReceipt();
- showPage("receipt");
- window.scrollTo({top:0,behavior:"smooth"});
-}
 function newReceipt(){
  currentReceiptId=null;$("rCustomer").value="";$("rPhone").value="";$("rAddress").value="";$("rNumber").value=nextReceiptNumber();$("rDate").value=today();$("rReference").value="";$("rTotal").value="";$("rReceived").value="";$("rMethod").value="Cash";$("rNote").value="";
  calculateReceipt();$("receiptPreview").classList.add("hidden");$("receiptPreview").innerHTML="";showPage("receipt");
@@ -1927,7 +1638,7 @@ function renderReceipts(){
 }
 function previewSavedReceipt(id){const d=receipts.find(x=>String(x.id)===String(id));if(!d)return;showSavedDocumentPreview("Payment Receipt · "+(d.number||""),receiptHTML(d));applyReceiptPreviewResponsive();}
 async function deleteReceipt(id){if(!confirm("Delete this payment receipt?"))return;addDeletedRecordId("receipts",id);receipts=receipts.filter(x=>String(x.id)!==String(id));renderReceipts();await persistDeleteAndNotify();}
-async function makeDocumentPDF(html,filename,title,customerPhone=""){
+async function makeDocumentPDF(html,filename,title){
  if(!window.jspdf||!window.html2canvas)return alert("PDF libraries did not load. Check your internet connection and try again.");
  const host=$("pdfSheet");host.innerHTML=html;host.style.width="794px";
  try{
@@ -1937,14 +1648,14 @@ async function makeDocumentPDF(html,filename,title,customerPhone=""){
   let remaining=h,pos=margin;pdf.addImage(img,"JPEG",margin,pos,w,h);remaining-=ph-2*margin;
   while(remaining>0){pos=margin-(h-remaining);pdf.addPage();pdf.addImage(img,"JPEG",margin,pos,w,h);remaining-=ph-2*margin;}
   const blob=pdf.output("blob"),file=new File([blob],filename,{type:"application/pdf"});
-  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({title,text:"From "+(settings.name||"Curtain Shop")+(customerPhone?"\nCustomer WhatsApp: "+customerPhone:""),files:[file]});return;}catch(e){if(e&&e.name==="AbortError")return;}}
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({title,text:"From "+(settings.name||"Curtain Shop"),files:[file]});return;}catch(e){if(e&&e.name==="AbortError")return;}}
   const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);alert("PDF downloaded. Open WhatsApp and attach the downloaded PDF.");
  }catch(e){alert("PDF Error: "+(e.message||e.name||"Unknown error"));}finally{host.innerHTML="";}
 }
-async function shareInvoicePDF(){const d=currentInvoice();if(!d.customer)return alert("Please enter Customer Name.");if(!d.items.some(x=>x.name.trim()))return alert("Add an item description.");await makeDocumentPDF(invoiceHTML(d),"Invoice-"+d.number+".pdf","Invoice "+d.number,d.phone||"");}
-async function shareSavedInvoicePDF(id){const d=invoices.find(x=>String(x.id)===String(id));if(d)await makeDocumentPDF(invoiceHTML(d),"Invoice-"+d.number+".pdf","Invoice "+d.number,d.phone||"");}
-async function shareReceiptPDF(){const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");await makeDocumentPDF(receiptHTML(d),"Receipt-"+d.number+".pdf","Receipt "+d.number,d.phone||"");}
-async function shareSavedReceiptPDF(id){const d=receipts.find(x=>String(x.id)===String(id));if(d)await makeDocumentPDF(receiptHTML(d),"Receipt-"+d.number+".pdf","Receipt "+d.number,d.phone||"");}
+async function shareInvoicePDF(){const d=currentInvoice();if(!d.customer)return alert("Please enter Customer Name.");if(!d.items.some(x=>x.name.trim()))return alert("Add an item description.");await makeDocumentPDF(invoiceHTML(d),"Invoice-"+d.number+".pdf","Invoice "+d.number);}
+async function shareSavedInvoicePDF(id){const d=invoices.find(x=>String(x.id)===String(id));if(d)await makeDocumentPDF(invoiceHTML(d),"Invoice-"+d.number+".pdf","Invoice "+d.number);}
+async function shareReceiptPDF(){const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");await makeDocumentPDF(receiptHTML(d),"Receipt-"+d.number+".pdf","Receipt "+d.number);}
+async function shareSavedReceiptPDF(id){const d=receipts.find(x=>String(x.id)===String(id));if(d)await makeDocumentPDF(receiptHTML(d),"Receipt-"+d.number+".pdf","Receipt "+d.number);}
 
 /* ADMIN USER MANAGEMENT: admin-only UI; Supabase RLS must also protect this table. */
 let adminUsersCache=[];
