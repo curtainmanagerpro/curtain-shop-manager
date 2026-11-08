@@ -1149,15 +1149,27 @@ function saveMeasurement(){
  if(m.rows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
  const i=measurements.findIndex(x=>x.id===m.id);
  if(i>=0)measurements[i]=m;else measurements.push(m);
- currentMeasurementId=m.id;if(saveStorage()===false)return;clearMeasurementDraft();alert("Measurement saved successfully.");showPage("savedMeasurements");
+ currentMeasurementId=m.id;
+ // First commit the saved record locally. Only after that succeeds, remove the draft and reset the entry sheet.
+ if(saveStorage()===false){
+  if(i>=0)measurements[i]=m;else measurements=measurements.filter(x=>String(x.id)!==String(m.id));
+  return;
+ }
+ clearMeasurementDraft();
+ resetMeasurementSheetAfterSave();
+ alert("Measurement saved successfully. New Measurement Sheet is ready.");
 }
-function clearMeasurement(){
- if(!confirm("Clear all unsaved measurement details?"))return;
- clearMeasurementDraft();currentMeasurementId=null;
+function resetMeasurementSheetAfterSave(){
+ currentMeasurementId=null;
  ["mCustomer","mPhone","mAddress"].forEach(id=>$(id).value="");
  $("mDate").value=today();$("mUnit").value="cm";$("measurementBody").innerHTML="";
  $("measurementPreview").innerHTML="";$("measurementPreview").classList.add("hidden");
  addMeasurementRow();recalculateMeasurements();
+}
+function clearMeasurement(){
+ if(!confirm("Clear all unsaved measurement details?"))return;
+ clearMeasurementDraft();
+ resetMeasurementSheetAfterSave();
 }
 function viewMeasurement(id){
  const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;
