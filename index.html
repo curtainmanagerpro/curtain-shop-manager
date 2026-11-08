@@ -211,12 +211,17 @@ td input,td select{min-width:80px;padding:8px}
 
 /* Saved Records: clearer labels and premium wooden Settings button only. */
 .home-secondary-buttons button > span:nth-child(2){font-size:20px;font-weight:700}
-.saved-settings{
-  --saved-border:#c89435;
-  background:linear-gradient(135deg,#684326 0%,#8a5429 48%,#59351f 100%);
-  border-color:#d5a447;
-  color:#fff;
-  box-shadow:0 3px 10px #5a351f30,inset 0 1px 0 #f6d99a;
+.home-secondary-buttons button.saved-settings{
+  --saved-border:#d5a447;
+  background:linear-gradient(135deg,#684326 0%,#8a5429 48%,#59351f 100%) !important;
+  border:1.5px solid #e0b451 !important;
+  color:#fff !important;
+  box-shadow:0 3px 10px #5a351f45,inset 0 1px 0 #f6d99a;
+}
+.home-secondary-buttons button.saved-settings > span:nth-child(2){color:#fff !important}
+.home-secondary-buttons button.saved-settings .saved-icon{
+  background:linear-gradient(145deg,#59351f,#7a4a26) !important;
+  border:1.5px solid #e2b95e !important;
 }
 .saved-settings .saved-icon{
   background:linear-gradient(145deg,#59351f,#7a4a26);
