@@ -1371,6 +1371,28 @@ function measurementSheetHTML(m){
  const totalRft=(m.rows||[]).reduce((a,r)=>a+Number(r.rft||0),0);
  const totalCurtainMeters=(m.rows||[]).reduce((a,r)=>a+Number(r.curtainMeters||0),0);
  const totalSheerMeters=(m.rows||[]).reduce((a,r)=>a+Number(r.sheerMeters||0),0);
+ const rateCalculationEnabled=priceListEnabled("measurement");
+ const rateGroups=new Map();
+ let rateGrandTotal=0;
+ if(rateCalculationEnabled){
+  (m.rows||[]).forEach(r=>{
+   const rate=Number(r.rate||0);
+   if(!(rate>0))return;
+   const name=String(r.type==="Other"?(r.customType||"Other"):r.type||"").trim()||"Item";
+   const unit=String(r.unit|| (isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft")?"RFT":"Sq.Ft"));
+   const area=Number(r.areaValue||0);
+   const amount=Number(r.amount||area*rate);
+   const key=(name+"|"+unit).toLocaleLowerCase();
+   if(!rateGroups.has(key))rateGroups.set(key,{name,unit,area:0,amount:0});
+   const group=rateGroups.get(key);group.area+=area;group.amount+=amount;
+   rateGrandTotal+=amount;
+  });
+ }
+ const rateSummaryHTML=rateCalculationEnabled&&rateGroups.size?`<div class="measurement-grand" style="text-align:left;display:flex;flex-direction:column;gap:5px;align-items:stretch">
+  <div style="font-size:13px;margin-bottom:3px">RATE CALCULATION SUMMARY</div>
+  ${[...rateGroups.values()].map(g=>`<div style="display:flex;justify-content:space-between;gap:10px"><span>Total ${esc(g.name)}: ${money(g.area)} ${esc(g.unit)}</span><b>₹${money(g.amount)}</b></div>`).join("")}
+  <div style="display:flex;justify-content:space-between;gap:10px;border-top:1px solid #647586;padding-top:6px;font-size:14px"><b>Total Amount</b><b>₹${money(rateGrandTotal)}</b></div>
+ </div>`:"";
  const business=settings.name||"Home Style Curtains";
  return `<div class="measurement-print">
   <div class="measurement-print-head"><h2>${esc(business)}</h2><div>${esc(settings.address||"")}</div><div>${esc(settings.phone||"")}</div><h3 style="margin:8px 0 0">MEASUREMENT SHEET</h3></div>
@@ -1378,7 +1400,9 @@ function measurementSheetHTML(m){
   ${m.address?`<div style="margin-bottom:10px"><b>Address:</b> ${esc(m.address)}</div>`:""}
   <div style="display:grid;grid-template-columns:105px minmax(0,1fr) 95px 85px;gap:8px;background:#eaf0f5;padding:8px 4px;font-weight:bold;font-size:12px"><div>Area</div><div>Measurements (Width / Height)</div><div style="text-align:right">Total</div><div style="text-align:right">Items</div></div>
   ${roomBlocks}
-  <div class="measurement-grand" style="text-align:left;display:flex;flex-direction:column;gap:4px;align-items:flex-start">${Object.entries(typeSqft).map(([type,total])=>`<div><b>Total ${esc(type)}: ${money(total)} Sq.Ft</b></div>`).join("")}${totalRft>0?`<div><b>Total Running Feet: ${money(totalRft)} RFT</b></div>`:""}${totalCurtainMeters>0?`<div><b>Total Main Cloth: ${money(totalCurtainMeters)} Mtr</b></div>`:""}${totalSheerMeters>0?`<div><b>Total Sheer: ${money(totalSheerMeters)} Mtr</b></div>`:""}</div>
+  <div class="measurement-grand" style="text-align:left;display:flex;flex-direction:column;gap:4px;align-items:flex-start">${Object.entries(typeSqft).map(([type,total])=>`<div><b>Total ${esc(type)}: ${money(total)} Sq.Ft</b></div>`).join("")}${totalRft>0?`<div><b>Total Running Feet: ${money(totalRft)} RFT</b></div>`:""}${totalCurtainMeters>0?`<div><b>Total Main Cloth: ${money(totalCurtainMeters)} Mtr</b></div>`:""}${totalSheerMeters>0?`<div><b>Total Sheer: ${money(totalSheerMeters)} Mtr</b></div>`:""}
+  </div>
+  ${rateSummaryHTML}
  </div>`;
 }
 function previewMeasurementSheet(){
