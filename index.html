@@ -315,7 +315,7 @@ td input,td select{min-width:80px;padding:8px}
 
  
   <div class="notice" style="margin-bottom:10px">ഒരേ റൂമിലെ ഓരോ വിൻഡോയ്ക്കും ഓരോ വരി ചേർക്കുക. Room / Area ഒരേ പേരിൽ നൽകിയാൽ PDF-ൽ അവ ഒരുമിച്ച് വരും.</div>
-  <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Type</th><th>Custom Type</th><th>Width</th><th>Height</th><th>Shade No.</th><th>Unit</th><th>Qty</th><th>Rate (₹)</th><th>Delete</th></tr></thead><tbody id="measurementBody"></tbody></table></div>
+  <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Type</th><th>Custom Type</th><th>Width</th><th>Height</th><th>Shade No.</th><th>Unit</th><th>Qty</th><th class="m-rate-head">Rate (₹)</th><th>Delete</th></tr></thead><tbody id="measurementBody"></tbody></table></div>
 
   <div class="row-add-bottom" style="display:flex;justify-content:flex-end;margin-top:10px">
     <button class="btn-blue" type="button" onclick="addMeasurementRow();saveMeasurementDraft()">＋ Add Row</button>
@@ -324,6 +324,11 @@ td input,td select{min-width:80px;padding:8px}
   <div class="summary">
    <div class="summary-row"><span>Total Sq.Ft</span><strong id="measurementSqft">0.00</strong></div>
    <div class="summary-row"><span>Total RFT</span><strong id="measurementRft">0.00</strong></div>
+  </div>
+  <div id="measurementRateSummary" class="summary" style="display:none">
+   <h3 style="margin:0 0 8px">Measurement Rate Calculation</h3>
+   <div id="measurementRateSummaryRows"></div>
+   <div class="summary-row grand"><span>Total Amount</span><strong>₹<span id="measurementRateGrandTotal">0.00</span></strong></div>
   </div>
   <div class="measurement-primary-actions">
    <button class="btn-green" type="button" onclick="saveMeasurement()">Save Measurement</button>
@@ -884,8 +889,13 @@ function saveSettings(){
  saveStorage();alert("Business settings saved.");
 }
 function getPriceAutoOptions(){return settings.priceAutoOptions||{measurement:false,quotation:true,invoice:true};}
-function savePriceAutoOptions(){settings.priceAutoOptions={measurement:$("priceAutoMeasurement").checked,quotation:$("priceAutoQuotation").checked,invoice:$("priceAutoInvoice").checked};saveStorage();}
-function loadPriceAutoOptions(){const o=getPriceAutoOptions();[ ["priceAutoMeasurement","measurement"],["priceAutoQuotation","quotation"],["priceAutoInvoice","invoice"] ].forEach(([id,k])=>{const el=$(id);if(el)el.checked=!!o[k];});}
+function updateMeasurementRateVisibility(){
+ const enabled=priceListEnabled("measurement");
+ document.querySelectorAll("#measurement .m-rate-head, #measurement .m-rate-cell").forEach(el=>el.style.display=enabled?"":"none");
+ const summary=$("measurementRateSummary");if(summary&&!enabled)summary.style.display="none";
+}
+function savePriceAutoOptions(){settings.priceAutoOptions={measurement:$("priceAutoMeasurement").checked,quotation:$("priceAutoQuotation").checked,invoice:$("priceAutoInvoice").checked};saveStorage();updateMeasurementRateVisibility();if($("measurementBody")){recalculateMeasurements();}}
+function loadPriceAutoOptions(){const o=getPriceAutoOptions();[ ["priceAutoMeasurement","measurement"],["priceAutoQuotation","quotation"],["priceAutoInvoice","invoice"] ].forEach(([id,k])=>{const el=$(id);if(el)el.checked=!!o[k];});updateMeasurementRateVisibility();}
 function priceListEnabled(where){return !!getPriceAutoOptions()[where];}
 function priceListNormalized(item){
  const name=String(item?.name||"");
@@ -1085,7 +1095,7 @@ function addMeasurementRow(data){
   <td data-label="Shade No."><input class="mShade" placeholder="Optional"></td>
   <td class="mUnitCell" data-label="Unit">Sq.Ft</td>
   <td data-label="Qty"><input class="mQty" type="number" min="1" value="1"></td>
-  <td class="mAreaCell" data-label="Rate (₹)"><div class="mAreaValue" style="display:none">0.00</div><input class="mRate" type="number" min="0" step=".01" style="width:100%;max-width:140px;padding:8px" value=""><div class="mFabricCalc" style="font-size:12px;line-height:1.35;font-weight:700;color:#17613a;margin-top:4px"></div></td>
+  <td class="mAreaCell m-rate-cell" data-label="Rate (₹)"><div class="mAreaValue" style="display:none">0.00</div><input class="mRate" type="number" min="0" step=".01" style="width:100%;max-width:140px;padding:8px" value="" placeholder="Rate"><div class="mRateAmount" style="font-size:12px;line-height:1.35;font-weight:700;color:#17613a;margin-top:4px"></div><div class="mFabricCalc" style="font-size:12px;line-height:1.35;font-weight:700;color:#17613a;margin-top:4px"></div></td>
   <td data-label="Delete"><button class="btn-red" type="button" style="padding:5px 9px;font-size:12px;margin:0">Delete</button></td>`;
  $("measurementBody").appendChild(tr);
  const typeSelect=tr.querySelector(".mType");
@@ -1097,10 +1107,25 @@ function addMeasurementRow(data){
   customUnit.style.display=other?"block":"none";
   recalculateMeasurements();
  }
- typeSelect.onchange=()=>{updateCustom();updateMeasurementRate(tr);};
- customUnit.onchange=()=>{recalculateMeasurements();updateMeasurementRate(tr);};
- customInput.oninput=()=>updateMeasurementRate(tr);
- tr.querySelectorAll("input").forEach(i=>i.oninput=()=>{recalculateMeasurements();if(i.classList.contains("mRate"))return;updateMeasurementRate(tr);});
+ typeSelect.onchange=()=>{
+  tr.querySelector(".mRate").value="";
+  updateCustom();
+  updateMeasurementRate(tr);
+  recalculateMeasurements();
+  saveMeasurementDraft();
+ };
+ customUnit.onchange=()=>{recalculateMeasurements();updateMeasurementRate(tr);saveMeasurementDraft();};
+ customInput.oninput=()=>{
+  tr.querySelector(".mRate").value="";
+  updateMeasurementRate(tr);
+  recalculateMeasurements();
+  saveMeasurementDraft();
+ };
+ tr.querySelectorAll("input").forEach(i=>i.oninput=()=>{
+  if(i.classList.contains("mRate")){recalculateMeasurements();saveMeasurementDraft();return;}
+  recalculateMeasurements();
+  if(i.classList.contains("mCustomType")){tr.querySelector(".mRate").value="";updateMeasurementRate(tr);recalculateMeasurements();}
+ });
  tr.querySelector("button").onclick=()=>{tr.remove();recalculateMeasurements();saveMeasurementDraft();};
  if(data){
   tr.querySelector(".mArea").value=data.area||"";
@@ -1113,7 +1138,10 @@ function addMeasurementRow(data){
   tr.querySelector(".mShade").value=data.shade||"";
   tr.querySelector(".mRate").value=data.rate??"";
  }
- updateCustom();updateMeasurementRate(tr);
+ updateCustom();
+ // Preserve a previously saved/manual rate when restoring an existing row.
+ if(!data||data.rate==null||data.rate==="")updateMeasurementRate(tr);
+ recalculateMeasurements();
 }
 function normalizePriceProductName(value){return String(value||"").trim().replace(/\\s+/g," ").toLocaleLowerCase();}
 function measurementRowProductName(tr){
@@ -1122,7 +1150,10 @@ function measurementRowProductName(tr){
 }
 function updateMeasurementRate(tr){
  const input=tr.querySelector(".mRate");
- if(!input||!priceListEnabled("measurement"))return;
+ if(!input)return;
+ // Never carry an old product's rate into a different product.
+ input.value="";
+ if(!priceListEnabled("measurement"))return;
  const name=normalizePriceProductName(measurementRowProductName(tr));
  if(!name)return;
  const list=Array.isArray(settings.productPriceList)?settings.productPriceList:[];
@@ -1149,25 +1180,48 @@ function clothMeters(row,unit){
  return {curtain:main?mainPanels*(height+30)/100*qty:0,sheer:sheer?sheerPanels*(height+25)/100*qty:0,mainPanels,sheerPanels};
 }
 function recalculateMeasurements(){
- let totalSqft=0,totalRft=0;
+ let totalSqft=0,totalRft=0,totalAmount=0;
+ const grouped=new Map();
+ const rateCalcEnabled=priceListEnabled("measurement");
  document.querySelectorAll("#measurementBody tr").forEach(tr=>{
   const type=tr.querySelector(".mType").value;
+  const productName=measurementRowProductName(tr)||type;
   const customUnit=tr.querySelector(".mCustomUnit").value;
   const h=Number(tr.querySelector(".mHeight").value)||0;
   const w=Number(tr.querySelector(".mWidth").value)||0;
   const qty=Math.max(1,Number(tr.querySelector(".mQty").value)||1);
+  const rateText=tr.querySelector(".mRate").value;
+  const rate=rateText===""?0:(Number(rateText)||0);
   const c=getRowCalc(h,w,$("mUnit").value,type,qty,0,customUnit);
+  const amount=c.area*rate;
   tr.querySelector(".mUnitCell").textContent=c.unit;
   tr.querySelector(".mAreaValue").textContent=money(c.area);
+  const rateAmount=tr.querySelector(".mRateAmount");
+  if(rateAmount)rateAmount.textContent=rateCalcEnabled&&rateText!==""?`${money(c.area)} ${c.unit} × ₹${money(rate)} = ₹${money(amount)}`:"";
   const fabric=clothMeters({type,height:h,width:w,qty},$("mUnit").value);
   const fabricLines=[];
   if(fabric.curtain>0)fabricLines.push(`Main Cloth: ${money(fabric.curtain)} Mtr (${fabric.mainPanels}P)`);
   if(fabric.sheer>0)fabricLines.push(`Sheer: ${money(fabric.sheer)} Mtr (${fabric.sheerPanels}P)`);
   tr.querySelector(".mFabricCalc").textContent=fabricLines.join(" | ");
   totalSqft+=c.sqft;totalRft+=c.rft;
+  if(rateCalcEnabled&&c.area>0){
+   const key=(c.unit+"::"+productName).toLocaleLowerCase();
+   if(!grouped.has(key))grouped.set(key,{name:productName,unit:c.unit,area:0,amount:0});
+   const g=grouped.get(key);g.area+=c.area;g.amount+=amount;
+  }
+  totalAmount+=amount;
  });
  $("measurementSqft").textContent=money(totalSqft);
  $("measurementRft").textContent=money(totalRft);
+ const summary=$("measurementRateSummary"),rows=$("measurementRateSummaryRows");
+ if(summary&&rows){
+  summary.style.display=rateCalcEnabled?"block":"none";
+  rows.innerHTML=rateCalcEnabled?[...grouped.values()].map(g=>{
+   const effectiveRate=g.area>0?g.amount/g.area:0;
+   return `<div class="summary-row"><span>${esc(g.name)} — ${money(g.area)} ${esc(g.unit)} × ₹${money(effectiveRate)}</span><strong>₹${money(g.amount)}</strong></div>`;
+  }).join(""):'';
+  $("measurementRateGrandTotal").textContent=money(totalAmount);
+ }
  renumberRows();
 }
 function getMeasurementForm(){
