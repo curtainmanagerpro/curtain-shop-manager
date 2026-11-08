@@ -267,7 +267,7 @@ td input,td select{min-width:80px;padding:8px}
   </div>
   <div id="homeAdminButton" class="hidden" style="margin-top:10px"><button class="btn-dark" style="width:100%" onclick="showPage('admin')">Admin Panel</button></div>
  </div>
- <div class="card"><h3>Quick Summary</h3><div class="grid"><div class="notice">Saved Measurements: <b id="homeMeasurementCount">0</b></div><div class="notice">Saved Quotations: <b id="homeQuoteCount">0</b></div><div class="notice">Saved Invoices: <b id="homeInvoiceCount">0</b></div><div class="notice">Saved Receipts: <b id="homeReceiptCount">0</b></div></div></div>
+ <div class="card"><h3>Quick Summary</h3><div class="grid"><div class="notice">Saved Measurements: <b id="homeMeasurementCount">0</b></div><div class="notice">Saved Quotations: <b id="homeQuoteCount">0</b></div><div class="notice">Saved Blinds Orders: <b id="homeBlindOrderCount">0</b></div><div class="notice">Saved Invoices: <b id="homeInvoiceCount">0</b></div><div class="notice">Saved Receipts: <b id="homeReceiptCount">0</b></div></div></div>
 </section>
 
 <section id="measurement" class="page">
@@ -969,6 +969,7 @@ function removeSavedSignature(){
 function updateHome(){
  if($("homeMeasurementCount"))$("homeMeasurementCount").textContent=measurements.length;
  if($("homeQuoteCount"))$("homeQuoteCount").textContent=quotations.length;
+ if($("homeBlindOrderCount"))$("homeBlindOrderCount").textContent=blindOrders.length;
  if($("homeInvoiceCount"))$("homeInvoiceCount").textContent=invoices.length;
  if($("homeReceiptCount"))$("homeReceiptCount").textContent=receipts.length;
  if($("homeBusinessName")){const businessName=String(settings.name||"").trim();$("homeBusinessName").textContent=businessName;$("homeBusinessName").classList.toggle("hidden",!businessName);}
