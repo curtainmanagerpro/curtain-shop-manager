@@ -181,6 +181,8 @@ td input,td select{min-width:80px;padding:8px}
 }
 @media print{.measurement-print{padding:0}}
 /* A4 proportional preview on screen; print/export use A4 dimensions */
+#measurement .measurement-primary-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0 12px}
+#measurement .measurement-primary-actions button{width:100%;min-height:52px;margin:0;font-size:17px;font-weight:700}
 #measurementPreview{background:#eef2f5;padding:10px;overflow:auto}
 #measurementPreview .measurement-print{box-sizing:border-box;width:100%;max-width:100%;min-height:calc(100vw * 297 / 210);margin:0 auto;padding:clamp(8px,2.5vw,22px);background:#fff;box-shadow:0 2px 10px #0002;}
 @media(min-width:700px){#measurementPreview .measurement-print{max-width:210mm;min-height:297mm;padding:12mm}}
@@ -265,7 +267,7 @@ td input,td select{min-width:80px;padding:8px}
   </div>
   <div id="homeAdminButton" class="hidden" style="margin-top:10px"><button class="btn-dark" style="width:100%" onclick="showPage('admin')">Admin Panel</button></div>
  </div>
- <div class="card"><h3>Quick Summary</h3><div class="grid"><div class="notice">Saved Measurements: <b id="homeMeasurementCount">0</b></div><div class="notice">Saved Quotations: <b id="homeQuoteCount">0</b></div><div class="notice">Saved Blinds Orders: <b id="homeBlindOrderCount">0</b></div><div class="notice">Saved Invoices: <b id="homeInvoiceCount">0</b></div><div class="notice">Saved Receipts: <b id="homeReceiptCount">0</b></div></div></div>
+ <div class="card"><h3>Quick Summary</h3><div class="grid"><div class="notice">Saved Measurements: <b id="homeMeasurementCount">0</b></div><div class="notice">Saved Quotations: <b id="homeQuoteCount">0</b></div><div class="notice">Saved Invoices: <b id="homeInvoiceCount">0</b></div><div class="notice">Saved Receipts: <b id="homeReceiptCount">0</b></div></div></div>
 </section>
 
 <section id="measurement" class="page">
@@ -298,12 +300,14 @@ td input,td select{min-width:80px;padding:8px}
    <div class="summary-row"><span>Total Sq.Ft</span><strong id="measurementSqft">0.00</strong></div>
    <div class="summary-row"><span>Total RFT</span><strong id="measurementRft">0.00</strong></div>
   </div>
-  <button class="btn-green" onclick="saveMeasurement()">Save Measurement</button>
+  <div class="measurement-primary-actions">
+   <button class="btn-green" type="button" onclick="saveMeasurement()">Save Measurement</button>
+   <button class="btn-red" type="button" onclick="clearMeasurement()">Clear</button>
+  </div>
   <button class="btn-blue" onclick="previewMeasurementSheet()">Preview Measurement Sheet</button>
   <button class="btn-dark" onclick="printMeasurementSheet()">🖨️ Print A4</button>
   <button class="btn-dark" onclick="downloadMeasurementPDF()">Download / Share PDF</button>
   <button class="btn-blue" onclick="measurementToQuotation()">Create Quotation</button><button class="btn-blue" onclick="createBlindOrderFromCurrentMeasurement()">Create Blind Order</button><button class="btn-green" onclick="saveMeasurementJPG()">Save as JPG</button>
-  <button class="btn-light" onclick="clearMeasurement()">Clear</button>
   <button class="btn-light" onclick="showPage('savedMeasurements')">View Saved Measurements</button>
   <div id="measurementPreview" class="preview hidden" style="margin-top:16px"></div>
  </div>
@@ -572,6 +576,8 @@ function settingsStorageKey(){return userStorageKey(SETTINGS_KEY);}
 function dataStorageKey(){return userStorageKey(DATA_KEY);}
 function deletedMeasurementsStorageKey(){return userStorageKey(DELETED_MEASUREMENTS_KEY);}
 function deletedRecordsStorageKey(){return userStorageKey(DELETED_RECORDS_KEY);}
+const MEASUREMENT_DRAFT_KEY="curtain_manager_measurement_draft_v1";
+function measurementDraftStorageKey(){return userStorageKey(MEASUREMENT_DRAFT_KEY);}
 const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Blackout Curtain","Curtain with Sheer","Sheer Curtain","Zebra Blind","Roman Blind","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Other"];
 const rftTypes=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Curtain with Sheer","Sheer Curtain"];
 const $=id=>document.getElementById(id);
@@ -963,7 +969,6 @@ function removeSavedSignature(){
 function updateHome(){
  if($("homeMeasurementCount"))$("homeMeasurementCount").textContent=measurements.length;
  if($("homeQuoteCount"))$("homeQuoteCount").textContent=quotations.length;
- if($("homeBlindOrderCount"))$("homeBlindOrderCount").textContent=blindOrders.length;
  if($("homeInvoiceCount"))$("homeInvoiceCount").textContent=invoices.length;
  if($("homeReceiptCount"))$("homeReceiptCount").textContent=receipts.length;
  if($("homeBusinessName")){const businessName=String(settings.name||"").trim();$("homeBusinessName").textContent=businessName;$("homeBusinessName").classList.toggle("hidden",!businessName);}
@@ -994,13 +999,45 @@ function showPage(page,addToHistory=true){
  window.scrollTo({top:0,behavior:"auto"});
 }
 
+function getMeasurementDraft(){
+ const rows=[...document.querySelectorAll("#measurementBody tr")].map(tr=>({
+  area:tr.querySelector(".mArea")?.value||"",type:tr.querySelector(".mType")?.value||types[0],
+  customType:tr.querySelector(".mCustomType")?.value||"",customUnit:tr.querySelector(".mCustomUnit")?.value||"Sq.Ft",
+  height:tr.querySelector(".mHeight")?.value||"",width:tr.querySelector(".mWidth")?.value||"",
+  qty:tr.querySelector(".mQty")?.value||"1",shade:tr.querySelector(".mShade")?.value||"",rate:tr.querySelector(".mRate")?.value||""
+ }));
+ return {measurementId:currentMeasurementId,customer:$("mCustomer").value,phone:$("mPhone").value,address:$("mAddress").value,date:$("mDate").value,unit:$("mUnit").value,rows,updatedAt:Date.now()};
+}
+function saveMeasurementDraft(){
+ if(!authUser?.id)return;
+ try{localStorage.setItem(measurementDraftStorageKey(),JSON.stringify(getMeasurementDraft()));}
+ catch(error){console.warn("Measurement draft save failed:",error);}
+}
+function restoreMeasurementDraft(){
+ if(!authUser?.id)return false;
+ let draft=null;try{draft=JSON.parse(localStorage.getItem(measurementDraftStorageKey())||"null");}catch(error){}
+ if(!draft||!Array.isArray(draft.rows))return false;
+ currentMeasurementId=draft.measurementId||null;
+ $("mCustomer").value=draft.customer||"";$("mPhone").value=draft.phone||"";$("mAddress").value=draft.address||"";
+ $("mDate").value=draft.date||today();$("mUnit").value=draft.unit||"cm";$("measurementBody").innerHTML="";
+ draft.rows.forEach(row=>addMeasurementRow(row));
+ if(!draft.rows.length)addMeasurementRow();
+ $("measurementPreview").innerHTML="";$("measurementPreview").classList.add("hidden");recalculateMeasurements();
+ return true;
+}
+function clearMeasurementDraft(){try{localStorage.removeItem(measurementDraftStorageKey());}catch(error){}}
 function newMeasurement(){
  currentMeasurementId=null;
- ["mCustomer","mPhone","mAddress"].forEach(id=>$(id).value="");
+ $("mCustomer").value="";$("mPhone").value="";$("mAddress").value="";
  $("mDate").value=today();$("mUnit").value="cm";$("measurementBody").innerHTML="";
  $("measurementPreview").innerHTML="";$("measurementPreview").classList.add("hidden");
- addMeasurementRow();showPage("measurement");
+ if(!restoreMeasurementDraft())addMeasurementRow();
+ showPage("measurement");
 }
+// Keep an account-specific local draft after every edit, including incomplete rows.
+["input","change"].forEach(eventName=>$("measurement").addEventListener(eventName,event=>{
+ if(event.target.closest("#measurement"))saveMeasurementDraft();
+}));
 function isRFT(type,customUnit){
  return rftTypes.includes(type)||(type==="Other"&&customUnit==="RFT");
 }
@@ -1031,7 +1068,7 @@ function addMeasurementRow(data){
  customUnit.onchange=()=>{recalculateMeasurements();updateMeasurementRate(tr);};
  customInput.oninput=()=>updateMeasurementRate(tr);
  tr.querySelectorAll("input").forEach(i=>i.oninput=()=>{recalculateMeasurements();if(i.classList.contains("mRate"))return;updateMeasurementRate(tr);});
- tr.querySelector("button").onclick=()=>{tr.remove();recalculateMeasurements();};
+ tr.querySelector("button").onclick=()=>{tr.remove();recalculateMeasurements();saveMeasurementDraft();};
  if(data){
   tr.querySelector(".mArea").value=data.area||"";
   typeSelect.value=data.type||types[0];
@@ -1043,7 +1080,7 @@ function addMeasurementRow(data){
   tr.querySelector(".mShade").value=data.shade||"";
   tr.querySelector(".mRate").value=data.rate??"";
  }
- updateCustom();updateMeasurementRate(tr);
+ updateCustom();updateMeasurementRate(tr);saveMeasurementDraft();
 }
 function measurementRowProductName(tr){const type=tr.querySelector(".mType").value;return type==="Other"?tr.querySelector(".mCustomType").value.trim():type;}
 function updateMeasurementRate(tr){const input=tr.querySelector(".mRate");if(!input||!priceListEnabled("measurement"))return;const found=applyPriceFromList(measurementRowProductName(tr),"measurement");if(found!==null)input.value=String(found);}
@@ -1111,9 +1148,16 @@ function saveMeasurement(){
  if(m.rows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
  const i=measurements.findIndex(x=>x.id===m.id);
  if(i>=0)measurements[i]=m;else measurements.push(m);
- currentMeasurementId=m.id;saveStorage();alert("Measurement saved successfully.");showPage("savedMeasurements");
+ currentMeasurementId=m.id;if(saveStorage()===false)return;clearMeasurementDraft();alert("Measurement saved successfully.");showPage("savedMeasurements");
 }
-function clearMeasurement(){newMeasurement();}
+function clearMeasurement(){
+ if(!confirm("Clear all unsaved measurement details?"))return;
+ clearMeasurementDraft();currentMeasurementId=null;
+ ["mCustomer","mPhone","mAddress"].forEach(id=>$(id).value="");
+ $("mDate").value=today();$("mUnit").value="cm";$("measurementBody").innerHTML="";
+ $("measurementPreview").innerHTML="";$("measurementPreview").classList.add("hidden");
+ addMeasurementRow();recalculateMeasurements();
+}
 function viewMeasurement(id){
  const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;
  showSavedDocumentPreview("Measurement Sheet · "+(m.customer||""),measurementSheetHTML(m));
