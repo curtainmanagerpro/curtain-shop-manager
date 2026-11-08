@@ -318,7 +318,7 @@ td input,td select{min-width:80px;padding:8px}
   <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Type</th><th>Custom Type</th><th>Width</th><th>Height</th><th>Shade No.</th><th>Unit</th><th>Qty</th><th>Rate (₹)</th><th>Delete</th></tr></thead><tbody id="measurementBody"></tbody></table></div>
 
   <div class="row-add-bottom" style="display:flex;justify-content:flex-end;margin-top:10px">
-    <button class="btn-blue" type="button" onclick="addMeasurementRow()">＋ Add Row</button>
+    <button class="btn-blue" type="button" onclick="addMeasurementRow();saveMeasurementDraft()">＋ Add Row</button>
   </div>
 
   <div class="summary">
@@ -944,9 +944,9 @@ function deletePriceListSavedItem(id){
 }
 function applyPriceFromList(itemName,where="quotation"){
  if(!priceListEnabled(where))return null;
- const name=String(itemName||"").trim().toLowerCase();if(!name)return null;
- const match=(Array.isArray(settings.productPriceList)?settings.productPriceList:[]).find(x=>String(x.name||"").trim().toLowerCase()===name);
- return match?Number(match.rate):null;
+ const name=normalizePriceProductName(itemName);if(!name)return null;
+ const match=(Array.isArray(settings.productPriceList)?settings.productPriceList:[]).find(x=>normalizePriceProductName(x?.name)===name);
+ return match&&match.rate!==""&&Number.isFinite(Number(match.rate))?Number(match.rate):null;
 }
 
 function loadLogo(e){
@@ -1028,17 +1028,21 @@ function getMeasurementDraft(){
   height:tr.querySelector(".mHeight")?.value||"",width:tr.querySelector(".mWidth")?.value||"",
   qty:tr.querySelector(".mQty")?.value||"1",shade:tr.querySelector(".mShade")?.value||"",rate:tr.querySelector(".mRate")?.value||""
  }));
- return {measurementId:currentMeasurementId,customer:$("mCustomer").value,phone:$("mPhone").value,address:$("mAddress").value,date:$("mDate").value,unit:$("mUnit").value,rows,updatedAt:Date.now()};
+ return {status:"active",measurementId:currentMeasurementId,customer:$("mCustomer").value,phone:$("mPhone").value,address:$("mAddress").value,date:$("mDate").value,unit:$("mUnit").value,rows,updatedAt:Date.now()};
 }
 function saveMeasurementDraft(){
- if(!authUser?.id)return;
- try{localStorage.setItem(measurementDraftStorageKey(),JSON.stringify(getMeasurementDraft()));}
- catch(error){console.warn("Measurement draft save failed:",error);}
+ if(!authUser?.id)return false;
+ try{
+  localStorage.setItem(measurementDraftStorageKey(),JSON.stringify(getMeasurementDraft()));
+  return true;
+ }catch(error){console.warn("Measurement draft save failed:",error);return false;}
 }
 function restoreMeasurementDraft(){
  if(!authUser?.id)return false;
- let draft=null;try{draft=JSON.parse(localStorage.getItem(measurementDraftStorageKey())||"null");}catch(error){}
- if(!draft||!Array.isArray(draft.rows))return false;
+ let draft=null;
+ try{draft=JSON.parse(localStorage.getItem(measurementDraftStorageKey())||"null");}catch(error){}
+ // A cleared/saved marker is intentionally not restored as a measurement.
+ if(!draft||draft.status==="cleared"||!Array.isArray(draft.rows))return false;
  currentMeasurementId=draft.measurementId||null;
  $("mCustomer").value=draft.customer||"";$("mPhone").value=draft.phone||"";$("mAddress").value=draft.address||"";
  $("mDate").value=draft.date||today();$("mUnit").value=draft.unit||"cm";$("measurementBody").innerHTML="";
@@ -1047,7 +1051,12 @@ function restoreMeasurementDraft(){
  $("measurementPreview").innerHTML="";$("measurementPreview").classList.add("hidden");recalculateMeasurements();
  return true;
 }
-function clearMeasurementDraft(){try{localStorage.removeItem(measurementDraftStorageKey());}catch(error){}}
+function clearMeasurementDraft(){
+ try{
+  // Keep a small tombstone so stale drafts cannot be restored by Back/re-entry.
+  localStorage.setItem(measurementDraftStorageKey(),JSON.stringify({status:"cleared",clearedAt:Date.now()}));
+ }catch(error){console.warn("Measurement draft clear marker failed:",error);}
+}
 function newMeasurement(){
  currentMeasurementId=null;
  $("mCustomer").value="";$("mPhone").value="";$("mAddress").value="";
@@ -1056,10 +1065,12 @@ function newMeasurement(){
  if(!restoreMeasurementDraft())addMeasurementRow();
  showPage("measurement");
 }
-// Keep an account-specific local draft after every edit, including incomplete rows.
+// Persist every field edit and flush the latest draft when the app is backgrounded or navigated away.
 ["input","change"].forEach(eventName=>$("measurement").addEventListener(eventName,event=>{
  if(event.target.closest("#measurement"))saveMeasurementDraft();
 }));
+window.addEventListener("pagehide",()=>{if($("measurement")?.classList.contains("active"))saveMeasurementDraft();});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"&&$("measurement")?.classList.contains("active"))saveMeasurementDraft();});
 function isRFT(type,customUnit){
  return rftTypes.includes(type)||(type==="Other"&&customUnit==="RFT");
 }
@@ -1102,10 +1113,22 @@ function addMeasurementRow(data){
   tr.querySelector(".mShade").value=data.shade||"";
   tr.querySelector(".mRate").value=data.rate??"";
  }
- updateCustom();updateMeasurementRate(tr);saveMeasurementDraft();
+ updateCustom();updateMeasurementRate(tr);
 }
-function measurementRowProductName(tr){const type=tr.querySelector(".mType").value;return type==="Other"?tr.querySelector(".mCustomType").value.trim():type;}
-function updateMeasurementRate(tr){const input=tr.querySelector(".mRate");if(!input||!priceListEnabled("measurement"))return;const found=applyPriceFromList(measurementRowProductName(tr),"measurement");if(found!==null)input.value=String(found);}
+function normalizePriceProductName(value){return String(value||"").trim().replace(/\\s+/g," ").toLocaleLowerCase();}
+function measurementRowProductName(tr){
+ const type=tr.querySelector(".mType")?.value||"";
+ return type==="Other"?(tr.querySelector(".mCustomType")?.value||"").trim():type.trim();
+}
+function updateMeasurementRate(tr){
+ const input=tr.querySelector(".mRate");
+ if(!input||!priceListEnabled("measurement"))return;
+ const name=normalizePriceProductName(measurementRowProductName(tr));
+ if(!name)return;
+ const list=Array.isArray(settings.productPriceList)?settings.productPriceList:[];
+ const match=list.find(item=>normalizePriceProductName(item?.name)===name);
+ if(match&&match.rate!==""&&Number.isFinite(Number(match.rate)))input.value=String(Number(match.rate));
+}
 function renumberRows(){document.querySelectorAll("#measurementBody tr").forEach((r,i)=>r.querySelector(".rowNo").textContent=i+1);}
 function getRowCalc(h,w,unit,type,qty,rate,customUnit){
  const rft=isRFT(type,customUnit);
