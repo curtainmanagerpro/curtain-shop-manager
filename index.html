@@ -650,7 +650,7 @@ function deletedMeasurementsStorageKey(){return userStorageKey(DELETED_MEASUREME
 function deletedRecordsStorageKey(){return userStorageKey(DELETED_RECORDS_KEY);}
 const MEASUREMENT_DRAFT_KEY="curtain_manager_measurement_draft_v1";
 function measurementDraftStorageKey(){return userStorageKey(MEASUREMENT_DRAFT_KEY);}
-const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Blackout Curtain","Cloth Fabric","Curtain with Sheer","Sheer Curtain","Zebra Blind","Roman Blind","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Curtain Accessories","Other"];
+const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Blackout Curtain","Cloth Fabric","Curtain with Sheer","Sheer Curtain","Zebra Blind","Roman Blind","Roman Cloth Blinds","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Curtain Accessories","Other"];
 const rftTypes=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Curtain with Sheer","Sheer Curtain"];
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
@@ -2028,8 +2028,20 @@ function documentSignatureHTML(){
  const signature=settings.signature?`<img src="${settings.signature}" alt="Authorized signature" style="display:block;max-width:170px;width:100%;height:48px;object-fit:contain;margin:0 auto 3px">`:"";
  return `<div style="display:flex;justify-content:flex-end;margin-top:28px;break-inside:avoid"><div style="width:210px;text-align:center;padding:8px 10px 0">${signature}<div style="height:${settings.signature?'0':'42px'}"></div><div style="border-bottom:1px solid #6f2948"></div><div style="font-size:12px;font-weight:bold;margin-top:6px">Authorized Signature</div></div></div>`;
 }
+function groupDocumentItems(items){
+ const grouped=new Map();
+ (Array.isArray(items)?items:[]).forEach(it=>{
+  const name=String(it.name||"").trim(),unit=String(it.unit||"").trim(),qty=Math.max(0,Number(it.qty)||0),rate=Math.max(0,Number(it.rate)||0);
+  if(!name)return;
+  const key=[priceKey(name),priceKey(unit),rate.toFixed(4)].join("|");
+  if(!grouped.has(key))grouped.set(key,{...it,name,unit,qty:0,rate});
+  grouped.get(key).qty+=qty;
+ });
+ return [...grouped.values()];
+}
 function quoteHTML(q){
- const items=q.items.map((it,i)=>`<tr><td>${i+1}</td><td>${esc(it.name)}</td><td>${money(it.qty)}</td><td>${esc(it.unit)}</td><td>₹${money(it.rate)}</td><td>₹${money(Math.max(0,Number(it.qty)||0)*Math.max(0,Number(it.rate)||0))}</td></tr>`).join("");
+ const displayItems=groupDocumentItems(q.items);
+ const items=displayItems.map((it,i)=>`<tr><td>${i+1}</td><td>${esc(it.name)}</td><td>${money(it.qty)}</td><td>${esc(it.unit)}</td><td>₹${money(it.rate)}</td><td>₹${money(Math.max(0,Number(it.qty)||0)*Math.max(0,Number(it.rate)||0))}</td></tr>`).join("");
  return `<div class="preview"><div class="quote-header">${settings.logo?`<img class="logo" src="${settings.logo}">`:""}<h1>${esc(settings.name||"Curtain Shop")}</h1><div>${esc(settings.address||"")}</div><div>${esc(settings.phone||"")} ${settings.whatsapp?" · WhatsApp: "+esc(settings.whatsapp):""}</div><div>${esc(settings.email||"")}</div>${settings.gst?"GST: "+esc(settings.gst):""}</div>
  <div class="quote-info"><div><b>Customer</b><br>${esc(q.customer)}<br>${esc(q.phone||"")}<br>${esc(q.address||"")}</div><div><b>Quotation:</b> ${esc(q.number)}<br><b>Date:</b> ${esc(formatDateDMY(q.date))}</div></div>
  <table class="quote-table"><thead><tr><th>No.</th><th>Item</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${items}</tbody></table>
@@ -2186,7 +2198,8 @@ function editInvoice(id){
  renderInvoiceItems();showPage("invoice");
 }
 function invoiceHTML(d){
- const rows=(d.items||[]).map((it,i)=>`<tr><td>${i+1}</td><td>${esc(it.name)}</td><td>${money(it.qty)}</td><td>${esc(it.unit)}</td><td>₹${money(it.rate)}</td><td>₹${money(Math.max(0,Number(it.qty)||0)*Math.max(0,Number(it.rate)||0))}</td></tr>`).join("");
+ const displayItems=groupDocumentItems(d.items);
+ const rows=displayItems.map((it,i)=>`<tr><td>${i+1}</td><td>${esc(it.name)}</td><td>${money(it.qty)}</td><td>${esc(it.unit)}</td><td>₹${money(it.rate)}</td><td>₹${money(Math.max(0,Number(it.qty)||0)*Math.max(0,Number(it.rate)||0))}</td></tr>`).join("");
  return `<div class="preview"><div class="quote-header">${settings.logo?`<img class="logo" src="${settings.logo}">`:""}<h1>${esc(settings.name||"Curtain Shop")}</h1><div>${esc(settings.address||"")}</div><div>${esc(settings.phone||"")}${settings.whatsapp?" · WhatsApp: "+esc(settings.whatsapp):""}</div><div>${esc(settings.email||"")}</div>${settings.gst?"GST: "+esc(settings.gst):""}</div><h2 style="text-align:center">INVOICE</h2><div class="quote-info"><div><b>Customer</b><br>${esc(d.customer)}<br>${esc(d.phone||"")}<br>${esc(d.address||"")}</div><div><b>Invoice No:</b> ${esc(d.number)}<br><b>Date:</b> ${esc(formatDateDMY(d.date))}</div></div><table class="quote-table"><thead><tr><th>No.</th><th>Item</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table><div class="quote-total"><div class="summary-row"><span>Subtotal</span><b>₹${money(d.subtotal)}</b></div><div class="summary-row"><span>Discount</span><b>₹${money(d.discount)}</b></div><div class="summary-row"><span>GST (${money(d.gstRate)}%)</span><b>₹${money(d.gst)}</b></div><div class="summary-row grand"><span>Grand Total</span><b>₹${money(d.grand)}</b></div><div class="summary-row"><span>Amount Received</span><b>₹${money(d.paid)}</b></div><div class="summary-row"><span>Balance Due</span><b>₹${money(d.balance)}</b></div></div><p style="white-space:pre-wrap;margin-top:22px">${esc(d.notes||"")}</p>${documentSignatureHTML()}<p style="text-align:center;margin-top:20px">Thank you for your business.</p></div>`;
 }
 function previewInvoice(){const d=currentInvoice();if(!d.customer)return alert("Please enter Customer Name.");if(!d.items.some(x=>x.name.trim()))return alert("Add an item description.");const el=$("invoicePreview");el.innerHTML=invoiceHTML(d);el.classList.remove("hidden");el.scrollIntoView({behavior:"smooth",block:"start"});}
