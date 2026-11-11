@@ -911,7 +911,22 @@ function updateMeasurementRateVisibility(){
  document.querySelectorAll("#measurement .m-rate-head, #measurement .m-rate-cell").forEach(el=>el.style.display=enabled?"":"none");
  const summary=$("measurementRateSummary");if(summary&&!enabled)summary.style.display="none";
 }
-function savePriceAutoOptions(){settings.priceAutoOptions={measurement:$("priceAutoMeasurement").checked,quotation:$("priceAutoQuotation").checked,invoice:$("priceAutoInvoice").checked};saveStorage();updateMeasurementRateVisibility();if($("measurementBody")){recalculateMeasurements();}}
+function savePriceAutoOptions(){
+ settings.priceAutoOptions={measurement:$("priceAutoMeasurement").checked,quotation:$("priceAutoQuotation").checked,invoice:$("priceAutoInvoice").checked};
+ saveStorage();updateMeasurementRateVisibility();
+ if($("measurementBody")){
+  if(settings.priceAutoOptions.measurement){
+   document.querySelectorAll("#measurementBody tr").forEach(tr=>{
+    const rateInput=tr.querySelector(".mRate");
+    if(rateInput&&rateInput.dataset.manualRate!=="yes"){
+     rateInput.dataset.autoRate="no";
+     updateMeasurementRate(tr,true);
+    }
+   });
+  }
+  recalculateMeasurements();
+ }
+}
 function loadPriceAutoOptions(){const o=getPriceAutoOptions();[ ["priceAutoMeasurement","measurement"],["priceAutoQuotation","quotation"],["priceAutoInvoice","invoice"] ].forEach(([id,k])=>{const el=$(id);if(el)el.checked=!!o[k];});updateMeasurementRateVisibility();}
 function priceListEnabled(where){return !!getPriceAutoOptions()[where];}
 
@@ -1151,6 +1166,8 @@ function addMeasurementRow(data){
  }
  typeSelect.onchange=()=>{
   tr.querySelector(".mRate").value="";
+  tr.querySelector(".mRate").dataset.manualRate="no";
+  tr.querySelector(".mRate").dataset.autoRate="no";
   updateCustom();
   updateMeasurementRate(tr);
   recalculateMeasurements();
@@ -1164,8 +1181,15 @@ function addMeasurementRow(data){
   saveMeasurementDraft();
  };
  tr.querySelectorAll("input").forEach(i=>i.oninput=()=>{
-  if(i.classList.contains("mRate")){recalculateMeasurements();saveMeasurementDraft();return;}
-  if(i.classList.contains("mShade")||i.classList.contains("mCustomType")){tr.querySelector(".mRate").value="";updateMeasurementRate(tr);}
+  if(i.classList.contains("mRate")){
+   i.dataset.manualRate="yes";i.dataset.autoRate="no";
+   recalculateMeasurements();saveMeasurementDraft();return;
+  }
+  if(i.classList.contains("mShade")||i.classList.contains("mCustomType")){
+   const rateInput=tr.querySelector(".mRate");
+   rateInput.value="";rateInput.dataset.manualRate="no";rateInput.dataset.autoRate="no";
+   updateMeasurementRate(tr);
+  }
   recalculateMeasurements();
  });
  tr.querySelector("button").onclick=()=>{tr.remove();recalculateMeasurements();saveMeasurementDraft();};
@@ -1179,6 +1203,7 @@ function addMeasurementRow(data){
   tr.querySelector(".mQty").value=data.qty||1;
   tr.querySelector(".mShade").value=data.shade||"";
   tr.querySelector(".mRate").value=data.rate??"";
+  if(data.rate!==undefined&&data.rate!==null&&data.rate!=="")tr.querySelector(".mRate").dataset.manualRate="yes";
  }
  updateCustom();
  // Preserve a previously saved/manual rate when restoring an existing row.
@@ -1190,17 +1215,23 @@ function measurementRowProductName(tr){
  const type=tr.querySelector(".mType")?.value||"";
  return (type==="Other"||type==="Cloth Fabric")?(tr.querySelector(".mCustomType")?.value||"").trim():type.trim();
 }
-function updateMeasurementRate(tr){
+function updateMeasurementRate(tr,force=false){
  const input=tr.querySelector(".mRate");
  if(!input)return;
- // Never carry an old product's rate into a different product.
- input.value="";
  if(!priceListEnabled("measurement"))return;
+ // A manually entered rate is preserved until the product or serial number changes.
+ if(input.dataset.manualRate==="yes"&&!force)return;
  const name=measurementRowProductName(tr);
  if(!name)return;
  const shade=tr.querySelector(".mShade")?.value||"";
  const match=getItemPrice(name,shade,"measurement");
- if(match!==null)input.value=String(match);
+ if(match!==null){
+  input.value=String(match);
+  input.dataset.autoRate="yes";
+ }else if(input.dataset.autoRate==="yes"||force){
+  input.value="";
+  input.dataset.autoRate="no";
+ }
 }
 function renumberRows(){document.querySelectorAll("#measurementBody tr").forEach((r,i)=>r.querySelector(".rowNo").textContent=i+1);}
 function getRowCalc(h,w,unit,type,qty,rate,customUnit){
@@ -1237,7 +1268,9 @@ function recalculateMeasurements(){
   const h=Number(tr.querySelector(".mHeight").value)||0;
   const w=Number(tr.querySelector(".mWidth").value)||0;
   const qty=Math.max(1,Number(tr.querySelector(".mQty").value)||1);
-  const rateText=tr.querySelector(".mRate").value;
+  const rateInput=tr.querySelector(".mRate");
+  if(rateCalcEnabled&&rateInput.value===""&&rateInput.dataset.manualRate!=="yes")updateMeasurementRate(tr);
+  const rateText=rateInput.value;
   const rate=rateText===""?0:(Number(rateText)||0);
   const c=getRowCalc(h,w,$("mUnit").value,type,qty,0,customUnit);
   const amount=c.area*rate;
