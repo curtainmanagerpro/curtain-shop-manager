@@ -346,7 +346,7 @@ td input,td select{min-width:80px;padding:8px}
    <button class="btn-green" type="button" onclick="saveMeasurement()">Save Measurement</button>
    <button class="btn-red" type="button" onclick="clearMeasurement()">Clear</button>
   </div>
-  <button class="btn-blue" onclick="previewMeasurementSheet()">Preview Measurement Sheet</button>
+  <button class="btn-blue" type="button" onclick="safePreviewMeasurementSheet()">Preview Measurement Sheet</button>
   <div id="measurementPreview" class="preview hidden" style="margin-top:16px"></div>
  </div>
 </section>
@@ -1457,6 +1457,27 @@ function clearMeasurement(){
  clearMeasurementDraft();
  resetMeasurementSheetAfterSave();
 }
+function safePreviewMeasurementSheet(){
+ try{previewMeasurementSheet();}
+ catch(error){console.error("Measurement preview failed:",error);alert("Measurement Preview തുറക്കാൻ കഴിഞ്ഞില്ല: "+(error?.message||"Unknown error"));}
+}
+function safeRunMeasurementAction(action,id){
+ try{
+  const m=measurements.find(x=>String(x.id)===String(id));
+  if(!m){alert("Saved measurement not found. Refresh Saved Measurements and try again.");return;}
+  if(action==="view")return viewMeasurement(id);
+  if(action==="edit")return editMeasurement(id);
+  if(action==="share")return downloadSavedMeasurementPDF(id);
+  if(action==="jpg")return saveSavedMeasurementJPG(id);
+  if(action==="quotation")return measurementToQuotationSaved(id);
+  if(action==="invoice")return measurementToInvoice(id);
+  if(action==="blind")return measurementToBlindOrder(id);
+  if(action==="receipt")return measurementToReceipt(id);
+  if(action==="delete")return deleteMeasurement(id);
+  if(action==="print")return printSavedMeasurementSheet(id);
+  console.warn("Unknown saved measurement action:",action);
+ }catch(error){console.error("Saved measurement action failed:",action,error);alert("ഈ പ്രവർത്തനം പൂർത്തിയാക്കാൻ കഴിഞ്ഞില്ല: "+(error?.message||"Unknown error"));}
+}
 function viewMeasurement(id){
  const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;
  showSavedDocumentPreview("Measurement Sheet · "+(m.customer||""),measurementSheetHTML(m));
@@ -1523,7 +1544,7 @@ function renderMeasurements(){
  $("measurementList").innerHTML=list.slice().reverse().map(m=>{
   const sqft=m.rows.reduce((a,r)=>a+Number(r.sqft||0),0);
   const rft=m.rows.reduce((a,r)=>a+Number(r.rft||0),0);
-  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(formatDateDMY(m.date))}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></p><div class="measurement-action-grid"><button class="btn-blue" onclick="viewMeasurement(${m.id})">View</button><button class="btn-green" onclick="editMeasurement(${m.id})">Edit</button><button class="btn-dark" onclick="downloadSavedMeasurementPDF(${m.id})">Share PDF</button><button class="btn-green" onclick="saveSavedMeasurementJPG(${m.id})">Save as JPG</button><button class="btn-blue" onclick="measurementToQuotationSaved(${m.id})">Create Quotation</button><button class="btn-green" onclick="measurementToInvoice(${m.id})">Create Invoice</button><button class="btn-blue" onclick="measurementToBlindOrder(${m.id})">Create Blind Order</button><button class="btn-dark" onclick="measurementToReceipt(${m.id})">Create Receipt</button><button class="btn-red" onclick="deleteMeasurement(${m.id})">Delete</button><button class="btn-dark" onclick="printSavedMeasurementSheet(${m.id})">🖨️ Print A4</button></div></div>`;
+  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(formatDateDMY(m.date))}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></p><div class="measurement-action-grid"><button type="button" class="btn-blue" onclick="safeRunMeasurementAction('view','${String(m.id)}')">View</button><button type="button" class="btn-green" onclick="safeRunMeasurementAction('edit','${String(m.id)}')">Edit</button><button type="button" class="btn-dark" onclick="safeRunMeasurementAction('share','${String(m.id)}')">Share PDF</button><button type="button" class="btn-green" onclick="safeRunMeasurementAction('jpg','${String(m.id)}')">Save as JPG</button><button type="button" class="btn-blue" onclick="safeRunMeasurementAction('quotation','${String(m.id)}')">Create Quotation</button><button type="button" class="btn-green" onclick="safeRunMeasurementAction('invoice','${String(m.id)}')">Create Invoice</button><button type="button" class="btn-blue" onclick="safeRunMeasurementAction('blind','${String(m.id)}')">Create Blind Order</button><button type="button" class="btn-dark" onclick="safeRunMeasurementAction('receipt','${String(m.id)}')">Create Receipt</button><button type="button" class="btn-red" onclick="safeRunMeasurementAction('delete','${String(m.id)}')">Delete</button><button type="button" class="btn-dark" onclick="safeRunMeasurementAction('print','${String(m.id)}')">🖨️ Print A4</button></div></div>`;
  }).join("")||'<div class="card empty">No saved measurements found.</div>';
 }
 function measurementSheetHTML(m){
@@ -1587,8 +1608,8 @@ function measurementSheetHTML(m){
 }
 function previewMeasurementSheet(){
  const m=getMeasurementForm();
- if(!m.rows.length)return alert("Enter at least one valid width and height.");
- if(m.rows.some(r=>!String(r.area||"").trim()))return alert("Please enter Room / Area for each measurement.");
+ if(!m.rows.length)return alert("Preview കാണാൻ കുറഞ്ഞത് ഒരു വരിയിലെ Width, Height എന്നിവ നൽകുക.");
+ if(m.rows.some(r=>!String(r.area||"").trim()))return alert("ഓരോ measurement-നും Room / Area നൽകുക.");
  const el=$("measurementPreview");el.innerHTML=measurementSheetHTML(m);el.classList.remove("hidden");
  el.scrollIntoView({behavior:"smooth",block:"start"});
 }
