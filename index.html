@@ -978,13 +978,18 @@ function findPrice(list,name,serial){
 function getItemPrice(name,serial,where,unit="",type=""){
  if(!priceListEnabled(where))return null;
  ensureNewPriceLists();
- const u=String(unit||"").toLowerCase(),t=String(type||"");let lists=[];
+ const u=String(unit||"").toLowerCase(),t=String(type||"").trim();let lists=[];
  if(/blind/i.test(t)||u.includes("sq.ft"))lists=[settings.blindsPriceList];
  else if(rftTypes.includes(t)||u==="rft")lists=[settings.rftPriceList,settings.clothPriceList];
  else if(t==="Curtain Accessories"||u==="nos"||u==="piece")lists=[settings.accessoryPriceList];
  else if(u==="meter")lists=[settings.clothPriceList];
  else lists=[settings.blindsPriceList,settings.rftPriceList,settings.clothPriceList,settings.accessoryPriceList];
- for(const list of lists){const match=findPrice(list,name,serial);if(match&&Number.isFinite(Number(match.rate))&&Number(match.rate)>=0)return Number(match.rate);}
+ // First use the selected Type's own rate (e.g. Ripple Curtain / Roman Blind).
+ // If no type-specific rate exists, fall back to the selected Catalog Name.
+ if(t){
+  for(const list of lists){const byType=findPrice(list,t,serial)||findPrice(list,t,"");if(byType&&Number.isFinite(Number(byType.rate))&&Number(byType.rate)>=0)return Number(byType.rate);}
+ }
+ for(const list of lists){const match=findPrice(list,name,serial)||findPrice(list,name,"");if(match&&Number.isFinite(Number(match.rate))&&Number(match.rate)>=0)return Number(match.rate);}
  return null;
 }
 function loadPriceListRows(){loadPriceAutoOptions();}
@@ -1274,10 +1279,11 @@ function updateMeasurementRate(tr,force=false){
  const input=tr.querySelector(".mRate");if(!input||!priceListEnabled("measurement"))return;
  if(input.dataset.manualRate==="yes"&&!force)return;
  const type=tr.querySelector(".mType")?.value||"",name=measurementRowProductName(tr),unit=tr.querySelector(".mCustomUnit")?.value||"";
- if(!name)return;ensureNewPriceLists();let list=null;
+ ensureNewPriceLists();let list=null;
  if(/blind/i.test(type))list=settings.blindsPriceList;else if(rftTypes.includes(type)||unit==="RFT")list=settings.rftPriceList;else if(type==="Curtain Accessories")list=settings.accessoryPriceList;
- const match=list?findPrice(list,name,""):null;
- if(match&&Number.isFinite(Number(match.rate))){input.value=String(match.rate);input.dataset.autoRate="yes";}
+ // Type-wise rate takes priority; Catalog Name is only a fallback.
+ const match=(list?(findPrice(list,type,"")||findPrice(list,name,"")):null);
+ if(match&&Number.isFinite(Number(match.rate))&&Number(match.rate)>=0){input.value=String(match.rate);input.dataset.autoRate="yes";}
  else if(input.dataset.autoRate==="yes"||force){input.value="";input.dataset.autoRate="no";}
 }
 
