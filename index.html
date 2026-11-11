@@ -233,7 +233,9 @@ td input,td select{min-width:80px;padding:8px}
   .home-secondary-buttons button > span:nth-child(2){font-size:19px}
 }
 
-.price-auto-switches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:start}.price-auto-switches label{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;gap:7px;font-size:13px;font-weight:700;min-width:0}.price-auto-switches input[type=checkbox]{width:28px;height:28px;margin:0;flex:0 0 auto}@media(max-width:420px){.price-auto-switches label{font-size:11px}}</style>
+.price-auto-switches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:start}.price-auto-switches label{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;gap:7px;font-size:13px;font-weight:700;min-width:0}.price-auto-switches input[type=checkbox]{width:28px;height:28px;margin:0;flex:0 0 auto}@media(max-width:420px){.price-auto-switches label{font-size:11px}}.price-entry-row{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}
+@media(max-width:600px){.price-entry-row .grid{grid-template-columns:1fr}}
+</style>
  <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#24445c">
 
@@ -290,6 +292,7 @@ td input,td select{min-width:80px;padding:8px}
    <button class="saved-customers" onclick="showPage('customers')"><span class="saved-icon">👥</span><span>Customers</span><span class="saved-arrow">›</span></button>
    <button class="saved-settings" onclick="showPage('settings')"><span class="saved-icon">⚙️</span><span>Settings</span><span class="saved-arrow">›</span></button>
   </div>
+  <div class="card" style="margin-top:14px"><button type="button" class="btn-dark" style="width:100%;min-height:56px;font-size:18px" onclick="showPage('priceLists')">💰 Price Lists</button></div>
   <div id="homeAdminButton" class="hidden" style="margin-top:10px"><button class="btn-dark" style="width:100%" onclick="showPage('admin')">Admin Panel</button></div>
  </div>
  <div class="card"><h3>Quick Summary</h3><div class="grid"><div class="notice">Saved Measurements: <b id="homeMeasurementCount">0</b></div><div class="notice">Saved Quotations: <b id="homeQuoteCount">0</b></div><div class="notice">Saved Blinds Orders: <b id="homeBlindOrderCount">0</b></div><div class="notice">Saved Invoices: <b id="homeInvoiceCount">0</b></div><div class="notice">Saved Receipts: <b id="homeReceiptCount">0</b></div></div></div>
@@ -511,15 +514,6 @@ td input,td select{min-width:80px;padding:8px}
   <div class="field" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
    <button type="button" class="btn-green" onclick="saveSettings()">Save Settings</button>
   </div>
-  <div class="field" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
-   <h3>Product Price List</h3>
-   <div class="item-card price-auto-switches"><label><input type="checkbox" id="priceAutoMeasurement" onchange="savePriceAutoOptions()"> Measurement Sheet ON</label><label><input type="checkbox" id="priceAutoQuotation" onchange="savePriceAutoOptions()"> Quotation ON</label><label><input type="checkbox" id="priceAutoInvoice" onchange="savePriceAutoOptions()"> Invoice ON</label></div>
-   <div id="priceListRows"></div>
-   <div style="display:flex;justify-content:flex-end;margin-top:10px">
-    <button type="button" class="btn-blue" onclick="addPriceListRow()">＋ Add Row</button>
-   </div>
-   <button type="button" class="btn-green" onclick="saveProductPriceList()">Save Product Price List</button>
-   <div id="priceListItems" style="margin-top:12px"></div>
   <button class="btn-light" onclick="downloadBackup()">Download Backup</button>
   <button class="btn-light" onclick="document.getElementById('restoreFile').click()">Restore Backup</button>
   <input id="restoreFile" class="hidden" type="file" accept="application/json" onchange="restoreBackup(event)">
@@ -528,6 +522,29 @@ td input,td select{min-width:80px;padding:8px}
  </div>
 </section>
 
+<section id="priceLists" class="page"><div class="card">
+ <h2>Price Lists</h2>
+ <div class="item-card price-auto-switches">
+  <label><input type="checkbox" id="priceAutoMeasurement" onchange="savePriceAutoOptions()"> Measurement Sheet ON</label>
+  <label><input type="checkbox" id="priceAutoQuotation" onchange="savePriceAutoOptions()"> Quotation ON</label>
+  <label><input type="checkbox" id="priceAutoInvoice" onchange="savePriceAutoOptions()"> Invoice ON</label>
+ </div>
+ <button class="btn-blue" style="width:100%" onclick="showPage('blindsPriceList')">🪟 Blinds Price List</button>
+ <button class="btn-green" style="width:100%" onclick="showPage('clothPriceList')">🧵 Cloth Price List</button>
+ <button class="btn-light" onclick="showPage('home')">← Back to Home</button>
+</div></section>
+<section id="blindsPriceList" class="page"><div class="card">
+ <h2>Blinds Price List</h2><p class="small">Rate: Sq.Ft. Shade / Serial No. നൽകിയില്ലെങ്കിൽ Default Rate ഉപയോഗിക്കും.</p>
+ <div id="blindsPriceRows"></div><button class="btn-blue" onclick="addBlindsPriceRow()">＋ Add Blind Rate</button>
+ <button class="btn-green" onclick="saveBlindsPriceList()">Save Blinds Price List</button><div id="blindsPriceSaved"></div>
+ <button class="btn-light" onclick="showPage('priceLists')">← Back</button>
+</div></section>
+<section id="clothPriceList" class="page"><div class="card">
+ <h2>Cloth Price List</h2><p class="small">Rate: Meter. Collection Name-ന് പൊതുവായ Rate; ആവശ്യമെങ്കിൽ Serial No. Rate.</p>
+ <div id="clothPriceRows"></div><button class="btn-blue" onclick="addClothPriceRow()">＋ Add Cloth Rate</button>
+ <button class="btn-green" onclick="saveClothPriceList()">Save Cloth Price List</button><div id="clothPriceSaved"></div>
+ <button class="btn-light" onclick="showPage('priceLists')">← Back</button>
+</div></section>
 <section id="admin" class="page">
  <div class="card">
   <h2>Admin Panel — Authorized Users</h2>
@@ -604,7 +621,7 @@ function deletedMeasurementsStorageKey(){return userStorageKey(DELETED_MEASUREME
 function deletedRecordsStorageKey(){return userStorageKey(DELETED_RECORDS_KEY);}
 const MEASUREMENT_DRAFT_KEY="curtain_manager_measurement_draft_v1";
 function measurementDraftStorageKey(){return userStorageKey(MEASUREMENT_DRAFT_KEY);}
-const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Blackout Curtain","Curtain with Sheer","Sheer Curtain","Zebra Blind","Roman Blind","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Other"];
+const types=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Blackout Curtain","Cloth Fabric","Curtain with Sheer","Sheer Curtain","Zebra Blind","Roman Blind","Roller Blind","Wooden Blind","Venetian Blind","Bamboo Blind","Honeycomb Blind","Other"];
 const rftTypes=["Cloth Curtain","Eyelet Curtain","Ripple Curtain","Pleat Curtain","Curtain with Sheer","Sheer Curtain"];
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
@@ -885,7 +902,7 @@ function loadSettings(){
  loadPriceListRows();
 }
 function saveSettings(){
- settings={...settings,name:$("sName").value.trim(),phone:$("sPhone").value.trim(),whatsapp:$("sWhatsapp").value.trim(),email:$("sEmail").value.trim(),gst:$("sGST").value.trim(),validity:$("sValidity").value.trim(),address:$("sAddress").value.trim(),logo:settings.logo||"",signature:settings.signature||"",productPriceList:Array.isArray(settings.productPriceList)?settings.productPriceList:[],priceAutoOptions:settings.priceAutoOptions||{measurement:false,quotation:true,invoice:true}};
+ settings={...settings,name:$("sName").value.trim(),phone:$("sPhone").value.trim(),whatsapp:$("sWhatsapp").value.trim(),email:$("sEmail").value.trim(),gst:$("sGST").value.trim(),validity:$("sValidity").value.trim(),address:$("sAddress").value.trim(),logo:settings.logo||"",signature:settings.signature||"",productPriceList:Array.isArray(settings.productPriceList)?settings.productPriceList:[],blindsPriceList:Array.isArray(settings.blindsPriceList)?settings.blindsPriceList:[],clothPriceList:Array.isArray(settings.clothPriceList)?settings.clothPriceList:[],priceAutoOptions:settings.priceAutoOptions||{measurement:false,quotation:true,invoice:true}};
  saveStorage();alert("Business settings saved.");
 }
 function getPriceAutoOptions(){return settings.priceAutoOptions||{measurement:false,quotation:true,invoice:true};}
@@ -897,67 +914,89 @@ function updateMeasurementRateVisibility(){
 function savePriceAutoOptions(){settings.priceAutoOptions={measurement:$("priceAutoMeasurement").checked,quotation:$("priceAutoQuotation").checked,invoice:$("priceAutoInvoice").checked};saveStorage();updateMeasurementRateVisibility();if($("measurementBody")){recalculateMeasurements();}}
 function loadPriceAutoOptions(){const o=getPriceAutoOptions();[ ["priceAutoMeasurement","measurement"],["priceAutoQuotation","quotation"],["priceAutoInvoice","invoice"] ].forEach(([id,k])=>{const el=$(id);if(el)el.checked=!!o[k];});updateMeasurementRateVisibility();}
 function priceListEnabled(where){return !!getPriceAutoOptions()[where];}
-function priceListNormalized(item){
- const name=String(item?.name||"");
- const known=types.includes(name);
- return {id:String(item?.id||newId()),type:known?name:"Other",customType:known?"":name,rate:item?.rate??"",customUnit:item?.customUnit||"Sq.Ft"};
-}
-function renderPriceList(){
- const host=$("priceListItems");if(!host)return;
- const list=Array.isArray(settings.productPriceList)?settings.productPriceList:[];
- if(!list.length){host.innerHTML='<div class="empty">Price List ഇതുവരെ ചേർത്തിട്ടില്ല.</div>';return;}
- host.innerHTML=list.map(item=>`<div class="item-card"><b>${esc(item.name)}</b><div class="small">Rate: ₹${money(item.rate)}</div><button type="button" class="btn-red" onclick="deletePriceListSavedItem('${String(item.id)}')">Delete</button></div>`).join("");
-}
-function addPriceListRow(item={}){
- const row=priceListNormalized(item),host=$("priceListRows");
- const div=document.createElement("div");div.className="item-card price-list-row";
- div.innerHTML=`<div class="grid">
-  <div class="field"><label>Product Name</label><select class="plType">${types.map(t=>`<option value="${esc(t)}" ${row.type===t?"selected":""}>${esc(t)}</option>`).join("")}</select><input class="plCustom" placeholder="Other product name" style="display:none;margin-top:6px" value="${esc(row.customType)}"></div>
-  <div class="field"><label>Rate (₹)</label><input class="plRate" type="number" min="0" step="1" value="${esc(Math.round(Number(row.rate)||0))}" placeholder="Rate"></div>
- </div><button type="button" class="btn-red plDelete">Delete Row</button>`;
- const type=div.querySelector(".plType"),custom=div.querySelector(".plCustom");
- const update=()=>{custom.style.display=type.value==="Other"?"block":"none";};
- type.onchange=update;update();
- div.querySelector(".plDelete").onclick=()=>div.remove();
- div.dataset.id=row.id;
- host.appendChild(div);
-}
-function loadPriceListRows(){
- loadPriceAutoOptions();
- const host=$("priceListRows");if(!host)return;host.innerHTML="";
- const list=Array.isArray(settings.productPriceList)?settings.productPriceList:[];
- if(list.length)list.forEach(item=>addPriceListRow(item));else addPriceListRow();
- renderPriceList();
-}
-function saveProductPriceList(){
- const rows=[...document.querySelectorAll("#priceListRows .price-list-row")];
- const next=[];
- for(const row of rows){
-  const type=row.querySelector(".plType").value;
-  const custom=row.querySelector(".plCustom").value.trim();
-  const name=type==="Other"?custom:type;
-  const rateText=row.querySelector(".plRate").value;
-  if(!name && rateText==="")continue;
-  if(!name){alert("Product Name തിരഞ്ഞെടുക്കുക അല്ലെങ്കിൽ Other-ൽ പേര് നൽകുക.");return;}
-  if(rateText===""||!Number.isFinite(Number(rateText))||Number(rateText)<0){alert("“"+name+"” എന്നതിന് ശരിയായ Rate നൽകുക.");return;}
-  if(next.some(x=>x.name.toLowerCase()===name.toLowerCase())){alert("ഒരേ Product Name ഒന്നിലധികം തവണ ചേർത്തിട്ടുണ്ട്: "+name);return;}
-  next.push({id:String(row.dataset.id||newId()),name,rate:Math.round(Number(rateText)),type,customType:custom,customUnit:"Sq.Ft"});
+
+function ensureNewPriceLists(){
+ if(!Array.isArray(settings.blindsPriceList)){
+  const old=Array.isArray(settings.productPriceList)?settings.productPriceList:[];
+  settings.blindsPriceList=old.filter(x=>/blind/i.test(String(x.name||""))).map(x=>({id:String(x.id||newId()),type:String(x.name||""),shade:"",rate:x.rate??""}));
  }
- settings.productPriceList=next.sort((a,b)=>a.name.localeCompare(b.name));
- saveStorage();renderPriceList();alert("Product Price List സേവ് ചെയ്തു.");
+ if(!Array.isArray(settings.clothPriceList))settings.clothPriceList=[];
 }
-function deletePriceListSavedItem(id){
- const item=(settings.productPriceList||[]).find(x=>String(x.id)===String(id));if(!item)return;
- if(!confirm(`“${item.name}” Price List-ൽ നിന്ന് Delete ചെയ്യണോ?`))return;
- settings.productPriceList=settings.productPriceList.filter(x=>String(x.id)!==String(id));
- saveStorage();renderPriceList();loadPriceListRows();
+function priceKey(v){return String(v||"").trim().replace(/\s+/g," ").toLocaleLowerCase();}
+function findPrice(list,name,serial){
+ const n=priceKey(name),s=priceKey(serial),rows=Array.isArray(list)?list:[];
+ if(!n)return null;
+ if(s){const exact=rows.find(x=>priceKey(x.name||x.type)===n&&priceKey(x.serial||x.shade)===s&&String(x.rate??"")!=="");if(exact)return exact;}
+ return rows.find(x=>priceKey(x.name||x.type)===n&&!priceKey(x.serial||x.shade)&&String(x.rate??"")!=="")||null;
 }
-function applyPriceFromList(itemName,where="quotation"){
+function getItemPrice(name,serial,where){
  if(!priceListEnabled(where))return null;
- const name=normalizePriceProductName(itemName);if(!name)return null;
- const match=(Array.isArray(settings.productPriceList)?settings.productPriceList:[]).find(x=>normalizePriceProductName(x?.name)===name);
- return match&&match.rate!==""&&Number.isFinite(Number(match.rate))?Math.round(Number(match.rate)):null;
+ ensureNewPriceLists();
+ const match=/blind/i.test(String(name||""))?findPrice(settings.blindsPriceList,name,serial):findPrice(settings.clothPriceList,name,serial);
+ return match&&Number.isFinite(Number(match.rate))?Math.round(Number(match.rate)):null;
 }
+function loadPriceListRows(){loadPriceAutoOptions();}
+function renderPriceList(){}
+function addBlindsPriceRow(item={}){
+ const d=document.createElement("div");d.className="price-entry-row";
+ d.innerHTML=`<div class="grid"><div class="field"><label>Blind Type</label><input class="bpType" placeholder="Example: Zebra Blind" value="${esc(item.type||"")}"></div><div class="field"><label>Shade / Serial No. (Optional)</label><input class="bpShade" placeholder="Blank = Default Rate" value="${esc(item.shade||"")}"></div><div class="field"><label>Rate (₹ / Sq.Ft)</label><input class="bpRate" type="number" min="0" step="1" value="${esc(item.rate??"")}"></div></div><button type="button" class="btn-red">Delete Row</button>`;
+ d.dataset.id=String(item.id||newId());d.querySelector("button").onclick=()=>d.remove();$("blindsPriceRows").appendChild(d);
+}
+function addClothPriceRow(item={}){
+ const d=document.createElement("div");d.className="price-entry-row";
+ d.innerHTML=`<div class="grid"><div class="field"><label>Collection / Cloth Name</label><input class="cpName" placeholder="Example: MARLYN" value="${esc(item.name||"")}"></div><div class="field"><label>Serial No. (Optional)</label><input class="cpSerial" placeholder="Blank = General Rate" value="${esc(item.serial||"")}"></div><div class="field"><label>Rate (₹ / Meter)</label><input class="cpRate" type="number" min="0" step="1" value="${esc(item.rate??"")}"></div></div><button type="button" class="btn-red">Delete Row</button>`;
+ d.dataset.id=String(item.id||newId());d.querySelector("button").onclick=()=>d.remove();$("clothPriceRows").appendChild(d);
+}
+function loadNewPriceLists(){
+ ensureNewPriceLists();
+ if(!$("blindsPriceRows"))return;
+ $("blindsPriceRows").innerHTML="";settings.blindsPriceList.forEach(x=>addBlindsPriceRow(x));
+ $("clothPriceRows").innerHTML="";settings.clothPriceList.forEach(x=>addClothPriceRow(x));
+ renderNewPriceLists();
+}
+function saveBlindsPriceList(){
+ const next=[];
+ for(const row of document.querySelectorAll("#blindsPriceRows .price-entry-row")){
+  const type=row.querySelector(".bpType").value.trim(),shade=row.querySelector(".bpShade").value.trim(),rate=row.querySelector(".bpRate").value;
+  if(!type&&!shade&&!rate)continue;
+  if(!type||rate===""||!Number.isFinite(Number(rate))||Number(rate)<0)return alert("Blind Type, ശരിയായ Rate എന്നിവ നൽകുക.");
+  if(next.some(x=>priceKey(x.type)===priceKey(type)&&priceKey(x.shade)===priceKey(shade)))return alert("ഈ Blind Type + Shade Number ഇതിനകം ചേർത്തിട്ടുണ്ട്.");
+  next.push({id:row.dataset.id||String(newId()),type,shade,rate:Math.round(Number(rate))});
+ }
+ settings.blindsPriceList=next;saveStorage();renderNewPriceLists();alert("Blinds Price List സേവ് ചെയ്തു.");
+}
+function saveClothPriceList(){
+ const next=[];
+ for(const row of document.querySelectorAll("#clothPriceRows .price-entry-row")){
+  const name=row.querySelector(".cpName").value.trim(),serial=row.querySelector(".cpSerial").value.trim(),rate=row.querySelector(".cpRate").value;
+  if(!name&&!serial&&!rate)continue;
+  if(!name||rate===""||!Number.isFinite(Number(rate))||Number(rate)<0)return alert("Collection Name, ശരിയായ Rate എന്നിവ നൽകുക.");
+  if(next.some(x=>priceKey(x.name)===priceKey(name)&&priceKey(x.serial)===priceKey(serial)))return alert("ഈ Collection + Serial Number ഇതിനകം ചേർത്തിട്ടുണ്ട്.");
+  next.push({id:row.dataset.id||String(newId()),name,serial,rate:Math.round(Number(rate))});
+ }
+ settings.clothPriceList=next;saveStorage();renderNewPriceLists();alert("Cloth Price List സേവ് ചെയ്തു.");
+}
+function editPriceItem(kind,id){
+ const blind=kind==="blind",list=blind?settings.blindsPriceList:settings.clothPriceList,item=list.find(x=>String(x.id)===String(id));
+ if(!item)return;
+ const host=$(blind?"blindsPriceRows":"clothPriceRows"),cls=blind?".bpType":".cpName";
+ const row=[...host.querySelectorAll(".price-entry-row")].find(r=>r.dataset.id===String(id));
+ if(row){row.scrollIntoView({behavior:"smooth",block:"center"});row.style.outline="2px solid #3277d5";setTimeout(()=>row.style.outline="",1800);}
+}
+function deletePriceItem(kind,id){
+ const blind=kind==="blind";
+ if(!confirm("ഈ Price List entry delete ചെയ്യണോ?"))return;
+ if(blind)settings.blindsPriceList=settings.blindsPriceList.filter(x=>String(x.id)!==String(id));
+ else settings.clothPriceList=settings.clothPriceList.filter(x=>String(x.id)!==String(id));
+ saveStorage();loadNewPriceLists();
+}
+function renderNewPriceLists(){
+ ensureNewPriceLists();
+ const b=$("blindsPriceSaved"),c=$("clothPriceSaved");
+ if(b)b.innerHTML=settings.blindsPriceList.map(x=>`<div class="item-card"><b>${esc(x.type)}</b> ${x.shade?`· Serial: ${esc(x.shade)}`:"· Default"}<div>₹${money(x.rate)} / Sq.Ft</div><button type="button" class="btn-light" onclick="editPriceItem('blind','${String(x.id)}')">Edit</button><button type="button" class="btn-red" onclick="deletePriceItem('blind','${String(x.id)}')">Delete</button></div>`).join("")||'<div class="empty">Blinds Price List empty.</div>';
+ if(c)c.innerHTML=settings.clothPriceList.map(x=>`<div class="item-card"><b>${esc(x.name)}</b> ${x.serial?`· Serial: ${esc(x.serial)}`:"· General Rate"}<div>₹${money(x.rate)} / Meter</div><button type="button" class="btn-light" onclick="editPriceItem('cloth','${String(x.id)}')">Edit</button><button type="button" class="btn-red" onclick="deletePriceItem('cloth','${String(x.id)}')">Delete</button></div>`).join("")||'<div class="empty">Cloth Price List empty.</div>';
+}
+function applyPriceFromList(itemName,where="quotation",serial=""){return getItemPrice(itemName,serial,where);}
 
 function loadLogo(e){
  const f=e.target.files[0];if(!f)return;
@@ -1023,6 +1062,7 @@ function showPage(page,addToHistory=true){
  if(page==="savedInvoices")renderInvoices();
  if(page==="savedReceipts")renderReceipts();
  if(page==="settings")loadSettings();
+ if(["priceLists","blindsPriceList","clothPriceList"].includes(page))loadNewPriceLists();
   if(page==="blindOrder"){updateBlindUnitLabels();updateBlindBusinessInfo();}
   if(page==="savedBlindOrders")renderBlindOrders();
  if(page==="admin")loadAuthorizedUsers();
@@ -1103,7 +1143,9 @@ function addMeasurementRow(data){
  const customUnit=tr.querySelector(".mCustomUnit");
  function updateCustom(){
   const other=typeSelect.value==="Other";
-  customInput.style.display=other?"block":"none";
+  const clothFabric=typeSelect.value==="Cloth Fabric";
+  customInput.style.display=(other||clothFabric)?"block":"none";
+  customInput.placeholder=clothFabric?"Collection / Cloth Name":"Type name";
   customUnit.style.display=other?"block":"none";
   recalculateMeasurements();
  }
@@ -1123,8 +1165,8 @@ function addMeasurementRow(data){
  };
  tr.querySelectorAll("input").forEach(i=>i.oninput=()=>{
   if(i.classList.contains("mRate")){recalculateMeasurements();saveMeasurementDraft();return;}
+  if(i.classList.contains("mShade")||i.classList.contains("mCustomType")){tr.querySelector(".mRate").value="";updateMeasurementRate(tr);}
   recalculateMeasurements();
-  if(i.classList.contains("mCustomType")){tr.querySelector(".mRate").value="";updateMeasurementRate(tr);recalculateMeasurements();}
  });
  tr.querySelector("button").onclick=()=>{tr.remove();recalculateMeasurements();saveMeasurementDraft();};
  if(data){
@@ -1146,7 +1188,7 @@ function addMeasurementRow(data){
 function normalizePriceProductName(value){return String(value||"").trim().replace(/\\s+/g," ").toLocaleLowerCase();}
 function measurementRowProductName(tr){
  const type=tr.querySelector(".mType")?.value||"";
- return type==="Other"?(tr.querySelector(".mCustomType")?.value||"").trim():type.trim();
+ return (type==="Other"||type==="Cloth Fabric")?(tr.querySelector(".mCustomType")?.value||"").trim():type.trim();
 }
 function updateMeasurementRate(tr){
  const input=tr.querySelector(".mRate");
@@ -1154,14 +1196,19 @@ function updateMeasurementRate(tr){
  // Never carry an old product's rate into a different product.
  input.value="";
  if(!priceListEnabled("measurement"))return;
- const name=normalizePriceProductName(measurementRowProductName(tr));
+ const name=measurementRowProductName(tr);
  if(!name)return;
- const list=Array.isArray(settings.productPriceList)?settings.productPriceList:[];
- const match=list.find(item=>normalizePriceProductName(item?.name)===name);
- if(match&&match.rate!==""&&Number.isFinite(Number(match.rate)))input.value=String(Math.round(Number(match.rate)));
+ const shade=tr.querySelector(".mShade")?.value||"";
+ const match=getItemPrice(name,shade,"measurement");
+ if(match!==null)input.value=String(match);
 }
 function renumberRows(){document.querySelectorAll("#measurementBody tr").forEach((r,i)=>r.querySelector(".rowNo").textContent=i+1);}
 function getRowCalc(h,w,unit,type,qty,rate,customUnit){
+ if(type==="Cloth Fabric"){
+  const factor=unit==="cm"?1:2.54;
+  const meters=Math.ceil((w*factor)/50)*((h*factor)+30)/100*qty;
+  return {unit:"Meter",area:meters,amount:meters*rate,sqft:0,rft:0};
+ }
  const rft=isRFT(type,customUnit);
  const widthFeet=unit==="cm"?w/30.48:w/12;
  const sqft=unit==="cm"?(h*w)/929.0304:(h*w)/144;
@@ -1244,7 +1291,7 @@ function saveMeasurement(){
  const m=getMeasurementForm();
  if(!m.customer)return alert("Please enter Customer Name.");
  if(!m.rows.length)return alert("Enter at least one valid width and height.");
- if(m.rows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
+ if(m.rows.some(r=>(r.type==="Other"||r.type==="Cloth Fabric")&&!r.customType))return alert("Please enter the custom type name for every Other item.");
  const i=measurements.findIndex(x=>x.id===m.id);
  if(i>=0)measurements[i]=m;else measurements.push(m);
  currentMeasurementId=m.id;
@@ -1371,7 +1418,7 @@ function measurementSheetHTML(m){
   const name=String(r.type==="Other"?(r.customType||"Other"):r.type||"").trim()||"Item";
   const unit=String(r.unit||(isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft")?"RFT":"Sq.Ft"));
   const area=Number(r.areaValue||0);
-  const blind=!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");
+  const blind=r.type!=="Cloth Fabric"&&!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");
   const measure=blind?Number(r.sqft||r.areaValue||0):Number(r.rft||0);
   const key=(name+"|"+unit).toLocaleLowerCase();
   if(!typeTotals.has(key))typeTotals.set(key,{name,unit,area:0,amount:0,measure:0});
@@ -1397,7 +1444,7 @@ function measurementSheetHTML(m){
 function previewMeasurementSheet(){
  const m=getMeasurementForm();
  if(!m.rows.length)return alert("Enter at least one valid width and height.");
- if(m.rows.some(r=>r.type==="Other"&&!r.customType))return alert("Please enter the custom type name for every Other item.");
+ if(m.rows.some(r=>(r.type==="Other"||r.type==="Cloth Fabric")&&!r.customType))return alert("Please enter the custom type name for every Other item.");
  const el=$("measurementPreview");el.innerHTML=measurementSheetHTML(m);el.classList.remove("hidden");
  el.scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -1487,24 +1534,23 @@ function measurementToQuotation(){
  const m=getMeasurementForm();if(!m.customer||!m.rows.length)return alert("Enter a customer and valid measurements first.");
  const i=measurements.findIndex(x=>x.id===m.id);if(i>=0)measurements[i]=m;else measurements.push(m);saveStorage();
  newQuotation();$("qCustomer").value=m.customer;$("qPhone").value=m.phone;$("qAddress").value=m.address;
- const grouped={};let curtainMeters=0,sheerMeters=0;
+ const grouped=new Map();let curtainMeters=0,sheerMeters=0;
  (m.rows||[]).forEach(r=>{
-  const baseName=r.type==="Other"?(r.customType||"Other"):r.type;
-  const blind=!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");
-  const fabric=blind?{curtain:0,sheer:0}:clothMeters(r,m.unit||"cm");
+  const name=(r.type==="Other"||r.type==="Cloth Fabric")?(r.customType||r.type):r.type;
+  const blind=r.type!=="Cloth Fabric"&&!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");
+  const fabric=blind||r.type==="Cloth Fabric"?{curtain:0,sheer:0}:clothMeters(r,m.unit||"cm");
   curtainMeters+=Number(fabric.curtain||0);sheerMeters+=Number(fabric.sheer||0);
-  const unit=blind?"Sq.Ft":"RFT";
-  const qty=blind?Number(r.sqft||r.areaValue||0):Number(r.rft||r.areaValue||0);
-  const key=baseName+"|"+unit;
-  if(!grouped[key])grouped[key]={qty:0,unit,name:baseName};
-  grouped[key].qty+=qty;
+  const unit=r.type==="Cloth Fabric"?"Meter":(blind?"Sq.Ft":"RFT");
+  const qty=r.type==="Cloth Fabric"?Number(r.areaValue||0):(blind?Number(r.sqft||r.areaValue||0):Number(r.rft||r.areaValue||0));
+  const serial=String(r.shade||"").trim(),key=[name,unit,serial].join("|");
+  if(!grouped.has(key))grouped.set(key,{name,qty:0,unit,serial});
+  grouped.get(key).qty+=qty;
  });
- quotationItems=Object.values(grouped).map(g=>({name:g.name,qty:Number(g.qty.toFixed(2)),rate:(priceListEnabled("quotation")?applyPriceFromList(g.name,"quotation"):null)??"",unit:g.unit}));
- if(curtainMeters>0)quotationItems.push({name:"TOTAL CURTAIN CLOTH",qty:Number(curtainMeters.toFixed(2)),rate:"",unit:"Meter"});
- if(sheerMeters>0)quotationItems.push({name:"TOTAL SHEER CLOTH",qty:Number(sheerMeters.toFixed(2)),rate:"",unit:"Meter"});
+ quotationItems=[...grouped.values()].map(g=>({name:g.name,qty:Number(g.qty.toFixed(2)),rate:(priceListEnabled("quotation")?applyPriceFromList(g.name,"quotation",g.serial):null)??"",unit:g.unit,shade:g.serial}));
+ if(curtainMeters>0)quotationItems.push({name:"TOTAL CURTAIN CLOTH",qty:Number(curtainMeters.toFixed(2)),rate:"",unit:"Meter",shade:""});
+ if(sheerMeters>0)quotationItems.push({name:"TOTAL SHEER CLOTH",qty:Number(sheerMeters.toFixed(2)),rate:"",unit:"Meter",shade:""});
  renderQuotationItems();
 }
-
 function measurementToQuotationSaved(id){const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;loadMeasurementIntoForm(m);measurementToQuotation();}
 function loadMeasurementIntoForm(m){currentMeasurementId=m.id;$ ("mCustomer").value=m.customer||"";$("mPhone").value=m.phone||"";$("mAddress").value=m.address||"";$("mDate").value=m.date||today();$("mUnit").value=m.unit||"cm";$ ("measurementBody").innerHTML="";(m.rows||[]).forEach(r=>addMeasurementRow(r));}
 function measurementToInvoice(id){
@@ -1512,15 +1558,18 @@ function measurementToInvoice(id){
  newInvoice();$("iCustomer").value=m.customer||"";$("iPhone").value=m.phone||"";$("iAddress").value=m.address||"";
  let curtainMeters=0,sheerMeters=0;
  invoiceItems=(m.rows||[]).map(r=>{
-  const blind=!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");
-  const fabric=blind?{curtain:0,sheer:0}:clothMeters(r,m.unit||"cm");
+  const blind=r.type!=="Cloth Fabric"&&!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");
+  const fabric=blind||r.type==="Cloth Fabric"?{curtain:0,sheer:0}:clothMeters(r,m.unit||"cm");
   curtainMeters+=Number(fabric.curtain||0);sheerMeters+=Number(fabric.sheer||0);
-  const name=(r.type==="Other"?(r.customType||"Other"):r.type);
-  return {name,qty:Number((blind?(r.sqft||r.areaValue):(r.rft||r.areaValue))||0).toFixed(2),unit:blind?"Sq.Ft":"RFT",rate:(priceListEnabled("invoice")?applyPriceFromList(name,"invoice"):null)??""};
+  const name=(r.type==="Other"||r.type==="Cloth Fabric")?(r.customType||r.type):r.type;
+  const unit=r.type==="Cloth Fabric"?"Meter":(blind?"Sq.Ft":"RFT");
+  const qty=r.type==="Cloth Fabric"?Number(r.areaValue||0):(blind?(r.sqft||r.areaValue):(r.rft||r.areaValue));
+  const shade=String(r.shade||"").trim();
+  return {name,qty:Number(qty||0).toFixed(2),unit,shade,rate:(priceListEnabled("invoice")?applyPriceFromList(name,"invoice",shade):null)??""};
  });
- if(curtainMeters>0)invoiceItems.push({name:"TOTAL CURTAIN CLOTH",qty:Number(curtainMeters.toFixed(2)),unit:"Meter",rate:""});
- if(sheerMeters>0)invoiceItems.push({name:"TOTAL SHEER CLOTH",qty:Number(sheerMeters.toFixed(2)),unit:"Meter",rate:""});
- if(!invoiceItems.length)invoiceItems=[{name:"",qty:"",unit:"Item",rate:""}];
+ if(curtainMeters>0)invoiceItems.push({name:"TOTAL CURTAIN CLOTH",qty:Number(curtainMeters.toFixed(2)),unit:"Meter",rate:"",shade:""});
+ if(sheerMeters>0)invoiceItems.push({name:"TOTAL SHEER CLOTH",qty:Number(sheerMeters.toFixed(2)),unit:"Meter",rate:"",shade:""});
+ if(!invoiceItems.length)invoiceItems=[{name:"",qty:"",unit:"Item",rate:"",shade:""}];
  renderInvoiceItems();
 }
 function measurementToBlindOrder(id){
@@ -1601,7 +1650,7 @@ function newQuotation(){
  showPage("quotation");
 }
 function addQuotationItem(item){
- quotationItems.push({name:item?.name||"",qty:item?.qty??"",unit:item?.unit||"Item",rate:item?.rate??""});
+ quotationItems.push({name:item?.name||"",qty:item?.qty??"",unit:item?.unit||"Item",rate:item?.rate??"",shade:item?.shade||""});
  renderQuotationItems();
 }
 function renderQuotationItems(){
@@ -1609,7 +1658,8 @@ function renderQuotationItems(){
  quotationItems.forEach((it,i)=>{
   const d=document.createElement("div");d.className="item-card";
   d.innerHTML=`<div class="grid">
-   <div class="field"><label>Item / Description</label><input data-k="name" list="quotationPriceListOptions" value="${esc(it.name)}"><datalist id="quotationPriceListOptions">${(settings.productPriceList||[]).map(p=>`<option value="${esc(p.name)}"></option>`).join("")}</datalist></div>
+   <div class="field"><label>Item / Description</label><input data-k="name" list="quotationPriceListOptions" value="${esc(it.name)}"><datalist id="quotationPriceListOptions">${[...(settings.blindsPriceList||[]).map(p=>p.type),...(settings.clothPriceList||[]).map(p=>p.name)].filter((v,i,a)=>a.indexOf(v)===i).map(name=>`<option value="${esc(name)}"></option>`).join("")}</datalist></div>
+   <div class="field"><label>Shade / Serial No.</label><input data-k="shade" value="${esc(it.shade||"")}"></div>
    <div class="field"><label>Quantity</label><input data-k="qty" type="number" min="0" step=".01" value="${it.qty??""}"></div>
    <div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option value="${u}" ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div>
    <div class="field"><label>Rate (₹)</label><input data-k="rate" type="number" min="0" step="1" value="${Math.round(Number(it.rate)||0)}"></div>
@@ -1617,16 +1667,16 @@ function renderQuotationItems(){
   d.querySelectorAll("[data-k]").forEach(el=>{
    const update=()=>{quotationItems[i][el.dataset.k]=el.value;calculateQuotation();};
    el.oninput=()=>{
-    if(el.dataset.k==="name"){
-     const autoRate=applyPriceFromList(el.value,"quotation");
-     if(autoRate!==null){quotationItems[i].rate=String(autoRate);const rateInput=d.querySelector('[data-k="rate"]');if(rateInput)rateInput.value=String(autoRate);}
+    if(el.dataset.k==="name"||el.dataset.k==="shade"){
+     const autoRate=applyPriceFromList(el.dataset.k==="name"?el.value:quotationItems[i].name,"quotation",el.dataset.k==="shade"?el.value:quotationItems[i].shade);
+     const rateInput=d.querySelector('[data-k="rate"]');if(autoRate!==null){quotationItems[i].rate=String(autoRate);if(rateInput)rateInput.value=String(autoRate);}else{quotationItems[i].rate="";if(rateInput)rateInput.value="";}
     }
     update();
    };
    el.onchange=()=>{
-    if(el.dataset.k==="name"){
-     const autoRate=applyPriceFromList(el.value,"quotation");
-     if(autoRate!==null){quotationItems[i].rate=String(autoRate);const rateInput=d.querySelector('[data-k="rate"]');if(rateInput)rateInput.value=String(autoRate);}
+    if(el.dataset.k==="name"||el.dataset.k==="shade"){
+     const autoRate=applyPriceFromList(el.dataset.k==="name"?el.value:quotationItems[i].name,"quotation",el.dataset.k==="shade"?el.value:quotationItems[i].shade);
+     const rateInput=d.querySelector('[data-k="rate"]');if(autoRate!==null){quotationItems[i].rate=String(autoRate);if(rateInput)rateInput.value=String(autoRate);}else{quotationItems[i].rate="";if(rateInput)rateInput.value="";}
     }
     update();
    };
@@ -1921,15 +1971,15 @@ function newInvoice(){
  renderInvoiceItems();$("invoicePreview").classList.add("hidden");$("invoicePreview").innerHTML="";showPage("invoice");
 }
 function addInvoiceItem(item){
- invoiceItems.push({name:item?.name||"",qty:item?.qty??"",unit:item?.unit||"Item",rate:item?.rate??""});
+ invoiceItems.push({name:item?.name||"",qty:item?.qty??"",unit:item?.unit||"Item",rate:item?.rate??"",shade:item?.shade||""});
  renderInvoiceItems();
 }
 function renderInvoiceItems(){
  $("invoiceItems").innerHTML="";
  invoiceItems.forEach((it,i)=>{
   const d=document.createElement("div");d.className="item-card";
-  d.innerHTML=`<div class="grid"><div class="field"><label>Item / Description</label><input data-k="name" list="invoicePriceListOptions" value="${esc(it.name)}"><datalist id="invoicePriceListOptions">${(settings.productPriceList||[]).map(p=>`<option value="${esc(p.name)}"></option>`).join("")}</datalist></div><div class="field"><label>Quantity</label><input data-k="qty" type="number" min="0" step=".01" value="${it.qty??''}"></div><div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div><div class="field"><label>Rate (₹)</label><input data-k="rate" type="number" min="0" step="1" value="${Math.round(Number(it.rate)||0)}"></div></div><p>Amount: <b>₹${money(it.qty*it.rate)}</b></p><button class="btn-red" type="button">Delete Item</button>`;
-  d.querySelectorAll("[data-k]").forEach(el=>{const update=()=>{const k=el.dataset.k;invoiceItems[i][k]=el.value;calculateInvoice();};el.oninput=()=>{if(el.dataset.k==="name"){const autoRate=applyPriceFromList(el.value,"invoice");if(autoRate!==null){invoiceItems[i].rate=String(autoRate);const rateInput=d.querySelector('[data-k="rate"]');if(rateInput)rateInput.value=String(autoRate);}}update();};el.onchange=el.oninput;});
+  d.innerHTML=`<div class="grid"><div class="field"><label>Item / Description</label><input data-k="name" list="invoicePriceListOptions" value="${esc(it.name)}"><datalist id="invoicePriceListOptions">${[...(settings.blindsPriceList||[]).map(p=>p.type),...(settings.clothPriceList||[]).map(p=>p.name)].filter((v,i,a)=>a.indexOf(v)===i).map(name=>`<option value="${esc(name)}"></option>`).join("")}</datalist></div><div class="field"><label>Shade / Serial No.</label><input data-k="shade" value="${esc(it.shade||"")}"></div><div class="field"><label>Quantity</label><input data-k="qty" type="number" min="0" step=".01" value="${it.qty??''}"></div><div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div><div class="field"><label>Rate (₹)</label><input data-k="rate" type="number" min="0" step="1" value="${Math.round(Number(it.rate)||0)}"></div></div><p>Amount: <b>₹${money(it.qty*it.rate)}</b></p><button class="btn-red" type="button">Delete Item</button>`;
+  d.querySelectorAll("[data-k]").forEach(el=>{const update=()=>{const k=el.dataset.k;invoiceItems[i][k]=el.value;calculateInvoice();};el.oninput=()=>{if(el.dataset.k==="name"||el.dataset.k==="shade"){const autoRate=applyPriceFromList(el.dataset.k==="name"?el.value:invoiceItems[i].name,"invoice",el.dataset.k==="shade"?el.value:invoiceItems[i].shade);const rateInput=d.querySelector('[data-k="rate"]');if(autoRate!==null){invoiceItems[i].rate=String(autoRate);if(rateInput)rateInput.value=String(autoRate);}else{invoiceItems[i].rate="";if(rateInput)rateInput.value="";}}update();};el.onchange=el.oninput;});
   d.querySelector("button").onclick=()=>{invoiceItems.splice(i,1);renderInvoiceItems();};
   $("invoiceItems").appendChild(d);
  });calculateInvoice();
