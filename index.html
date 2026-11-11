@@ -1243,6 +1243,29 @@ function updateMeasurementRate(tr,force=false){
  else if(input.dataset.autoRate==="yes"||force){input.value="";input.dataset.autoRate="no";}
 }
 
+function getRowCalc(h,w,unit,type,qty,rate,customUnit){
+ if(type==="Cloth Fabric"){
+  const factor=unit==="cm"?1:2.54;
+  const meters=Math.ceil((w*factor)/50)*((h*factor)+30)/100*qty;
+  return {unit:"Meter",area:meters,amount:meters*rate,sqft:0,rft:0};
+ }
+ const rft=isRFT(type,customUnit);
+ const widthFeet=unit==="cm"?w/30.48:w/12;
+ const sqft=unit==="cm"?(h*w)/929.0304:(h*w)/144;
+ const area=rft?widthFeet*qty:sqft*qty;
+ return {unit:rft?"RFT":"Sq.Ft",area,amount:area*rate,sqft:rft?0:sqft*qty,rft:rft?widthFeet*qty:0};
+}
+function clothMeters(row,unit){
+ const cmFactor=unit==="cm"?1:2.54;
+ const width=Number(row.width||0)*cmFactor,height=Number(row.height||0)*cmFactor,qty=Math.max(1,Number(row.qty||1));
+ const type=String(row.type||"");
+ if(!isRFT(type,row.customUnit||"Sq.Ft")) return {curtain:0,sheer:0,mainPanels:0,sheerPanels:0};
+ const main=type!=="Sheer Curtain";
+ const sheer=type==="Sheer Curtain"||type==="Curtain with Sheer";
+ const mainPanels=main?Math.ceil(width/50):0,
+      sheerPanels=sheer?Math.max(0,Math.ceil((width/60)-0.2-1e-9)):0;
+ return {curtain:main?mainPanels*(height+30)/100*qty:0,sheer:sheer?sheerPanels*(height+25)/100*qty:0,mainPanels,sheerPanels};
+}
 function recalculateMeasurements(){
  let totalSqft=0,totalRft=0,totalAmount=0;
  const grouped=new Map(),rateCalcEnabled=priceListEnabled("measurement");
