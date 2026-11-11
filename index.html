@@ -1243,6 +1243,7 @@ function updateMeasurementRate(tr,force=false){
  else if(input.dataset.autoRate==="yes"||force){input.value="";input.dataset.autoRate="no";}
 }
 
+function renumberRows(){document.querySelectorAll("#measurementBody tr").forEach((r,i)=>r.querySelector(".rowNo").textContent=i+1);}
 function getRowCalc(h,w,unit,type,qty,rate,customUnit){
  if(type==="Cloth Fabric"){
   const factor=unit==="cm"?1:2.54;
