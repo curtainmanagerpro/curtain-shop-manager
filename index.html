@@ -1592,6 +1592,7 @@ function measurementSheetHTML(m){
    if(!clothTotals.has(ck))clothTotals.set(ck,{name:catalog,shade,meters:0,amount:0});const cg=clothTotals.get(ck);cg.meters+=meters;cg.amount+=Number(r.clothAmount||0);
   }
  });
+ const totalSheerMeters=(m.rows||[]).reduce((sum,r)=>sum+Number(r.sheerMeters||0),0);
  const rateCalculationEnabled=priceListEnabled("measurement");
  const totalLines=[...typeTotals.values()].map(g=>`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;width:100%"><b>Total ${esc(g.name)}: ${money(g.measure)} ${esc(g.unit)}</b>${rateCalculationEnabled&&g.amount>0?`<b style="white-space:nowrap">₹${money(g.amount)}</b>`:""}</div>`).join("");
  const clothTotalLines=[...clothTotals.values()].map(g=>`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;width:100%"><b>${esc(g.name)}${g.shade?` · Shade: ${esc(g.shade)}`:""}: ${money(g.meters)} Mtr</b>${rateCalculationEnabled&&g.amount>0?`<b style="white-space:nowrap">₹${money(g.amount)}</b>`:""}</div>`).join("");
@@ -1695,6 +1696,19 @@ async function createMeasurementPDF(m){
 }
 async function downloadMeasurementPDF(){const m=getMeasurementForm();if(!m.customer)return alert("Please enter Customer Name.");await createMeasurementPDF(m);}
 async function downloadSavedMeasurementPDF(id){const m=measurements.find(x=>String(x.id)===String(id));if(m)await createMeasurementPDF(m);}
+function mergeSameDocumentItems(items){
+ const merged=new Map();
+ (items||[]).forEach(item=>{
+  const name=String(item.name||"").trim();
+  const unit=String(item.unit||"Item").trim();
+  const shade=String(item.shade||"").trim();
+  const rate=Number(item.rate)||0;
+  const key=[name.toLocaleLowerCase(),unit.toLocaleLowerCase(),shade.toLocaleLowerCase(),rate.toFixed(4)].join("|");
+  if(!merged.has(key))merged.set(key,{...item,qty:Number(item.qty)||0,rate:item.rate??""});
+  else merged.get(key).qty+=Number(item.qty)||0;
+ });
+ return [...merged.values()].map(item=>({...item,qty:Number((Number(item.qty)||0).toFixed(2))}));
+}
 function measurementToQuotation(){
  const m=getMeasurementForm();if(!m.customer||!m.rows.length)return alert("Enter a customer and valid measurements first.");
  const i=measurements.findIndex(x=>x.id===m.id);if(i>=0)measurements[i]=m;else measurements.push(m);saveStorage();
@@ -1712,7 +1726,7 @@ function measurementToQuotation(){
  });
  const mainItems=[...grouped.values()].map(g=>({name:g.name,qty:Number(g.qty.toFixed(2)),rate:(priceListEnabled("quotation")?applyPriceFromList(g.name,"quotation",g.shade,g.unit,g.type):null)??"",unit:g.unit,shade:g.shade}));
  const fabricItems=[...clothGrouped.values(),...sheerGrouped.values()].map(g=>{const p=findPrice(settings.clothPriceList,g.name.replace(/^(Curtain Cloth|Sheer Cloth) - /,""),"");return {...g,qty:Number(g.qty.toFixed(2)),rate:(priceListEnabled("quotation")&&p?Number(p.rate)||0:"")};});
- quotationItems=[...mainItems,...fabricItems];renderQuotationItems();
+ quotationItems=mergeSameDocumentItems([...mainItems,...fabricItems]);renderQuotationItems();
 }
 function measurementToQuotationSaved(id){const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;loadMeasurementIntoForm(m);measurementToQuotation();}
 function loadMeasurementIntoForm(m){currentMeasurementId=m.id;$ ("mCustomer").value=m.customer||"";$("mPhone").value=m.phone||"";$("mAddress").value=m.address||"";$("mDate").value=m.date||today();$("mUnit").value=m.unit||"cm";$ ("measurementBody").innerHTML="";(m.rows||[]).forEach(r=>addMeasurementRow(r));}
@@ -1732,7 +1746,7 @@ function measurementToInvoice(id){
   if(sm>0){const key=[catalog,shade].join("|");if(!sheerGrouped.has(key))sheerGrouped.set(key,{name:"Sheer Cloth - "+catalog,qty:0,unit:"Meter",shade,rate:""});sheerGrouped.get(key).qty+=sm;}
  });
  const fabric=[...clothGrouped.values(),...sheerGrouped.values()].map(g=>{const catalog=g.name.replace(/^(Curtain Cloth|Sheer Cloth) - /,"");const p=findPrice(settings.clothPriceList,catalog,"");return {...g,qty:Number(g.qty.toFixed(2)),rate:(priceListEnabled("invoice")&&p?Number(p.rate)||0:"")};});
- invoiceItems=[...items,...fabric];if(!invoiceItems.length)invoiceItems=[{name:"",qty:"",unit:"Item",rate:"",shade:""}];renderInvoiceItems();
+ invoiceItems=mergeSameDocumentItems([...items,...fabric]);if(!invoiceItems.length)invoiceItems=[{name:"",qty:"",unit:"Item",rate:"",shade:""}];renderInvoiceItems();
 }
 function measurementToBlindOrder(id){
  const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;
