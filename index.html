@@ -1352,8 +1352,11 @@ function getMeasurementForm(){
 }
 function saveMeasurement(){
  const m=getMeasurementForm();
- if(!m.rows.length)return alert("Enter at least one valid width and height.");
- if(m.rows.some(r=>((r.type==="Other"||r.type==="Cloth Fabric"||r.type==="Curtain Accessories"||rftTypes.includes(r.type)||/blind/i.test(r.type))&&!r.customType)))return alert("Please enter or select Item / Collection Name for every applicable item.");
+ // Minimum required: at least one row with Width, Height and Room / Area.
+ // Customer Name, Phone and Place/Address are optional; any one or all may be entered.
+ if(!m.rows.length)return alert("Please enter Width and Height for at least one room.");
+ if(m.rows.some(r=>!String(r.area||"").trim()))return alert("Please enter Room / Area for each measurement.");
+ // Shop name is already stored in settings. Customer details, catalog, shade and rates are optional.
  const i=measurements.findIndex(x=>x.id===m.id);
  if(i>=0)measurements[i]=m;else measurements.push(m);
  currentMeasurementId=m.id;
