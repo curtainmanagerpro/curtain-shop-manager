@@ -235,6 +235,13 @@ td input,td select{min-width:80px;padding:8px}
 
 .price-auto-switches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:start}.price-auto-switches label{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;gap:7px;font-size:13px;font-weight:700;min-width:0}.price-auto-switches input[type=checkbox]{width:28px;height:28px;margin:0;flex:0 0 auto}@media(max-width:420px){.price-auto-switches label{font-size:11px}}.price-entry-row{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}
 @media(max-width:600px){.price-entry-row .grid{grid-template-columns:1fr}}
+
+.price-list-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.price-list-actions button{width:100%;min-height:62px;margin:0;font-size:16px}
+.price-entry-row{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}
+.price-saved-list{margin-top:16px}
+.m-item-picker{margin-bottom:5px}
+@media(max-width:700px){.price-list-actions button{min-height:66px;font-size:15px}}
 </style>
  <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#24445c">
@@ -318,7 +325,7 @@ td input,td select{min-width:80px;padding:8px}
 
  
   <div class="notice" style="margin-bottom:10px">ഒരേ റൂമിലെ ഓരോ വിൻഡോയ്ക്കും ഓരോ വരി ചേർക്കുക. Room / Area ഒരേ പേരിൽ നൽകിയാൽ PDF-ൽ അവ ഒരുമിച്ച് വരും.</div>
-  <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Type</th><th>Custom Type</th><th>Width</th><th>Height</th><th>Shade No.</th><th>Unit</th><th>Qty</th><th class="m-rate-head">Rate (₹)</th><th>Delete</th></tr></thead><tbody id="measurementBody"></tbody></table></div>
+  <div class="table-wrap"><table><thead><tr><th>No</th><th>Room / Area</th><th>Width</th><th>Height</th><th>Type</th><th>Custom Type</th><th>Shade No.</th><th>Unit</th><th>Cloth Rate (₹/Mtr)</th><th class="m-rate-head">Rate (₹)</th><th>Delete</th></tr></thead><tbody id="measurementBody"></tbody></table></div>
 
   <div class="row-add-bottom" style="display:flex;justify-content:flex-end;margin-top:10px">
     <button class="btn-blue" type="button" onclick="addMeasurementRow();saveMeasurementDraft()">＋ Add Row</button>
@@ -529,20 +536,26 @@ td input,td select{min-width:80px;padding:8px}
   <label><input type="checkbox" id="priceAutoQuotation" onchange="savePriceAutoOptions()"> Quotation ON</label>
   <label><input type="checkbox" id="priceAutoInvoice" onchange="savePriceAutoOptions()"> Invoice ON</label>
  </div>
- <button class="btn-blue" style="width:100%" onclick="showPage('blindsPriceList')">🪟 Blinds Price List</button>
- <button class="btn-green" style="width:100%" onclick="showPage('clothPriceList')">🧵 Cloth Price List</button>
+ <div class="price-list-actions">
+  <button class="btn-blue" onclick="showPage('blindsPriceList')">🪟 Blinds Price List</button>
+  <button class="btn-blue" onclick="previewPriceList('blind')">Price List Preview</button>
+  <button class="btn-green" onclick="showPage('clothPriceList')">🧵 Cloth Price List</button>
+  <button class="btn-green" onclick="previewPriceList('cloth')">Price List Preview</button>
+ </div>
  <button class="btn-light" onclick="showPage('home')">← Back to Home</button>
 </div></section>
 <section id="blindsPriceList" class="page"><div class="card">
- <h2>Blinds Price List</h2><p class="small">Rate: Sq.Ft. Shade / Serial No. നൽകിയില്ലെങ്കിൽ Default Rate ഉപയോഗിക്കും.</p>
- <div id="blindsPriceRows"></div><button class="btn-blue" onclick="addBlindsPriceRow()">＋ Add Blind Rate</button>
- <button class="btn-green" onclick="saveBlindsPriceList()">Save Blinds Price List</button><div id="blindsPriceSaved"></div>
+ <h2>Blinds Price List</h2><p class="small">Rate: Sq.Ft. Item Name അടിസ്ഥാനമാക്കി വില കണ്ടെത്തും. Shade Number വിലയെ ബാധിക്കില്ല.</p>
+ <div id="blindsPriceRows"></div>
+ <div class="price-list-actions"><button class="btn-green" onclick="saveBlindsPriceList()">Save</button><button class="btn-light" onclick="clearPriceEntry('blind')">Clear</button></div>
+ <div id="blindsPriceSaved" class="price-saved-list"></div>
  <button class="btn-light" onclick="showPage('priceLists')">← Back</button>
 </div></section>
 <section id="clothPriceList" class="page"><div class="card">
- <h2>Cloth Price List</h2><p class="small">Rate: Meter. Collection Name-ന് പൊതുവായ Rate; ആവശ്യമെങ്കിൽ Serial No. Rate.</p>
- <div id="clothPriceRows"></div><button class="btn-blue" onclick="addClothPriceRow()">＋ Add Cloth Rate</button>
- <button class="btn-green" onclick="saveClothPriceList()">Save Cloth Price List</button><div id="clothPriceSaved"></div>
+ <h2>Cloth Price List</h2><p class="small">Collection Name അടിസ്ഥാനമാക്കി Meter Rate. Shade Number വിലയെ ബാധിക്കില്ല.</p>
+ <div id="clothPriceRows"></div>
+ <div class="price-list-actions"><button class="btn-green" onclick="saveClothPriceList()">Save</button><button class="btn-light" onclick="clearPriceEntry('cloth')">Clear</button></div>
+ <div id="clothPriceSaved" class="price-saved-list"></div>
  <button class="btn-light" onclick="showPage('priceLists')">← Back</button>
 </div></section>
 <section id="admin" class="page">
@@ -922,6 +935,8 @@ function savePriceAutoOptions(){
      rateInput.dataset.autoRate="no";
      updateMeasurementRate(tr,true);
     }
+    const clothRate=tr.querySelector(".mClothRate");
+    if(clothRate&&clothRate.dataset.manualRate!=="yes"){clothRate.dataset.autoRate="no";updateClothMeasurementRate(tr,true);}
    });
   }
   recalculateMeasurements();
@@ -947,63 +962,77 @@ function findPrice(list,name,serial){
 function getItemPrice(name,serial,where){
  if(!priceListEnabled(where))return null;
  ensureNewPriceLists();
- const match=/blind/i.test(String(name||""))?findPrice(settings.blindsPriceList,name,serial):findPrice(settings.clothPriceList,name,serial);
+ const match=/blind/i.test(String(name||""))?findPrice(settings.blindsPriceList,name,""):findPrice(settings.clothPriceList,name,"");
  return match&&Number.isFinite(Number(match.rate))?Math.round(Number(match.rate)):null;
 }
 function loadPriceListRows(){loadPriceAutoOptions();}
 function renderPriceList(){}
 function addBlindsPriceRow(item={}){
- const d=document.createElement("div");d.className="price-entry-row";
- d.innerHTML=`<div class="grid"><div class="field"><label>Blind Type</label><input class="bpType" placeholder="Example: Zebra Blind" value="${esc(item.type||"")}"></div><div class="field"><label>Shade / Serial No. (Optional)</label><input class="bpShade" placeholder="Blank = Default Rate" value="${esc(item.shade||"")}"></div><div class="field"><label>Rate (₹ / Sq.Ft)</label><input class="bpRate" type="number" min="0" step="1" value="${esc(item.rate??"")}"></div></div><button type="button" class="btn-red">Delete Row</button>`;
- d.dataset.id=String(item.id||newId());d.querySelector("button").onclick=()=>d.remove();$("blindsPriceRows").appendChild(d);
+ const host=$("blindsPriceRows");if(!host)return;host.innerHTML="";
+ const d=document.createElement("div");d.className="price-entry-row";d.dataset.id=String(item.id||"");
+ d.innerHTML=`<div class="grid"><div class="field"><label>Item Name</label><input class="bpType" placeholder="Example: Zebra Blind Semi" value="${esc(item.type||"")}"></div><div class="field"><label>Rate (₹ / Sq.Ft)</label><input class="bpRate" type="number" min="0" step="1" value="${esc(item.rate??"")}"></div></div>`;
+ host.appendChild(d);
 }
 function addClothPriceRow(item={}){
- const d=document.createElement("div");d.className="price-entry-row";
- d.innerHTML=`<div class="grid"><div class="field"><label>Collection / Cloth Name</label><input class="cpName" placeholder="Example: MARLYN" value="${esc(item.name||"")}"></div><div class="field"><label>Serial No. (Optional)</label><input class="cpSerial" placeholder="Blank = General Rate" value="${esc(item.serial||"")}"></div><div class="field"><label>Rate (₹ / Meter)</label><input class="cpRate" type="number" min="0" step="1" value="${esc(item.rate??"")}"></div></div><button type="button" class="btn-red">Delete Row</button>`;
- d.dataset.id=String(item.id||newId());d.querySelector("button").onclick=()=>d.remove();$("clothPriceRows").appendChild(d);
+ const host=$("clothPriceRows");if(!host)return;host.innerHTML="";
+ const d=document.createElement("div");d.className="price-entry-row";d.dataset.id=String(item.id||"");
+ d.innerHTML=`<div class="grid"><div class="field"><label>Collection / Cloth Name</label><input class="cpName" placeholder="Example: MARLYN" value="${esc(item.name||"")}"></div><div class="field"><label>Rate (₹ / Meter)</label><input class="cpRate" type="number" min="0" step="1" value="${esc(item.rate??"")}"></div></div>`;
+ host.appendChild(d);
 }
-function loadNewPriceLists(){
- ensureNewPriceLists();
- if(!$("blindsPriceRows"))return;
- $("blindsPriceRows").innerHTML="";settings.blindsPriceList.forEach(x=>addBlindsPriceRow(x));
- $("clothPriceRows").innerHTML="";settings.clothPriceList.forEach(x=>addClothPriceRow(x));
- renderNewPriceLists();
-}
+function clearPriceEntry(kind){if(kind==="blind")addBlindsPriceRow();else addClothPriceRow();}
+function loadNewPriceLists(){ensureNewPriceLists();if(!$("blindsPriceRows"))return;addBlindsPriceRow();addClothPriceRow();renderNewPriceLists();}
 function saveBlindsPriceList(){
- const next=[];
- for(const row of document.querySelectorAll("#blindsPriceRows .price-entry-row")){
-  const type=row.querySelector(".bpType").value.trim(),shade=row.querySelector(".bpShade").value.trim(),rate=row.querySelector(".bpRate").value;
-  if(!type&&!shade&&!rate)continue;
-  if(!type||rate===""||!Number.isFinite(Number(rate))||Number(rate)<0)return alert("Blind Type, ശരിയായ Rate എന്നിവ നൽകുക.");
-  if(next.some(x=>priceKey(x.type)===priceKey(type)&&priceKey(x.shade)===priceKey(shade)))return alert("ഈ Blind Type + Shade Number ഇതിനകം ചേർത്തിട്ടുണ്ട്.");
-  next.push({id:row.dataset.id||String(newId()),type,shade,rate:Math.round(Number(rate))});
- }
- settings.blindsPriceList=next;saveStorage();renderNewPriceLists();alert("Blinds Price List സേവ് ചെയ്തു.");
+ const row=$("blindsPriceRows").querySelector(".price-entry-row"),type=row.querySelector(".bpType").value.trim(),rate=row.querySelector(".bpRate").value;
+ if(!type||rate===""||!Number.isFinite(Number(rate))||Number(rate)<0)return alert("Item Name, ശരിയായ Rate എന്നിവ നൽകുക.");
+ const editId=row.dataset.editId;
+ const existing=editId?settings.blindsPriceList.find(x=>String(x.id)===editId):settings.blindsPriceList.find(x=>priceKey(x.type)===priceKey(type));
+ if(existing){existing.type=type;existing.rate=Math.round(Number(rate));existing.shade="";}else settings.blindsPriceList.push({id:String(newId()),type,shade:"",rate:Math.round(Number(rate))});
+ saveStorage();renderNewPriceLists();addBlindsPriceRow();refreshMeasurementPricePickers();alert("Blinds Price List സേവ് ചെയ്തു.");
 }
 function saveClothPriceList(){
- const next=[];
- for(const row of document.querySelectorAll("#clothPriceRows .price-entry-row")){
-  const name=row.querySelector(".cpName").value.trim(),serial=row.querySelector(".cpSerial").value.trim(),rate=row.querySelector(".cpRate").value;
-  if(!name&&!serial&&!rate)continue;
-  if(!name||rate===""||!Number.isFinite(Number(rate))||Number(rate)<0)return alert("Collection Name, ശരിയായ Rate എന്നിവ നൽകുക.");
-  if(next.some(x=>priceKey(x.name)===priceKey(name)&&priceKey(x.serial)===priceKey(serial)))return alert("ഈ Collection + Serial Number ഇതിനകം ചേർത്തിട്ടുണ്ട്.");
-  next.push({id:row.dataset.id||String(newId()),name,serial,rate:Math.round(Number(rate))});
- }
- settings.clothPriceList=next;saveStorage();renderNewPriceLists();alert("Cloth Price List സേവ് ചെയ്തു.");
+ const row=$("clothPriceRows").querySelector(".price-entry-row"),name=row.querySelector(".cpName").value.trim(),rate=row.querySelector(".cpRate").value;
+ if(!name||rate===""||!Number.isFinite(Number(rate))||Number(rate)<0)return alert("Collection Name, ശരിയായ Rate എന്നിവ നൽകുക.");
+ const editId=row.dataset.editId;
+ const existing=editId?settings.clothPriceList.find(x=>String(x.id)===editId):settings.clothPriceList.find(x=>priceKey(x.name)===priceKey(name));
+ if(existing){existing.name=name;existing.rate=Math.round(Number(rate));existing.serial="";}else settings.clothPriceList.push({id:String(newId()),name,serial:"",rate:Math.round(Number(rate))});
+ saveStorage();renderNewPriceLists();addClothPriceRow();refreshMeasurementPricePickers();alert("Cloth Price List സേവ് ചെയ്തു.");
 }
 function editPriceItem(kind,id){
- const blind=kind==="blind",list=blind?settings.blindsPriceList:settings.clothPriceList,item=list.find(x=>String(x.id)===String(id));
- if(!item)return;
- const host=$(blind?"blindsPriceRows":"clothPriceRows"),cls=blind?".bpType":".cpName";
- const row=[...host.querySelectorAll(".price-entry-row")].find(r=>r.dataset.id===String(id));
- if(row){row.scrollIntoView({behavior:"smooth",block:"center"});row.style.outline="2px solid #3277d5";setTimeout(()=>row.style.outline="",1800);}
+ const blind=kind==="blind",item=(blind?settings.blindsPriceList:settings.clothPriceList).find(x=>String(x.id)===String(id));if(!item)return;
+ if(blind)addBlindsPriceRow(item);else addClothPriceRow(item);
+ (blind?$("blindsPriceRows"):$("clothPriceRows")).scrollIntoView({behavior:"smooth",block:"center"});
+ const row=(blind?$("blindsPriceRows"):$("clothPriceRows")).querySelector(".price-entry-row");row.dataset.editId=String(id);
 }
 function deletePriceItem(kind,id){
- const blind=kind==="blind";
  if(!confirm("ഈ Price List entry delete ചെയ്യണോ?"))return;
- if(blind)settings.blindsPriceList=settings.blindsPriceList.filter(x=>String(x.id)!==String(id));
+ if(kind==="blind")settings.blindsPriceList=settings.blindsPriceList.filter(x=>String(x.id)!==String(id));
  else settings.clothPriceList=settings.clothPriceList.filter(x=>String(x.id)!==String(id));
- saveStorage();loadNewPriceLists();
+ saveStorage();renderNewPriceLists();refreshMeasurementPricePickers();
+}
+function refreshMeasurementPricePickers(){document.querySelectorAll("#measurementBody tr").forEach(tr=>{const type=tr.querySelector(".mType")?.value||"",picker=tr.querySelector(".mPriceItem");if(!picker)return;const cloth=rftTypes.includes(type)||type==="Cloth Fabric",list=cloth?(settings.clothPriceList||[]):(/blind/i.test(type)?(settings.blindsPriceList||[]):[]),current=tr.querySelector(".mCustomType")?.value||"",names=[...new Map(list.map(x=>{const n=String(cloth?x.name:x.type||"").trim();return [priceKey(n),n]})).values()].filter(Boolean);picker.innerHTML='<option value="">Select Price List Item</option>'+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");picker.value=names.find(n=>priceKey(n)===priceKey(current))||"";});}
+function previewPriceList(kind){
+ ensureNewPriceLists();const blind=kind==="blind",items=blind?settings.blindsPriceList:settings.clothPriceList;
+ const title=blind?"BLINDS PRICE LIST":"CLOTH PRICE LIST",unit=blind?"Sq.Ft":"Meter";
+ const rows=items.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(blind?x.type:x.name)}</td><td>${esc(x.rate)}</td></tr>`).join("");
+ const html=`<div id="priceListPrint" style="background:#fff;color:#182b3b;padding:28px;font-family:Arial,sans-serif;width:100%;max-width:794px;margin:auto"><h2 style="text-align:center">${esc(settings.name||"Home Style Curtains")}</h2><h3 style="text-align:center">${title}</h3><table style="width:100%;border-collapse:collapse;min-width:0"><thead><tr><th style="border:1px solid #333;padding:10px">No.</th><th style="border:1px solid #333;padding:10px">Item / Collection Name</th><th style="border:1px solid #333;padding:10px">Rate (₹ / ${unit})</th></tr></thead><tbody>${rows||'<tr><td colspan="3" style="padding:15px;text-align:center">No saved items</td></tr>'}</tbody></table></div>`;
+ let box=document.getElementById("priceListPreviewModal");if(box)box.remove();
+ box=document.createElement("div");box.id="priceListPreviewModal";box.style.cssText="position:fixed;inset:0;z-index:10000;background:#0009;overflow:auto;padding:12px";
+ box.innerHTML=`<div style="max-width:850px;margin:15px auto;background:#fff;border-radius:12px;padding:12px"><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end" class="no-print"><button class="btn-green" id="priceJpgBtn">Save JPG</button><button class="btn-blue" id="priceShareBtn">Share</button><button class="btn-light" id="pricePrintBtn">Print / PDF</button><button class="btn-red" id="priceCloseBtn">Close</button></div>${html}</div>`;
+ document.body.appendChild(box);
+ $("priceCloseBtn").onclick=()=>box.remove();$("pricePrintBtn").onclick=()=>printPriceListPreview();
+ $("priceJpgBtn").onclick=()=>exportPriceListImage("save");$("priceShareBtn").onclick=()=>exportPriceListImage("share");
+}
+function printPriceListPreview(){
+ const el=$("priceListPrint");if(!el)return;
+ const w=window.open("","_blank");if(!w)return alert("Print window തുറക്കാൻ കഴിഞ്ഞില്ല. Pop-up അനുവദിക്കുക.");
+ w.document.write(`<!doctype html><html><head><title>Price List</title><style>@page{size:A4 portrait;margin:12mm}body{font-family:Arial,sans-serif;margin:0}table{width:100%;border-collapse:collapse}th,td{border:1px solid #333;padding:10px;text-align:left}h2,h3{text-align:center}</style></head><body>${el.outerHTML}<script>window.onload=()=>window.print()<\/script></body></html>`);w.document.close();
+}
+async function exportPriceListImage(mode){
+ const el=$("priceListPrint");if(!el)return;if(!window.html2canvas)return alert("Image export library load ചെയ്തിട്ടില്ല.");
+ try{const canvas=await html2canvas(el,{scale:2,backgroundColor:"#ffffff"});const blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",.95));if(!blob)throw new Error("JPG create failed");const file=new File([blob],"Price-List.jpg",{type:"image/jpeg"});
+  if(mode==="share"&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:"Price List"});}
+  else{const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="Price-List.jpg";a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);if(mode==="share")alert("ഈ ഉപകരണത്തിൽ നേരിട്ട് Share ലഭ്യമല്ല. JPG Save ചെയ്തു; ഇനി WhatsApp വഴി പങ്കിടാം.");}
+ }catch(e){alert("JPG തയ്യാറാക്കാൻ കഴിഞ്ഞില്ല: "+e.message);}
 }
 function renderNewPriceLists(){
  ensureNewPriceLists();
@@ -1142,97 +1171,78 @@ function isRFT(type,customUnit){
 function addMeasurementRow(data){
  const tr=document.createElement("tr");
  tr.innerHTML=`<td class="rowNo" data-label="No."></td>
-  <td data-label="Room / Area"><input class="mArea" placeholder="Hall / Bedroom"></td>
-  <td data-label="Type"><select class="mType">${types.map(t=>`<option>${esc(t)}</option>`).join("")}</select></td>
-  <td data-label="Custom Type"><div><input class="mCustomType" placeholder="Type name" style="display:none"><select class="mCustomUnit" style="display:none;margin-top:5px"><option value="Sq.Ft">Square Feet</option><option value="RFT">Running Feet</option></select></div></td>
-  <td data-label="Width"><input class="mWidth" type="number" min="0" step=".01"></td>
-  <td data-label="Height"><input class="mHeight" type="number" min="0" step=".01"></td>
-  <td data-label="Shade No."><input class="mShade" placeholder="Optional"></td>
-  <td class="mUnitCell" data-label="Unit">Sq.Ft</td>
-  <td data-label="Qty"><input class="mQty" type="number" min="1" value="1"></td>
-  <td class="mAreaCell m-rate-cell" data-label="Rate (₹)"><div class="mAreaValue" style="display:none">0.00</div><input class="mRate" type="number" min="0" step="1" style="width:100%;max-width:140px;padding:8px" value="" placeholder="Rate"><div class="mRateAmount" style="font-size:12px;line-height:1.35;font-weight:700;color:#17613a;margin-top:4px"></div><div class="mFabricCalc" style="font-size:12px;line-height:1.35;font-weight:700;color:#17613a;margin-top:4px"></div></td>
-  <td data-label="Delete"><button class="btn-red" type="button" style="padding:5px 9px;font-size:12px;margin:0">Delete</button></td>`;
+ <td data-label="Room / Area"><input class="mArea" placeholder="Hall / Bedroom"></td>
+ <td data-label="Width"><input class="mWidth" type="number" min="0" step=".01"></td>
+ <td data-label="Height"><input class="mHeight" type="number" min="0" step=".01"></td>
+ <td data-label="Type"><select class="mType">${types.map(t=>`<option>${esc(t)}</option>`).join("")}</select></td>
+ <td data-label="Custom Type"><div><select class="mPriceItem m-item-picker" style="display:none"></select><input class="mCustomType" placeholder="Item Name / Collection Name" style="display:none"><select class="mCustomUnit" style="display:none;margin-top:5px"><option value="Sq.Ft">Square Feet</option><option value="RFT">Running Feet</option></select></div></td>
+ <td data-label="Shade No."><input class="mShade" placeholder="Optional"></td>
+ <td class="mUnitCell" data-label="Unit">Sq.Ft</td>
+ <td data-label="Cloth Rate"><input class="mClothRate" type="number" min="0" step="1" style="width:100%;max-width:140px;padding:8px" placeholder="Cloth Rate"><div class="mClothRateAmount" style="font-size:12px;font-weight:700;color:#17613a;margin-top:4px"></div></td>
+ <td class="mAreaCell m-rate-cell" data-label="Rate (₹)"><div class="mAreaValue" style="display:none">0.00</div><input class="mRate" type="number" min="0" step="1" style="width:100%;max-width:140px;padding:8px" placeholder="Rate"><div class="mRateAmount" style="font-size:12px;line-height:1.35;font-weight:700;color:#17613a;margin-top:4px"></div><div class="mFabricCalc" style="font-size:12px;line-height:1.35;font-weight:700;color:#17613a;margin-top:4px"></div></td>
+ <td data-label="Delete"><button class="btn-red" type="button" style="padding:5px 9px;font-size:12px;margin:0">Delete</button></td>`;
  $("measurementBody").appendChild(tr);
- const typeSelect=tr.querySelector(".mType");
- const customInput=tr.querySelector(".mCustomType");
- const customUnit=tr.querySelector(".mCustomUnit");
- function updateCustom(){
-  const other=typeSelect.value==="Other";
-  const clothFabric=typeSelect.value==="Cloth Fabric";
-  customInput.style.display=(other||clothFabric)?"block":"none";
-  customInput.placeholder=clothFabric?"Collection / Cloth Name":"Type name";
-  customUnit.style.display=other?"block":"none";
-  recalculateMeasurements();
+ const typeSelect=tr.querySelector(".mType"),customInput=tr.querySelector(".mCustomType"),customUnit=tr.querySelector(".mCustomUnit"),picker=tr.querySelector(".mPriceItem");
+ function refreshPicker(){
+  const type=typeSelect.value,cloth=rftTypes.includes(type)||type==="Cloth Fabric",blind=/blind/i.test(type);
+  const list=cloth?(settings.clothPriceList||[]):(blind?(settings.blindsPriceList||[]):[]);
+  const unique=[...new Map(list.map(x=>{const n=String(cloth?x.name:x.type||"").trim();return [priceKey(n),n]})).values()].filter(Boolean);
+  picker.innerHTML='<option value="">Select Price List Item</option>'+unique.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
+  picker.style.display=(cloth||blind)?"block":"none";
+  customInput.style.display=(cloth||blind||type==="Other")?"block":"none";
+  customInput.placeholder=cloth?"Collection Name":blind?"Item Name":"Type name";
+  customUnit.style.display=type==="Other"?"block":"none";
+  picker.value=unique.find(n=>priceKey(n)===priceKey(customInput.value))||"";
  }
+ function refresh(){refreshPicker();recalculateMeasurements();}
  typeSelect.onchange=()=>{
-  tr.querySelector(".mRate").value="";
-  tr.querySelector(".mRate").dataset.manualRate="no";
-  tr.querySelector(".mRate").dataset.autoRate="no";
-  updateCustom();
-  updateMeasurementRate(tr);
-  recalculateMeasurements();
-  saveMeasurementDraft();
+  [".mRate",".mClothRate"].forEach(sel=>{const x=tr.querySelector(sel);x.value="";x.dataset.manualRate="no";x.dataset.autoRate="no";});
+  customInput.value="";refresh();updateMeasurementRate(tr,true);updateClothMeasurementRate(tr,true);recalculateMeasurements();saveMeasurementDraft();
  };
- customUnit.onchange=()=>{recalculateMeasurements();updateMeasurementRate(tr);saveMeasurementDraft();};
- customInput.oninput=()=>{
-  tr.querySelector(".mRate").value="";
-  updateMeasurementRate(tr);
-  recalculateMeasurements();
-  saveMeasurementDraft();
- };
+ picker.onchange=()=>{if(picker.value)customInput.value=picker.value;[".mRate",".mClothRate"].forEach(sel=>{const x=tr.querySelector(sel);x.value="";x.dataset.manualRate="no";x.dataset.autoRate="no";});updateMeasurementRate(tr,true);updateClothMeasurementRate(tr,true);recalculateMeasurements();saveMeasurementDraft();};
+ customUnit.onchange=()=>{recalculateMeasurements();saveMeasurementDraft();};
+ customInput.oninput=()=>{picker.value="";[".mRate",".mClothRate"].forEach(sel=>{const x=tr.querySelector(sel);x.value="";x.dataset.manualRate="no";x.dataset.autoRate="no";});updateMeasurementRate(tr,true);updateClothMeasurementRate(tr,true);recalculateMeasurements();saveMeasurementDraft();};
  tr.querySelectorAll("input").forEach(i=>i.oninput=()=>{
-  if(i.classList.contains("mRate")){
-   i.dataset.manualRate="yes";i.dataset.autoRate="no";
-   recalculateMeasurements();saveMeasurementDraft();return;
-  }
-  if(i.classList.contains("mShade")||i.classList.contains("mCustomType")){
-   const rateInput=tr.querySelector(".mRate");
-   rateInput.value="";rateInput.dataset.manualRate="no";rateInput.dataset.autoRate="no";
-   updateMeasurementRate(tr);
-  }
-  recalculateMeasurements();
+  if(i.classList.contains("mRate")||i.classList.contains("mClothRate")){i.dataset.manualRate="yes";i.dataset.autoRate="no";recalculateMeasurements();saveMeasurementDraft();return;}
+  recalculateMeasurements();saveMeasurementDraft();
  });
  tr.querySelector("button").onclick=()=>{tr.remove();recalculateMeasurements();saveMeasurementDraft();};
  if(data){
-  tr.querySelector(".mArea").value=data.area||"";
-  typeSelect.value=data.type||types[0];
-  customInput.value=data.customType||"";
-  customUnit.value=data.customUnit||"Sq.Ft";
-  tr.querySelector(".mHeight").value=data.height??"";
-  tr.querySelector(".mWidth").value=data.width??"";
-  tr.querySelector(".mQty").value=data.qty||1;
-  tr.querySelector(".mShade").value=data.shade||"";
-  tr.querySelector(".mRate").value=data.rate??"";
+  tr.querySelector(".mArea").value=data.area||"";typeSelect.value=data.type||types[0];customInput.value=data.customType||"";
+  customUnit.value=data.customUnit||"Sq.Ft";tr.querySelector(".mHeight").value=data.height??"";tr.querySelector(".mWidth").value=data.width??"";
+  tr.querySelector(".mShade").value=data.shade||"";tr.querySelector(".mRate").value=data.rate??"";tr.querySelector(".mClothRate").value=data.clothRate??"";
   if(data.rate!==undefined&&data.rate!==null&&data.rate!=="")tr.querySelector(".mRate").dataset.manualRate="yes";
+  if(data.clothRate!==undefined&&data.clothRate!==null&&data.clothRate!=="")tr.querySelector(".mClothRate").dataset.manualRate="yes";
  }
- updateCustom();
- // Preserve a previously saved/manual rate when restoring an existing row.
- if(!data||data.rate==null||data.rate==="")updateMeasurementRate(tr);
+ refreshPicker();
+ if(!data||data.rate==null||data.rate==="")updateMeasurementRate(tr,true);
+ if(!data||data.clothRate==null||data.clothRate==="")updateClothMeasurementRate(tr,true);
  recalculateMeasurements();
 }
-function normalizePriceProductName(value){return String(value||"").trim().replace(/\\s+/g," ").toLocaleLowerCase();}
 function measurementRowProductName(tr){
+ const type=tr.querySelector(".mType")?.value||"",custom=tr.querySelector(".mCustomType")?.value||"";
+ return (type==="Other"||type==="Cloth Fabric"||rftTypes.includes(type)||/blind/i.test(type))?custom.trim():type.trim();
+}
+function updateClothMeasurementRate(tr,force=false){
+ const input=tr.querySelector(".mClothRate");if(!input)return;
  const type=tr.querySelector(".mType")?.value||"";
- return (type==="Other"||type==="Cloth Fabric")?(tr.querySelector(".mCustomType")?.value||"").trim():type.trim();
+ if(!(rftTypes.includes(type)||type==="Cloth Fabric")){input.value="";return;}
+ if(input.dataset.manualRate==="yes"&&!force)return;
+ const collection=measurementRowProductName(tr);if(!collection)return;
+ ensureNewPriceLists();const match=findPrice(settings.clothPriceList,collection,"");
+ if(match&&Number.isFinite(Number(match.rate))){input.value=String(match.rate);input.dataset.autoRate="yes";}
+ else if(input.dataset.autoRate==="yes"||force){input.value="";input.dataset.autoRate="no";}
 }
 function updateMeasurementRate(tr,force=false){
- const input=tr.querySelector(".mRate");
- if(!input)return;
- if(!priceListEnabled("measurement"))return;
- // A manually entered rate is preserved until the product or serial number changes.
+ const input=tr.querySelector(".mRate");if(!input||!priceListEnabled("measurement"))return;
  if(input.dataset.manualRate==="yes"&&!force)return;
- const name=measurementRowProductName(tr);
- if(!name)return;
- const shade=tr.querySelector(".mShade")?.value||"";
- const match=getItemPrice(name,shade,"measurement");
- if(match!==null){
-  input.value=String(match);
-  input.dataset.autoRate="yes";
- }else if(input.dataset.autoRate==="yes"||force){
-  input.value="";
-  input.dataset.autoRate="no";
- }
+ const type=tr.querySelector(".mType")?.value||"",name=measurementRowProductName(tr);
+ if(!name)return;ensureNewPriceLists();
+ const match=/blind/i.test(type)?findPrice(settings.blindsPriceList,name,""):null;
+ if(match&&Number.isFinite(Number(match.rate))){input.value=String(match.rate);input.dataset.autoRate="yes";}
+ else if(input.dataset.autoRate==="yes"||force){input.value="";input.dataset.autoRate="no";}
 }
+
 function renumberRows(){document.querySelectorAll("#measurementBody tr").forEach((r,i)=>r.querySelector(".rowNo").textContent=i+1);}
 function getRowCalc(h,w,unit,type,qty,rate,customUnit){
  if(type==="Cloth Fabric"){
@@ -1259,49 +1269,30 @@ function clothMeters(row,unit){
 }
 function recalculateMeasurements(){
  let totalSqft=0,totalRft=0,totalAmount=0;
- const grouped=new Map();
- const rateCalcEnabled=priceListEnabled("measurement");
+ const grouped=new Map(),rateCalcEnabled=priceListEnabled("measurement");
  document.querySelectorAll("#measurementBody tr").forEach(tr=>{
-  const type=tr.querySelector(".mType").value;
-  const productName=measurementRowProductName(tr)||type;
-  const customUnit=tr.querySelector(".mCustomUnit").value;
-  const h=Number(tr.querySelector(".mHeight").value)||0;
-  const w=Number(tr.querySelector(".mWidth").value)||0;
-  const qty=Math.max(1,Number(tr.querySelector(".mQty").value)||1);
-  const rateInput=tr.querySelector(".mRate");
+  const type=tr.querySelector(".mType").value,productName=measurementRowProductName(tr)||type,customUnit=tr.querySelector(".mCustomUnit").value;
+  const h=Number(tr.querySelector(".mHeight").value)||0,w=Number(tr.querySelector(".mWidth").value)||0,qty=1;
+  const rateInput=tr.querySelector(".mRate"),clothRateInput=tr.querySelector(".mClothRate");
   if(rateCalcEnabled&&rateInput.value===""&&rateInput.dataset.manualRate!=="yes")updateMeasurementRate(tr);
-  const rateText=rateInput.value;
-  const rate=rateText===""?0:(Number(rateText)||0);
-  const c=getRowCalc(h,w,$("mUnit").value,type,qty,0,customUnit);
-  const amount=c.area*rate;
-  tr.querySelector(".mUnitCell").textContent=c.unit;
-  tr.querySelector(".mAreaValue").textContent=money(c.area);
+  if(clothRateInput.value===""&&clothRateInput.dataset.manualRate!=="yes")updateClothMeasurementRate(tr);
+  const rate=rateInput.value===""?0:(Number(rateInput.value)||0),c=getRowCalc(h,w,$("mUnit").value,type,qty,0,customUnit),amount=c.area*rate;
+  tr.querySelector(".mUnitCell").textContent=c.unit;tr.querySelector(".mAreaValue").textContent=money(c.area);
   const rateAmount=tr.querySelector(".mRateAmount");
-  if(rateAmount)rateAmount.textContent=rateCalcEnabled&&rateText!==""?`${money(c.area)} ${c.unit} × ₹${money(rate)} = ₹${money(amount)}`:"";
-  const fabric=clothMeters({type,height:h,width:w,qty},$("mUnit").value);
-  const fabricLines=[];
-  if(fabric.curtain>0)fabricLines.push(`Main Cloth: ${money(fabric.curtain)} Mtr (${fabric.mainPanels}P)`);
-  if(fabric.sheer>0)fabricLines.push(`Sheer: ${money(fabric.sheer)} Mtr (${fabric.sheerPanels}P)`);
+  if(rateAmount)rateAmount.textContent=rateCalcEnabled&&rateInput.value!==""?`${money(c.area)} ${c.unit} × ₹${money(rate)} = ₹${money(amount)}`:"";
+  const fabric=clothMeters({type,height:h,width:w,qty},$("mUnit").value),clothRate=Number(clothRateInput.value)||0,clothAmount=Number(fabric.curtain||0)*clothRate;
+  const clothAmountEl=tr.querySelector(".mClothRateAmount");
+  if(clothAmountEl)clothAmountEl.textContent=clothRateInput.value!==""&&fabric.curtain>0?`${money(fabric.curtain)} Mtr × ₹${money(clothRate)} = ₹${money(clothAmount)}`:"";
+  const fabricLines=[];if(fabric.curtain>0)fabricLines.push(`Main Cloth: ${money(fabric.curtain)} Mtr (${fabric.mainPanels}P)`);if(fabric.sheer>0)fabricLines.push(`Sheer: ${money(fabric.sheer)} Mtr (${fabric.sheerPanels}P)`);
   tr.querySelector(".mFabricCalc").textContent=fabricLines.join(" | ");
   totalSqft+=c.sqft;totalRft+=c.rft;
-  if(rateCalcEnabled&&c.area>0){
-   const key=(c.unit+"::"+productName).toLocaleLowerCase();
-   if(!grouped.has(key))grouped.set(key,{name:productName,unit:c.unit,area:0,amount:0});
-   const g=grouped.get(key);g.area+=c.area;g.amount+=amount;
-  }
-  totalAmount+=amount;
+  if(rateCalcEnabled&&c.area>0){const key=(c.unit+"::"+productName).toLocaleLowerCase();if(!grouped.has(key))grouped.set(key,{name:productName,unit:c.unit,area:0,amount:0});const g=grouped.get(key);g.area+=c.area;g.amount+=amount;}
+  if(clothAmount>0){const key=("Cloth::"+productName).toLocaleLowerCase();if(!grouped.has(key))grouped.set(key,{name:productName+" (Cloth)",unit:"Meter",area:0,amount:0});const g=grouped.get(key);g.area+=Number(fabric.curtain||0);g.amount+=clothAmount;}
+  totalAmount+=amount+clothAmount;
  });
- $("measurementSqft").textContent=money(totalSqft);
- $("measurementRft").textContent=money(totalRft);
+ $("measurementSqft").textContent=money(totalSqft);$("measurementRft").textContent=money(totalRft);
  const summary=$("measurementRateSummary"),rows=$("measurementRateSummaryRows");
- if(summary&&rows){
-  summary.style.display=rateCalcEnabled?"block":"none";
-  rows.innerHTML=rateCalcEnabled?[...grouped.values()].map(g=>{
-   const effectiveRate=g.area>0?g.amount/g.area:0;
-   return `<div class="summary-row"><span>${esc(g.name)} — ${money(g.area)} ${esc(g.unit)} × ₹${money(effectiveRate)}</span><strong>₹${money(g.amount)}</strong></div>`;
-  }).join(""):'';
-  $("measurementRateGrandTotal").textContent=money(totalAmount);
- }
+ if(summary&&rows){summary.style.display=rateCalcEnabled?"block":"none";rows.innerHTML=rateCalcEnabled?[...grouped.values()].map(g=>`<div class="summary-row"><span>${esc(g.name)} — ${money(g.area)} ${esc(g.unit)}</span><strong>₹${money(g.amount)}</strong></div>`).join(""):"";$("measurementRateGrandTotal").textContent=money(totalAmount);}
  renumberRows();
 }
 function getMeasurementForm(){
@@ -1313,10 +1304,10 @@ function getMeasurementForm(){
   const type=tr.querySelector(".mType").value;
   const customType=tr.querySelector(".mCustomType").value.trim();
   const customUnit=tr.querySelector(".mCustomUnit").value;
-  const qty=Math.max(1,Number(tr.querySelector(".mQty").value)||1),rate=Number(tr.querySelector(".mRate").value)||0;
+  const qty=1,rate=Number(tr.querySelector(".mRate").value)||0,clothRate=Number(tr.querySelector(".mClothRate").value)||0;
   const c=getRowCalc(h,w,$("mUnit").value,type,qty,rate,customUnit);
   const fabric=clothMeters({type,height:h,width:w,qty},$("mUnit").value);
-  rows.push({area:tr.querySelector(".mArea").value.trim(),type,customType,customUnit,shade:tr.querySelector(".mShade").value.trim(),height:h,width:w,qty,rate,unit:c.unit,areaValue:c.area,amount:c.amount,sqft:c.sqft,rft:c.rft,curtainMeters:fabric.curtain,sheerMeters:fabric.sheer,curtainPanels:fabric.mainPanels,sheerPanels:fabric.sheerPanels});
+  rows.push({area:tr.querySelector(".mArea").value.trim(),type,customType,customUnit,clothRate,shade:tr.querySelector(".mShade").value.trim(),height:h,width:w,qty,rate,unit:c.unit,areaValue:c.area,amount:c.amount,clothAmount:Number(fabric.curtain||0)*clothRate,sqft:c.sqft,rft:c.rft,curtainMeters:fabric.curtain,sheerMeters:fabric.sheer,curtainPanels:fabric.mainPanels,sheerPanels:fabric.sheerPanels});
  });
  return {id:currentMeasurementId||newId(),customer:$("mCustomer").value.trim(),phone:$("mPhone").value.trim(),address:$("mAddress").value.trim(),date:$("mDate").value,unit:$("mUnit").value,rows};
 }
@@ -1324,7 +1315,7 @@ function saveMeasurement(){
  const m=getMeasurementForm();
  if(!m.customer)return alert("Please enter Customer Name.");
  if(!m.rows.length)return alert("Enter at least one valid width and height.");
- if(m.rows.some(r=>(r.type==="Other"||r.type==="Cloth Fabric")&&!r.customType))return alert("Please enter the custom type name for every Other item.");
+ if(m.rows.some(r=>((r.type==="Other"||r.type==="Cloth Fabric"||rftTypes.includes(r.type)||/blind/i.test(r.type))&&!r.customType)))return alert("Please enter or select Item / Collection Name for every applicable item.");
  const i=measurements.findIndex(x=>x.id===m.id);
  if(i>=0)measurements[i]=m;else measurements.push(m);
  currentMeasurementId=m.id;
@@ -1428,15 +1419,17 @@ function measurementSheetHTML(m){
  });
  const roomBlocks=[...groups.values()].map(g=>{
   const windows=g.rows.map(r=>{
-   const typeName=r.type==="Other"?(r.customType||"Other"):r.type;
+   const typeName=(r.type==="Other"||r.type==="Cloth Fabric"||rftTypes.includes(r.type)||/blind/i.test(r.type))?(r.customType||r.type):r.type;
    const isCurtainFabricType=rftTypes.includes(r.type)||(r.type==="Other"&&r.customUnit==="RFT");
    const fabric=isCurtainFabricType?((r.curtainMeters!==undefined||r.sheerMeters!==undefined)?{curtain:Number(r.curtainMeters||0),sheer:Number(r.sheerMeters||0),mainPanels:Number(r.curtainPanels||0),sheerPanels:Number(r.sheerPanels||0)}:clothMeters(r,m.unit||"cm")):{curtain:0,sheer:0,mainPanels:0,sheerPanels:0};
    const dimUnit=m.unit==="cm"?"cm":"inch";
    const shade=r.shade?`<div class="measurement-shade">Shade: ${esc(r.shade)}</div>`:"";
+   const clothRateLine=Number(r.clothRate)>0?`<div class="measurement-fabric">Cloth Rate: ₹${money(r.clothRate)} / Mtr</div>`:"";
+   const clothAmountLine=Number(r.clothAmount)>0?`<div class="measurement-fabric">Cloth Amount: ₹${money(r.clothAmount)}</div>`:"";
    const fabricMarkup=`${fabric.curtain>0?`<div class="measurement-fabric">Main Cloth (${fabric.mainPanels}P)</div><div class="measurement-fabric">${money(fabric.curtain)} Mtr</div>`:""}${fabric.sheer>0?`<div class="measurement-fabric">Sheer Cloth (${fabric.sheerPanels}P)</div><div class="measurement-fabric">${money(fabric.sheer)} Mtr</div>`:""}`;
    return `<div class="measurement-window">
     <div class="measurement-seven"><span class="measurement-width">${esc(r.width)} ${dimUnit}</span><span class="measurement-height">${esc(r.height)}</span></div>
-    <div class="measurement-window-detail"><b style="font-size:17px;font-weight:800">${esc(typeName)}</b>${shade}${fabricMarkup}</div>
+    <div class="measurement-window-detail"><b style="font-size:17px;font-weight:800">${esc(typeName)}</b>${shade}${clothRateLine}${clothAmountLine}${fabricMarkup}</div>
    </div>`;
   }).join("");
   return `<div class="measurement-room">
@@ -1448,7 +1441,7 @@ function measurementSheetHTML(m){
  }).join("");
  const typeTotals=new Map();
  (m.rows||[]).forEach(r=>{
-  const name=String(r.type==="Other"?(r.customType||"Other"):r.type||"").trim()||"Item";
+  const name=String((r.type==="Other"||r.type==="Cloth Fabric"||rftTypes.includes(r.type)||/blind/i.test(r.type))?(r.customType||r.type):r.type||"").trim()||"Item";
   const unit=String(r.unit||(isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft")?"RFT":"Sq.Ft"));
   const area=Number(r.areaValue||0);
   const blind=r.type!=="Cloth Fabric"&&!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");
@@ -1456,7 +1449,7 @@ function measurementSheetHTML(m){
   const key=(name+"|"+unit).toLocaleLowerCase();
   if(!typeTotals.has(key))typeTotals.set(key,{name,unit,area:0,amount:0,measure:0});
   const g=typeTotals.get(key);g.area+=area;g.measure+=measure;
-  if(priceListEnabled("measurement"))g.amount+=Number(r.amount||area*Number(r.rate||0));
+  if(priceListEnabled("measurement"))g.amount+=Number(r.amount||area*Number(r.rate||0))+Number(r.clothAmount||0);
  });
  const totalRft=(m.rows||[]).reduce((a,r)=>a+Number(r.rft||0),0);
  const totalCurtainMeters=(m.rows||[]).reduce((a,r)=>a+Number(r.curtainMeters||0),0);
@@ -1477,7 +1470,7 @@ function measurementSheetHTML(m){
 function previewMeasurementSheet(){
  const m=getMeasurementForm();
  if(!m.rows.length)return alert("Enter at least one valid width and height.");
- if(m.rows.some(r=>(r.type==="Other"||r.type==="Cloth Fabric")&&!r.customType))return alert("Please enter the custom type name for every Other item.");
+ if(m.rows.some(r=>((r.type==="Other"||r.type==="Cloth Fabric"||rftTypes.includes(r.type)||/blind/i.test(r.type))&&!r.customType)))return alert("Please enter or select Item / Collection Name for every applicable item.");
  const el=$("measurementPreview");el.innerHTML=measurementSheetHTML(m);el.classList.remove("hidden");
  el.scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -1569,7 +1562,7 @@ function measurementToQuotation(){
  newQuotation();$("qCustomer").value=m.customer;$("qPhone").value=m.phone;$("qAddress").value=m.address;
  const grouped=new Map();let curtainMeters=0,sheerMeters=0;
  (m.rows||[]).forEach(r=>{
-  const name=(r.type==="Other"||r.type==="Cloth Fabric")?(r.customType||r.type):r.type;
+  const name=(r.type==="Other"||r.type==="Cloth Fabric"||rftTypes.includes(r.type)||/blind/i.test(r.type))?(r.customType||r.type):r.type;
   const blind=r.type!=="Cloth Fabric"&&!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");
   const fabric=blind||r.type==="Cloth Fabric"?{curtain:0,sheer:0}:clothMeters(r,m.unit||"cm");
   curtainMeters+=Number(fabric.curtain||0);sheerMeters+=Number(fabric.sheer||0);
