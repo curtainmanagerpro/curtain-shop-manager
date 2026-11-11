@@ -1120,7 +1120,12 @@ function getMeasurementDraft(){
   area:tr.querySelector(".mArea")?.value||"",type:tr.querySelector(".mType")?.value||types[0],
   customType:tr.querySelector(".mCustomType")?.value||"",customUnit:tr.querySelector(".mCustomUnit")?.value||"Sq.Ft",
   height:tr.querySelector(".mHeight")?.value||"",width:tr.querySelector(".mWidth")?.value||"",
-  qty:tr.querySelector(".mQty")?.value||"1",shade:tr.querySelector(".mShade")?.value||"",rate:tr.querySelector(".mRate")?.value||""
+  qty:tr.querySelector(".mQty")?.value||"1",shade:tr.querySelector(".mShade")?.value||"",
+  rate:tr.querySelector(".mRate")?.value||"",clothRate:tr.querySelector(".mClothRate")?.value||"",
+  rateManual:tr.querySelector(".mRate")?.dataset.manualRate==="yes",
+  rateAuto:tr.querySelector(".mRate")?.dataset.autoRate==="yes",
+  clothRateManual:tr.querySelector(".mClothRate")?.dataset.manualRate==="yes",
+  clothRateAuto:tr.querySelector(".mClothRate")?.dataset.autoRate==="yes"
  }));
  return {status:"active",measurementId:currentMeasurementId,customer:$("mCustomer").value,phone:$("mPhone").value,address:$("mAddress").value,date:$("mDate").value,unit:$("mUnit").value,rows,updatedAt:Date.now()};
 }
@@ -1211,8 +1216,10 @@ function addMeasurementRow(data){
   tr.querySelector(".mArea").value=data.area||"";typeSelect.value=data.type||types[0];customInput.value=data.customType||"";
   customUnit.value=data.customUnit||"Sq.Ft";tr.querySelector(".mHeight").value=data.height??"";tr.querySelector(".mWidth").value=data.width??"";
   tr.querySelector(".mShade").value=data.shade||"";tr.querySelector(".mRate").value=data.rate??"";tr.querySelector(".mClothRate").value=data.clothRate??"";
-  if(data.rate!==undefined&&data.rate!==null&&data.rate!=="")tr.querySelector(".mRate").dataset.manualRate="yes";
-  if(data.clothRate!==undefined&&data.clothRate!==null&&data.clothRate!=="")tr.querySelector(".mClothRate").dataset.manualRate="yes";
+  tr.querySelector(".mRate").dataset.manualRate=data.rateManual===true?"yes":(data.rateAuto===true?"no":(data.rate!==undefined&&data.rate!==null&&data.rate!==""?"yes":"no"));
+  tr.querySelector(".mRate").dataset.autoRate=data.rateAuto===true?"yes":"no";
+  tr.querySelector(".mClothRate").dataset.manualRate=data.clothRateManual===true?"yes":(data.clothRateAuto===true?"no":(data.clothRate!==undefined&&data.clothRate!==null&&data.clothRate!==""?"yes":"no"));
+  tr.querySelector(".mClothRate").dataset.autoRate=data.clothRateAuto===true?"yes":"no";
  }
  refreshPicker();
  if(!data||data.rate==null||data.rate==="")updateMeasurementRate(tr,true);
@@ -1313,7 +1320,6 @@ function getMeasurementForm(){
 }
 function saveMeasurement(){
  const m=getMeasurementForm();
- if(!m.customer)return alert("Please enter Customer Name.");
  if(!m.rows.length)return alert("Enter at least one valid width and height.");
  if(m.rows.some(r=>((r.type==="Other"||r.type==="Cloth Fabric"||rftTypes.includes(r.type)||/blind/i.test(r.type))&&!r.customType)))return alert("Please enter or select Item / Collection Name for every applicable item.");
  const i=measurements.findIndex(x=>x.id===m.id);
@@ -1587,7 +1593,7 @@ function measurementToInvoice(id){
   const blind=r.type!=="Cloth Fabric"&&!isRFT(String(r.type||"").trim(),r.customUnit||"Sq.Ft");
   const fabric=blind||r.type==="Cloth Fabric"?{curtain:0,sheer:0}:clothMeters(r,m.unit||"cm");
   curtainMeters+=Number(fabric.curtain||0);sheerMeters+=Number(fabric.sheer||0);
-  const name=(r.type==="Other"||r.type==="Cloth Fabric")?(r.customType||r.type):r.type;
+  const name=(r.type==="Other"||r.type==="Cloth Fabric"||rftTypes.includes(r.type)||/blind/i.test(String(r.type||"")))?(r.customType||r.type):r.type;
   const unit=r.type==="Cloth Fabric"?"Meter":(blind?"Sq.Ft":"RFT");
   const qty=r.type==="Cloth Fabric"?Number(r.areaValue||0):(blind?(r.sqft||r.areaValue):(r.rft||r.areaValue));
   const shade=String(r.shade||"").trim();
