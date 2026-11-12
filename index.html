@@ -252,8 +252,9 @@ td input,td select{min-width:80px;padding:8px}
 @media (max-width:700px){
  #measurement #measurementBody td{grid-template-columns:minmax(0,35%) minmax(0,1fr)!important;gap:9px;padding:7px 2px;}
   #measurement #measurementBody td[data-label="Catalog Name"]{grid-template-columns:minmax(0,35%) minmax(0,1fr)!important;}
- #measurement #measurementBody td[data-label="Catalog Name"]::before{min-height:68px!important;padding-top:12px!important;padding-bottom:12px!important;}
- #measurement #measurementBody td[data-label="Catalog Name"] .mPriceItem,#measurement #measurementBody td[data-label="Catalog Name"] .mCustomType{min-height:68px!important;}
+ /* Keep the two right-side controls at their normal size; stretch only the blue label vertically. */
+ #measurement #measurementBody td[data-label="Catalog Name"]::before{height:120px!important;min-height:120px!important;padding-top:10px!important;padding-bottom:10px!important;align-self:center;}
+ #measurement #measurementBody td[data-label="Catalog Name"] .mPriceItem,#measurement #measurementBody td[data-label="Catalog Name"] .mCustomType{height:56px!important;min-height:56px!important;}
  #measurement #measurementBody td::before{background:#174f86!important;color:#fff!important;border:1px solid #123f6b;border-radius:7px;padding:10px 5px;text-align:center;font-weight:700;font-size:15px;line-height:1.25;min-height:56px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;overflow-wrap:anywhere;}
  #measurement #measurementBody td input,#measurement #measurementBody td select{height:100%;min-height:56px!important;box-sizing:border-box;font-size:18px!important;font-weight:700!important;color:#172b40;padding:10px!important;}
  #measurement #measurementBody td .mCustomType,#measurement #measurementBody td .mCustomUnit{min-height:56px!important;}
@@ -542,8 +543,8 @@ td input,td select{min-width:80px;padding:8px}
   <label><input type="checkbox" id="priceAutoInvoice" onchange="savePriceAutoOptions()"> Invoice ON</label>
  </div>
  <div class="price-list-actions">
-  <button class="btn-blue" onclick="showPage('blindsPriceList')">🪟 Blinds Price List</button>
-  <button class="btn-blue" onclick="previewPriceList('blind')">Price List Preview</button>
+  <button class="btn-blue" onclick="showPage('blindsPriceList')">🪟 Zebra Blinds Price List</button>
+  <button class="btn-blue" onclick="previewPriceList('blind')">Zebra Price List View</button>
    <button class="btn-green" onclick="showPage('clothPriceList')">🧵 Cloth Price List</button>
    <button class="btn-green" onclick="previewPriceList('cloth')">Cloth Preview</button>
    <button class="btn-purple" onclick="showPage('rftPriceList')">📏 Curtain & Blinds Price List</button>
@@ -1134,7 +1135,44 @@ function savePriceListTable(kind){
  }
  settings[cfg.key]=next;saveStorage();priceListEditMode[kind]=false;renderNewPriceLists();refreshMeasurementPricePickers();alert("Price List സേവ് ചെയ്തു.");
 }
-function applyPriceFromList(itemName,where="quotation",serial="",unit="",type=""){return getItemPrice(itemName,serial,where,unit,type);}
+function applyPriceFromList(itemName,where="quotation",serial="",unit="",type=""){
+ if(!priceListEnabled(where))return null;
+ const exact=findDocumentPriceEntry(itemName);
+ if(exact){const value=exact.item.rate;return value!==undefined&&value!==null&&value!==""&&Number.isFinite(Number(value))?Number(value):null;}
+ return getItemPrice(itemName,serial,where,unit,type);
+}
+// Resolve an exact document item against the four saved price lists.
+function findDocumentPriceEntry(name){
+ ensureNewPriceLists();const key=priceKey(name);if(!key)return null;
+ const sources=[
+  ...(settings.blindsPriceList||[]).map(x=>({item:x,unit:"Sq.Ft",kind:"blind",label:x.type||x.name})),
+  ...(settings.clothPriceList||[]).map(x=>({item:x,unit:"Meter",kind:"cloth",label:x.name||x.type})),
+  ...(settings.rftPriceList||[]).map(x=>({item:x,unit:x.unit||"Sq.Ft",kind:"rft",label:x.name||x.type})),
+  ...(settings.accessoryPriceList||[]).map(x=>({item:x,unit:"Nos",kind:"accessory",label:x.name||x.type}))
+ ];return sources.find(x=>priceKey(x.label)===key)||null;
+}
+function documentPriceOptions(){
+ ensureNewPriceLists();return [...new Set([
+  ...(settings.blindsPriceList||[]).map(x=>x.type||x.name),
+  ...(settings.clothPriceList||[]).map(x=>x.name||x.type),
+  ...(settings.rftPriceList||[]).map(x=>x.name||x.type),
+  ...(settings.accessoryPriceList||[]).map(x=>x.name||x.type)
+ ].map(x=>String(x||"").trim()).filter(Boolean))];
+}
+function syncDocumentItemFromPriceList(items,index,card,where){
+ const item=items[index];if(!item)return;const match=findDocumentPriceEntry(item.name);if(!match)return;
+ item.unit=match.unit||"Item";
+ const unitSelect=card.querySelector('[data-k="unit"]');if(unitSelect)unitSelect.value=item.unit;
+ const rateInput=card.querySelector('[data-k="rate"]');
+ if(rateInput){rateInput.dataset.manualRate="";const rate=match.item.rate;
+  if(rate!==undefined&&rate!==null&&rate!==""){item.rate=String(rate);rateInput.value=String(rate);}
+  else {item.rate="";rateInput.value="";}
+ }
+}
+function attachDocumentPriceDatalist(host,id){
+ host.querySelectorAll("datalist").forEach(x=>x.remove());
+ const dl=document.createElement("datalist");dl.id=id;dl.innerHTML=documentPriceOptions().map(name=>`<option value="${esc(name)}"></option>`).join("");host.appendChild(dl);
+}
 
 function loadLogo(e){
  const f=e.target.files[0];if(!f)return;
@@ -1849,7 +1887,7 @@ function renderQuotationItems(){
  quotationItems.forEach((it,i)=>{
   const d=document.createElement("div");d.className="item-card";
   d.innerHTML=`<div class="grid">
-   <div class="field"><label>Item / Description</label><input data-k="name" list="quotationPriceListOptions" value="${esc(it.name)}"><datalist id="quotationPriceListOptions">${[...(settings.blindsPriceList||[]).map(p=>p.type),...(settings.clothPriceList||[]).map(p=>p.name),...(settings.rftPriceList||[]).map(p=>p.name),...(settings.accessoryPriceList||[]).map(p=>p.name)].filter((v,i,a)=>a.indexOf(v)===i).map(name=>`<option value="${esc(name)}"></option>`).join("")}</datalist></div>
+   <div class="field"><label>Item / Description</label><input data-k="name" list="quotationPriceListOptions" value="${esc(it.name)}"></div>
    <div class="field"><label>Shade / Serial No.</label><input data-k="shade" value="${esc(it.shade||"")}"></div>
    <div class="field"><label>Quantity</label><input data-k="qty" type="number" min="0" step=".01" value="${it.qty??""}"></div>
    <div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option value="${u}" ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div>
@@ -1859,6 +1897,7 @@ function renderQuotationItems(){
    const update=()=>{quotationItems[i][el.dataset.k]=el.value;calculateQuotation();};
    el.oninput=()=>{
     if(el.dataset.k==="rate"){el.dataset.manualRate="yes";}
+    if(el.dataset.k==="name"){quotationItems[i].name=el.value;syncDocumentItemFromPriceList(quotationItems,i,d,"quotation");}
     if(el.dataset.k==="name"||el.dataset.k==="shade"){
      const rateInput=d.querySelector('[data-k="rate"]');if(rateInput?.dataset.manualRate!=="yes"){const autoRate=applyPriceFromList(el.dataset.k==="name"?el.value:quotationItems[i].name,"quotation",el.dataset.k==="shade"?el.value:quotationItems[i].shade,quotationItems[i].unit);if(autoRate!==null){quotationItems[i].rate=String(autoRate);if(rateInput)rateInput.value=String(autoRate);}else{quotationItems[i].rate="";if(rateInput)rateInput.value="";}}
     }
@@ -1874,6 +1913,7 @@ function renderQuotationItems(){
   d.querySelector("button").onclick=()=>{quotationItems.splice(i,1);renderQuotationItems();};
   $("quotationItems").appendChild(d);
  });
+ attachDocumentPriceDatalist($("quotationItems"),"quotationPriceListOptions");
  calculateQuotation();
 }
 function calculateQuotation(){
@@ -2180,11 +2220,11 @@ function renderInvoiceItems(){
  $("invoiceItems").innerHTML="";
  invoiceItems.forEach((it,i)=>{
   const d=document.createElement("div");d.className="item-card";
-  d.innerHTML=`<div class="grid"><div class="field"><label>Item / Description</label><input data-k="name" list="invoicePriceListOptions" value="${esc(it.name)}"><datalist id="invoicePriceListOptions">${[...(settings.blindsPriceList||[]).map(p=>p.type),...(settings.clothPriceList||[]).map(p=>p.name),...(settings.rftPriceList||[]).map(p=>p.name),...(settings.accessoryPriceList||[]).map(p=>p.name)].filter((v,i,a)=>a.indexOf(v)===i).map(name=>`<option value="${esc(name)}"></option>`).join("")}</datalist></div><div class="field"><label>Shade / Serial No.</label><input data-k="shade" value="${esc(it.shade||"")}"></div><div class="field"><label>Quantity</label><input data-k="qty" type="number" min="0" step=".01" value="${it.qty??''}"></div><div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div><div class="field"><label>Rate (₹)</label><input data-k="rate" type="number" min="0" step="1" value="${Math.round(Number(it.rate)||0)}"></div></div><p>Amount: <b>₹${money(Math.max(0,Number(it.qty)||0)*Math.max(0,Number(it.rate)||0))}</b></p><button class="btn-red" type="button">Delete Item</button>`;
-  d.querySelectorAll("[data-k]").forEach(el=>{const update=()=>{const k=el.dataset.k;invoiceItems[i][k]=el.value;calculateInvoice();};el.oninput=()=>{if(el.dataset.k==="rate")el.dataset.manualRate="yes";if(el.dataset.k==="name"||el.dataset.k==="shade"){const rateInput=d.querySelector('[data-k="rate"]');if(rateInput?.dataset.manualRate!=="yes"){const autoRate=applyPriceFromList(el.dataset.k==="name"?el.value:invoiceItems[i].name,"invoice",el.dataset.k==="shade"?el.value:invoiceItems[i].shade,invoiceItems[i].unit);if(autoRate!==null){invoiceItems[i].rate=String(autoRate);if(rateInput)rateInput.value=String(autoRate);}else{invoiceItems[i].rate="";if(rateInput)rateInput.value="";}}}update();};el.onchange=el.oninput;});
+  d.innerHTML=`<div class="grid"><div class="field"><label>Item / Description</label><input data-k="name" list="invoicePriceListOptions" value="${esc(it.name)}"></div><div class="field"><label>Shade / Serial No.</label><input data-k="shade" value="${esc(it.shade||"")}"></div><div class="field"><label>Quantity</label><input data-k="qty" type="number" min="0" step=".01" value="${it.qty??''}"></div><div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div><div class="field"><label>Rate (₹)</label><input data-k="rate" type="number" min="0" step="1" value="${Math.round(Number(it.rate)||0)}"></div></div><p>Amount: <b>₹${money(Math.max(0,Number(it.qty)||0)*Math.max(0,Number(it.rate)||0))}</b></p><button class="btn-red" type="button">Delete Item</button>`;
+  d.querySelectorAll("[data-k]").forEach(el=>{const update=()=>{const k=el.dataset.k;invoiceItems[i][k]=el.value;calculateInvoice();};el.oninput=()=>{if(el.dataset.k==="rate")el.dataset.manualRate="yes";if(el.dataset.k==="name"){invoiceItems[i].name=el.value;syncDocumentItemFromPriceList(invoiceItems,i,d,"invoice");}if(el.dataset.k==="name"||el.dataset.k==="shade"){const rateInput=d.querySelector('[data-k="rate"]');if(rateInput?.dataset.manualRate!=="yes"){const autoRate=applyPriceFromList(el.dataset.k==="name"?el.value:invoiceItems[i].name,"invoice",el.dataset.k==="shade"?el.value:invoiceItems[i].shade,invoiceItems[i].unit);if(autoRate!==null){invoiceItems[i].rate=String(autoRate);if(rateInput)rateInput.value=String(autoRate);}else{invoiceItems[i].rate="";if(rateInput)rateInput.value="";}}}update();};el.onchange=el.oninput;});
   d.querySelector("button").onclick=()=>{invoiceItems.splice(i,1);renderInvoiceItems();};
   $("invoiceItems").appendChild(d);
- });calculateInvoice();
+ });attachDocumentPriceDatalist($("invoiceItems"),"invoicePriceListOptions");calculateInvoice();
 }
 function calculateInvoice(){
  if(!$("iSubtotal"))return {subtotal:0,discount:0,gst:0,grand:0,paid:0,balance:0};
