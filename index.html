@@ -57,12 +57,13 @@ td input,td select{min-width:80px;padding:8px}
 #blindOrderTable{min-width:0;table-layout:fixed;font-size:12px}
 #blindOrderTable th{padding:6px 3px;font-size:11px;overflow-wrap:anywhere}
 #blindOrderTable td{padding:3px 2px}
-#blindOrderTable th:nth-child(1),#blindOrderTable td:nth-child(1){width:9%}
-#blindOrderTable th:nth-child(2),#blindOrderTable td:nth-child(2),#blindOrderTable th:nth-child(3),#blindOrderTable td:nth-child(3){width:14%}
-#blindOrderTable th:nth-child(4),#blindOrderTable td:nth-child(4){width:12%}
-#blindOrderTable th:nth-child(5),#blindOrderTable td:nth-child(5){width:23%}
-#blindOrderTable th:nth-child(6),#blindOrderTable td:nth-child(6){width:20%}
-#blindOrderTable th:nth-child(7),#blindOrderTable td:nth-child(7){width:8%}
+#blindOrderTable th:nth-child(1),#blindOrderTable td:nth-child(1){width:7%}
+#blindOrderTable th:nth-child(2),#blindOrderTable td:nth-child(2),#blindOrderTable th:nth-child(3),#blindOrderTable td:nth-child(3){width:12%}
+#blindOrderTable th:nth-child(4),#blindOrderTable td:nth-child(4){width:8%}
+#blindOrderTable th:nth-child(5),#blindOrderTable td:nth-child(5){width:16%}
+#blindOrderTable th:nth-child(6),#blindOrderTable td:nth-child(6){width:18%}
+#blindOrderTable th:nth-child(7),#blindOrderTable td:nth-child(7){width:18%}
+#blindOrderTable th:nth-child(8),#blindOrderTable td:nth-child(8){width:8%}
 .bo-preview-header{text-align:center;border-bottom:2px solid var(--primary);padding-bottom:12px;margin-bottom:14px}
 .bo-preview-header img{max-width:100px;max-height:65px;object-fit:contain}
 .bo-print-table{width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font-size:24px}
@@ -457,6 +458,7 @@ td input,td select{min-width:80px;padding:8px}
         <th>Height</th>
         <th>Unit</th>
         <th>Blind Type</th>
+        <th>Catalog Name</th>
         <th>Shade No.</th>
         <th>Delete</th>
       </tr>
@@ -1216,6 +1218,13 @@ function savePriceListTable(kind){
 }
 function applyPriceFromList(itemName,where="quotation",serial="",unit="",type=""){
  if(!priceListEnabled(where))return null;
+ // When a document row has both a Type and a Catalog Name, resolve the Type first
+ // and then the exact Catalog + Shade/Serial combination. This prevents same-colour
+ // entries from different catalogs from sharing the wrong rate.
+ if(type&&priceKey(itemName)!==priceKey(type)){
+  const catalogRate=getItemPrice(itemName,serial,where,unit,type);
+  if(catalogRate!==null)return catalogRate;
+ }
  const exact=findDocumentPriceEntry(itemName);
  if(exact){const value=exact.item.rate;return value!==undefined&&value!==null&&value!==""&&Number.isFinite(Number(value))?Number(value):null;}
  return getItemPrice(itemName,serial,where,unit,type);
@@ -1880,7 +1889,7 @@ function mergeSameDocumentItems(items){
   const unit=String(item.unit||"Item").trim();
   const shade=String(item.shade||"").trim();
   const rate=Number(item.rate)||0;
-  const key=[name.toLocaleLowerCase(),unit.toLocaleLowerCase(),shade.toLocaleLowerCase(),rate.toFixed(4)].join("|");
+  const key=[name.toLocaleLowerCase(),String(item.catalogName||"").trim().toLocaleLowerCase(),unit.toLocaleLowerCase(),shade.toLocaleLowerCase(),rate.toFixed(4)].join("|");
   if(!merged.has(key))merged.set(key,{...item,qty:Number(item.qty)||0,rate:item.rate??""});
   else merged.get(key).qty+=Number(item.qty)||0;
  });
@@ -1895,14 +1904,14 @@ function measurementToQuotation(){
   const type=String(r.type||"Item"),blind=type!=="Cloth Fabric"&&type!=="Curtain Accessories"&&!isRFT(type,r.customUnit||"Sq.Ft");
   const unit=type==="Cloth Fabric"?"Meter":type==="Curtain Accessories"?"Nos":(blind?"Sq.Ft":"RFT");
   const qty=type==="Cloth Fabric"?Number(r.areaValue||0):type==="Curtain Accessories"?1:(blind?Number(r.sqft||r.areaValue||0):Number(r.rft||0));
-  const name=type==="Other"?(r.customType||type):type,shade=String(r.shade||"").trim();
-  const rate=(priceListEnabled("quotation")?applyPriceFromList(name,"quotation",shade,unit,type):null)??"";
-  const key=[name,unit,shade,String(rate)].join("|");
-  if(qty>0){if(!grouped.has(key))grouped.set(key,{name,qty:0,unit,shade,type,rate});grouped.get(key).qty+=qty;}
+  const name=type==="Other"?(r.customType||type):type,shade=String(r.shade||"").trim(),catalogName=String(r.catalogName||r.customType||"").trim();
+  const rate=(priceListEnabled("quotation")?applyPriceFromList(catalogName||name,"quotation",shade,unit,type):null)??"";
+  const key=[name,catalogName,unit,shade,String(rate)].join("|");
+  if(qty>0){if(!grouped.has(key))grouped.set(key,{name,catalogName,qty:0,unit,shade,type,rate});grouped.get(key).qty+=qty;}
   const catalog=String(r.catalogName||r.customType||"Curtain Cloth").trim()||"Curtain Cloth";
   const cm=Number(r.curtainMeters||0),sm=Number(r.sheerMeters||0);
-  if(cm>0){const p=findPrice(settings.clothPriceList,catalog,""),fr=priceListEnabled("quotation")&&p?Number(p.rate)||0:"",ck=[catalog,shade,String(fr)].join("|");if(!clothGrouped.has(ck))clothGrouped.set(ck,{name:"Curtain Cloth - "+catalog,qty:0,unit:"Meter",shade,rate:fr});clothGrouped.get(ck).qty+=cm;}
-  if(sm>0){const p=findPrice(settings.clothPriceList,catalog,""),fr=priceListEnabled("quotation")&&p?Number(p.rate)||0:"",sk=[catalog,shade,String(fr)].join("|");if(!sheerGrouped.has(sk))sheerGrouped.set(sk,{name:"Sheer Cloth - "+catalog,qty:0,unit:"Meter",shade,rate:fr});sheerGrouped.get(sk).qty+=sm;}
+  if(cm>0){const p=findPrice(settings.clothPriceList,catalog,shade),fr=priceListEnabled("quotation")&&p?Number(p.rate)||0:"",ck=[catalog,shade,String(fr)].join("|");if(!clothGrouped.has(ck))clothGrouped.set(ck,{name:"Cloth Fabric",catalogName:catalog,qty:0,unit:"Meter",shade,rate:fr});clothGrouped.get(ck).qty+=cm;}
+  if(sm>0){const p=findPrice(settings.clothPriceList,catalog,shade),fr=priceListEnabled("quotation")&&p?Number(p.rate)||0:"",sk=[catalog,shade,String(fr)].join("|");if(!sheerGrouped.has(sk))sheerGrouped.set(sk,{name:"Sheer Cloth",catalogName:catalog,qty:0,unit:"Meter",shade,rate:fr});sheerGrouped.get(sk).qty+=sm;}
  });
  const mainItems=[...grouped.values()].map(g=>({...g,qty:Number(g.qty.toFixed(2))}));
  const fabricItems=[...clothGrouped.values(),...sheerGrouped.values()].map(g=>({...g,qty:Number(g.qty.toFixed(2))}));
@@ -1918,13 +1927,13 @@ function measurementToInvoice(id){
   const type=String(r.type||"Item"),blind=type!=="Cloth Fabric"&&type!=="Curtain Accessories"&&!isRFT(type,r.customUnit||"Sq.Ft");
   const unit=type==="Cloth Fabric"?"Meter":type==="Curtain Accessories"?"Nos":(blind?"Sq.Ft":"RFT");
   const qty=type==="Cloth Fabric"?Number(r.areaValue||0):type==="Curtain Accessories"?1:(blind?Number(r.sqft||r.areaValue||0):Number(r.rft||0));
-  const name=type==="Other"?(r.customType||type):type,shade=String(r.shade||"").trim();
-  const rate=(priceListEnabled("invoice")?applyPriceFromList(name,"invoice",shade,unit,type):null)??"";
-  if(qty>0)items.push({name,qty:Number(qty.toFixed(2)),unit,shade,rate});
+  const name=type==="Other"?(r.customType||type):type,shade=String(r.shade||"").trim(),catalogName=String(r.catalogName||r.customType||"").trim();
+  const rate=(priceListEnabled("invoice")?applyPriceFromList(catalogName||name,"invoice",shade,unit,type):null)??"";
+  if(qty>0)items.push({name,catalogName,qty:Number(qty.toFixed(2)),unit,shade,rate});
   const catalog=String(r.catalogName||r.customType||"Curtain Cloth").trim()||"Curtain Cloth";
-  const cm=Number(r.curtainMeters||0),sm=Number(r.sheerMeters||0),p=findPrice(settings.clothPriceList,catalog,""),fr=priceListEnabled("invoice")&&p?Number(p.rate)||0:"";
-  if(cm>0){const key=[catalog,shade,String(fr)].join("|");if(!clothGrouped.has(key))clothGrouped.set(key,{name:"Curtain Cloth - "+catalog,qty:0,unit:"Meter",shade,rate:fr});clothGrouped.get(key).qty+=cm;}
-  if(sm>0){const key=[catalog,shade,String(fr)].join("|");if(!sheerGrouped.has(key))sheerGrouped.set(key,{name:"Sheer Cloth - "+catalog,qty:0,unit:"Meter",shade,rate:fr});sheerGrouped.get(key).qty+=sm;}
+  const cm=Number(r.curtainMeters||0),sm=Number(r.sheerMeters||0),p=findPrice(settings.clothPriceList,catalog,shade),fr=priceListEnabled("invoice")&&p?Number(p.rate)||0:"";
+  if(cm>0){const key=[catalog,shade,String(fr)].join("|");if(!clothGrouped.has(key))clothGrouped.set(key,{name:"Cloth Fabric",catalogName:catalog,qty:0,unit:"Meter",shade,rate:fr});clothGrouped.get(key).qty+=cm;}
+  if(sm>0){const key=[catalog,shade,String(fr)].join("|");if(!sheerGrouped.has(key))sheerGrouped.set(key,{name:"Sheer Cloth",catalogName:catalog,qty:0,unit:"Meter",shade,rate:fr});sheerGrouped.get(key).qty+=sm;}
  });
  const fabric=[...clothGrouped.values(),...sheerGrouped.values()].map(g=>({...g,qty:Number(g.qty.toFixed(2))}));
  invoiceItems=mergeSameDocumentItems([...items,...fabric]);if(!invoiceItems.length)invoiceItems=[{name:"",qty:"",unit:"Item",rate:"",shade:""}];renderInvoiceItems();
@@ -1942,7 +1951,7 @@ function measurementToBlindOrder(id){
  blindRows.forEach(r=>{
   const savedType=String(r.type||"").trim();
   const typeName=savedType==="Other"?(String(r.customType||"Other").trim()||"Other"):savedType;
-  addBlindOrderRow({width:r.width,height:r.height,unit:m.unit,type:typeName,shade:r.shade||""});
+  addBlindOrderRow({width:r.width,height:r.height,unit:m.unit,type:typeName,catalogName:r.catalogName||r.customType||"",shade:r.shade||""});
  });
  updateBlindUnitLabels();
 }
@@ -1999,7 +2008,7 @@ async function saveSavedMeasurementJPG(id){
 function nextQuotationNumber(){return "QT-"+String(quotations.length+1).padStart(4,"0");}
 function newQuotation(){
  currentQuotationId=null;
- quotationItems=[{name:"",qty:"",unit:"Item",rate:""}];
+ quotationItems=[{name:"",catalogName:"",qty:"",unit:"Item",rate:"",shade:""}];
  $("qCustomer").value="";$("qPhone").value="";$("qAddress").value="";
  $("qNumber").value=nextQuotationNumber();$("qDate").value=today();
  $("discountType").value="percent";$("discountValue").value=0;$("gstValue").value=0;$("qTerms").value="";
@@ -2007,7 +2016,7 @@ function newQuotation(){
  showPage("quotation");
 }
 function addQuotationItem(item){
- quotationItems.push({name:item?.name||"",qty:item?.qty??"",unit:item?.unit||"Item",rate:item?.rate??"",shade:item?.shade||""});
+ quotationItems.push({name:item?.name||"",catalogName:item?.catalogName||"",qty:item?.qty??"",unit:item?.unit||"Item",rate:item?.rate??"",shade:item?.shade||""});
  renderQuotationItems();
 }
 function renderQuotationItems(){
@@ -2016,7 +2025,7 @@ function renderQuotationItems(){
   const d=document.createElement("div");d.className="item-card";
   d.innerHTML=`<div class="grid">
    <div class="field"><label>Item / Description</label><input data-k="name" list="quotationPriceListOptions" value="${esc(it.name)}"></div>
-   <div class="field"><label>Shade / Serial No.</label><input data-k="shade" value="${esc(it.shade||"")}"></div>
+   <div class="field"><label>Catalog Name</label><input data-k="catalogName" list="quotationCatalogOptions" value="${esc(it.catalogName||"")}" placeholder="Type or select Catalog Name"></div><div class="field"><label>Shade / Serial No.</label><input data-k="shade" value="${esc(it.shade||"")}"></div>
    <div class="field"><label>Quantity</label><input data-k="qty" type="number" min="0" step=".01" value="${it.qty??""}"></div>
    <div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option value="${u}" ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div>
    <div class="field"><label>Rate (₹)</label><input data-k="rate" type="number" min="0" step="1" value="${Math.round(Number(it.rate)||0)}"></div>
@@ -2026,14 +2035,14 @@ function renderQuotationItems(){
    el.oninput=()=>{
     if(el.dataset.k==="rate"){el.dataset.manualRate="yes";}
     if(el.dataset.k==="name"){quotationItems[i].name=el.value;syncDocumentItemFromPriceList(quotationItems,i,d,"quotation");}
-    if(el.dataset.k==="name"||el.dataset.k==="shade"){
-     const rateInput=d.querySelector('[data-k="rate"]');if(rateInput?.dataset.manualRate!=="yes"){const autoRate=applyPriceFromList(el.dataset.k==="name"?el.value:quotationItems[i].name,"quotation",el.dataset.k==="shade"?el.value:quotationItems[i].shade,quotationItems[i].unit);if(autoRate!==null){quotationItems[i].rate=String(autoRate);if(rateInput)rateInput.value=String(autoRate);}else{quotationItems[i].rate="";if(rateInput)rateInput.value="";}}
+    if(el.dataset.k==="name"||el.dataset.k==="catalogName"||el.dataset.k==="shade"){
+     const rateInput=d.querySelector('[data-k="rate"]');if(rateInput?.dataset.manualRate!=="yes"){const autoRate=applyPriceFromList(quotationItems[i].catalogName||quotationItems[i].name,"quotation",el.dataset.k==="shade"?el.value:quotationItems[i].shade,quotationItems[i].unit,quotationItems[i].name);if(autoRate!==null){quotationItems[i].rate=String(autoRate);if(rateInput)rateInput.value=String(autoRate);}else{quotationItems[i].rate="";if(rateInput)rateInput.value="";}}
     }
     update();
    };
    el.onchange=()=>{
-    if(el.dataset.k==="name"||el.dataset.k==="shade"){
-     const rateInput=d.querySelector('[data-k="rate"]');if(rateInput?.dataset.manualRate!=="yes"){const autoRate=applyPriceFromList(el.dataset.k==="name"?el.value:quotationItems[i].name,"quotation",el.dataset.k==="shade"?el.value:quotationItems[i].shade,quotationItems[i].unit);if(autoRate!==null){quotationItems[i].rate=String(autoRate);if(rateInput)rateInput.value=String(autoRate);}else{quotationItems[i].rate="";if(rateInput)rateInput.value="";}}
+    if(el.dataset.k==="name"||el.dataset.k==="catalogName"||el.dataset.k==="shade"){
+     const rateInput=d.querySelector('[data-k="rate"]');if(rateInput?.dataset.manualRate!=="yes"){const autoRate=applyPriceFromList(quotationItems[i].catalogName||quotationItems[i].name,"quotation",el.dataset.k==="shade"?el.value:quotationItems[i].shade,quotationItems[i].unit,quotationItems[i].name);if(autoRate!==null){quotationItems[i].rate=String(autoRate);if(rateInput)rateInput.value=String(autoRate);}else{quotationItems[i].rate="";if(rateInput)rateInput.value="";}}
     }
     update();
    };
@@ -2042,6 +2051,7 @@ function renderQuotationItems(){
   $("quotationItems").appendChild(d);
  });
  attachDocumentPriceDatalist($("quotationItems"),"quotationPriceListOptions");
+ const qdl=document.createElement("datalist");qdl.id="quotationCatalogOptions";qdl.innerHTML=[...(settings.blindsPriceList||[]).map(x=>x.type||x.name),...(settings.clothPriceList||[]).map(x=>x.name||x.type)].filter(Boolean).map(x=>`<option value="${esc(x)}"></option>`).join("");$("quotationItems").appendChild(qdl);
  calculateQuotation();
 }
 function calculateQuotation(){
@@ -2216,7 +2226,7 @@ function groupDocumentItems(items){
  (Array.isArray(items)?items:[]).forEach(it=>{
   const name=String(it.name||"").trim(),unit=String(it.unit||"").trim(),qty=Math.max(0,Number(it.qty)||0),rate=Math.max(0,Number(it.rate)||0);
   if(!name)return;
-  const key=[priceKey(name),priceKey(unit),priceKey(it.shade||""),rate.toFixed(4)].join("|");
+  const key=[priceKey(name),priceKey(it.catalogName||""),priceKey(unit),priceKey(it.shade||""),rate.toFixed(4)].join("|");
   if(!grouped.has(key))grouped.set(key,{...it,name,unit,qty:0,rate});
   grouped.get(key).qty+=qty;
  });
@@ -2224,7 +2234,7 @@ function groupDocumentItems(items){
 }
 function quoteHTML(q){
  const displayItems=groupDocumentItems(q.items);
- const items=displayItems.map((it,i)=>`<tr><td>${i+1}</td><td>${esc(it.name)}</td><td>${money(it.qty)}</td><td>${esc(it.unit)}</td><td>₹${money(it.rate)}</td><td>₹${money(Math.max(0,Number(it.qty)||0)*Math.max(0,Number(it.rate)||0))}</td></tr>`).join("");
+ const items=displayItems.map((it,i)=>`<tr><td>${i+1}</td><td>${esc(it.name)}${it.catalogName?`<div style="font-size:12px;font-weight:700;margin-top:3px">${esc(it.catalogName)}</div>`:""}${it.shade?`<div style="font-size:12px;margin-top:2px">Shade: ${esc(it.shade)}</div>`:""}</td><td>${money(it.qty)}</td><td>${esc(it.unit)}</td><td>₹${money(it.rate)}</td><td>₹${money(Math.max(0,Number(it.qty)||0)*Math.max(0,Number(it.rate)||0))}</td></tr>`).join("");
  return `<div class="preview"><div class="quote-header">${settings.logo?`<img class="logo" src="${settings.logo}">`:""}<h1>${esc(settings.name||"Curtain Shop")}</h1><div>${esc(settings.address||"")}</div><div>${esc(settings.phone||"")} ${settings.whatsapp?" · WhatsApp: "+esc(settings.whatsapp):""}</div><div>${esc(settings.email||"")}</div>${settings.gst?"GST: "+esc(settings.gst):""}</div>
  <div class="quote-info"><div><b>Customer</b><br>${esc(q.customer)}<br>${esc(q.phone||"")}<br>${esc(q.address||"")}</div><div><b>Quotation:</b> ${esc(q.number)}<br><b>Date:</b> ${esc(formatDateDMY(q.date))}</div></div>
  <table class="quote-table"><thead><tr><th>No.</th><th>Item</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${items}</tbody></table>
@@ -2326,7 +2336,7 @@ function createInvoiceFromSavedQuotation(id){
  $("iPaid").value=0;
  $("iNotes").value=q.terms||"";
  invoiceItems=JSON.parse(JSON.stringify(q.items||[]));
- if(!invoiceItems.length)invoiceItems=[{name:"",qty:"",unit:"Item",rate:""}];
+ if(!invoiceItems.length)invoiceItems=[{name:"",catalogName:"",qty:"",unit:"Item",rate:"",shade:""}];
  renderInvoiceItems();
  calculateInvoice();
  showPage("invoice");
@@ -2334,25 +2344,25 @@ function createInvoiceFromSavedQuotation(id){
 }
 
 function newInvoice(){
- currentInvoiceId=null;invoiceItems=[{name:"",qty:"",unit:"Item",rate:""}];
+ currentInvoiceId=null;invoiceItems=[{name:"",catalogName:"",qty:"",unit:"Item",rate:"",shade:""}];
  $("iCustomer").value="";$("iPhone").value="";$("iAddress").value="";
  $("iNumber").value=nextInvoiceNumber();$("iDate").value=today();
  $("iDiscountType").value="percent";$("iDiscountValue").value=0;$("iGstValue").value=0;$("iPaid").value=0;$("iNotes").value="";
  renderInvoiceItems();$("invoicePreview").classList.add("hidden");$("invoicePreview").innerHTML="";showPage("invoice");
 }
 function addInvoiceItem(item){
- invoiceItems.push({name:item?.name||"",qty:item?.qty??"",unit:item?.unit||"Item",rate:item?.rate??"",shade:item?.shade||""});
+ invoiceItems.push({name:item?.name||"",catalogName:item?.catalogName||"",qty:item?.qty??"",unit:item?.unit||"Item",rate:item?.rate??"",shade:item?.shade||""});
  renderInvoiceItems();
 }
 function renderInvoiceItems(){
  $("invoiceItems").innerHTML="";
  invoiceItems.forEach((it,i)=>{
   const d=document.createElement("div");d.className="item-card";
-  d.innerHTML=`<div class="grid"><div class="field"><label>Item / Description</label><input data-k="name" list="invoicePriceListOptions" value="${esc(it.name)}"></div><div class="field"><label>Shade / Serial No.</label><input data-k="shade" value="${esc(it.shade||"")}"></div><div class="field"><label>Quantity</label><input data-k="qty" type="number" min="0" step=".01" value="${it.qty??''}"></div><div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div><div class="field"><label>Rate (₹)</label><input data-k="rate" type="number" min="0" step="1" value="${Math.round(Number(it.rate)||0)}"></div></div><p>Amount: <b>₹${money(Math.max(0,Number(it.qty)||0)*Math.max(0,Number(it.rate)||0))}</b></p><button class="btn-red" type="button">Delete Item</button>`;
-  d.querySelectorAll("[data-k]").forEach(el=>{const update=()=>{const k=el.dataset.k;invoiceItems[i][k]=el.value;calculateInvoice();};el.oninput=()=>{if(el.dataset.k==="rate")el.dataset.manualRate="yes";if(el.dataset.k==="name"){invoiceItems[i].name=el.value;syncDocumentItemFromPriceList(invoiceItems,i,d,"invoice");}if(el.dataset.k==="name"||el.dataset.k==="shade"){const rateInput=d.querySelector('[data-k="rate"]');if(rateInput?.dataset.manualRate!=="yes"){const autoRate=applyPriceFromList(el.dataset.k==="name"?el.value:invoiceItems[i].name,"invoice",el.dataset.k==="shade"?el.value:invoiceItems[i].shade,invoiceItems[i].unit);if(autoRate!==null){invoiceItems[i].rate=String(autoRate);if(rateInput)rateInput.value=String(autoRate);}else{invoiceItems[i].rate="";if(rateInput)rateInput.value="";}}}update();};el.onchange=el.oninput;});
+  d.innerHTML=`<div class="grid"><div class="field"><label>Item / Description</label><input data-k="name" list="invoicePriceListOptions" value="${esc(it.name)}"></div><div class="field"><label>Catalog Name</label><input data-k="catalogName" list="invoiceCatalogOptions" value="${esc(it.catalogName||"")}" placeholder="Type or select Catalog Name"></div><div class="field"><label>Shade / Serial No.</label><input data-k="shade" value="${esc(it.shade||"")}"></div><div class="field"><label>Quantity</label><input data-k="qty" type="number" min="0" step=".01" value="${it.qty??''}"></div><div class="field"><label>Unit</label><select data-k="unit">${["Sq.Ft","RFT","Nos","Meter","Set","Item"].map(u=>`<option ${it.unit===u?"selected":""}>${u}</option>`).join("")}</select></div><div class="field"><label>Rate (₹)</label><input data-k="rate" type="number" min="0" step="1" value="${Math.round(Number(it.rate)||0)}"></div></div><p>Amount: <b>₹${money(Math.max(0,Number(it.qty)||0)*Math.max(0,Number(it.rate)||0))}</b></p><button class="btn-red" type="button">Delete Item</button>`;
+  d.querySelectorAll("[data-k]").forEach(el=>{const update=()=>{const k=el.dataset.k;invoiceItems[i][k]=el.value;calculateInvoice();};el.oninput=()=>{if(el.dataset.k==="rate")el.dataset.manualRate="yes";if(el.dataset.k==="name"){invoiceItems[i].name=el.value;syncDocumentItemFromPriceList(invoiceItems,i,d,"invoice");}if(el.dataset.k==="name"||el.dataset.k==="catalogName"||el.dataset.k==="shade"){const rateInput=d.querySelector('[data-k="rate"]');if(rateInput?.dataset.manualRate!=="yes"){const autoRate=applyPriceFromList(invoiceItems[i].catalogName||invoiceItems[i].name,"invoice",el.dataset.k==="shade"?el.value:invoiceItems[i].shade,invoiceItems[i].unit,invoiceItems[i].name);if(autoRate!==null){invoiceItems[i].rate=String(autoRate);if(rateInput)rateInput.value=String(autoRate);}else{invoiceItems[i].rate="";if(rateInput)rateInput.value="";}}}update();};el.onchange=el.oninput;});
   d.querySelector("button").onclick=()=>{invoiceItems.splice(i,1);renderInvoiceItems();};
   $("invoiceItems").appendChild(d);
- });attachDocumentPriceDatalist($("invoiceItems"),"invoicePriceListOptions");calculateInvoice();
+ });attachDocumentPriceDatalist($("invoiceItems"),"invoicePriceListOptions");const idl=document.createElement("datalist");idl.id="invoiceCatalogOptions";idl.innerHTML=[...(settings.blindsPriceList||[]).map(x=>x.type||x.name),...(settings.clothPriceList||[]).map(x=>x.name||x.type)].filter(Boolean).map(x=>`<option value="${esc(x)}"></option>`).join("");$("invoiceItems").appendChild(idl);calculateInvoice();
 }
 function calculateInvoice(){
  if(!$("iSubtotal"))return {subtotal:0,discount:0,gst:0,grand:0,paid:0,balance:0};
@@ -2377,12 +2387,12 @@ function editInvoice(id){
  const d=invoices.find(x=>String(x.id)===String(id));if(!d)return;currentInvoiceId=d.id;
  $("iCustomer").value=d.customer||"";$("iPhone").value=d.phone||"";$("iAddress").value=d.address||"";$("iNumber").value=d.number||nextInvoiceNumber();$("iDate").value=d.date||today();
  $("iDiscountType").value=d.discountType||"percent";$("iDiscountValue").value=d.discountValue||0;$("iGstValue").value=d.gstRate||0;$("iPaid").value=d.paid||0;$("iNotes").value=d.notes||"";
- invoiceItems=JSON.parse(JSON.stringify(d.items||[]));if(!invoiceItems.length)invoiceItems=[{name:"",qty:"",unit:"Item",rate:""}];
+ invoiceItems=JSON.parse(JSON.stringify(d.items||[]));if(!invoiceItems.length)invoiceItems=[{name:"",catalogName:"",qty:"",unit:"Item",rate:"",shade:""}];
  renderInvoiceItems();showPage("invoice");
 }
 function invoiceHTML(d){
  const displayItems=groupDocumentItems(d.items);
- const rows=displayItems.map((it,i)=>`<tr><td>${i+1}</td><td>${esc(it.name)}</td><td>${money(it.qty)}</td><td>${esc(it.unit)}</td><td>₹${money(it.rate)}</td><td>₹${money(Math.max(0,Number(it.qty)||0)*Math.max(0,Number(it.rate)||0))}</td></tr>`).join("");
+ const rows=displayItems.map((it,i)=>`<tr><td>${i+1}</td><td>${esc(it.name)}${it.catalogName?`<div style="font-size:12px;font-weight:700;margin-top:3px">${esc(it.catalogName)}</div>`:""}${it.shade?`<div style="font-size:12px;margin-top:2px">Shade: ${esc(it.shade)}</div>`:""}</td><td>${money(it.qty)}</td><td>${esc(it.unit)}</td><td>₹${money(it.rate)}</td><td>₹${money(Math.max(0,Number(it.qty)||0)*Math.max(0,Number(it.rate)||0))}</td></tr>`).join("");
  return `<div class="preview"><div class="quote-header">${settings.logo?`<img class="logo" src="${settings.logo}">`:""}<h1>${esc(settings.name||"Curtain Shop")}</h1><div>${esc(settings.address||"")}</div><div>${esc(settings.phone||"")}${settings.whatsapp?" · WhatsApp: "+esc(settings.whatsapp):""}</div><div>${esc(settings.email||"")}</div>${settings.gst?"GST: "+esc(settings.gst):""}</div><h2 style="text-align:center">INVOICE</h2><div class="quote-info"><div><b>Customer</b><br>${esc(d.customer)}<br>${esc(d.phone||"")}<br>${esc(d.address||"")}</div><div><b>Invoice No:</b> ${esc(d.number)}<br><b>Date:</b> ${esc(formatDateDMY(d.date))}</div></div><table class="quote-table"><thead><tr><th>No.</th><th>Item</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table><div class="quote-total"><div class="summary-row"><span>Subtotal</span><b>₹${money(d.subtotal)}</b></div><div class="summary-row"><span>Discount</span><b>₹${money(d.discount)}</b></div><div class="summary-row"><span>GST (${money(d.gstRate)}%)</span><b>₹${money(d.gst)}</b></div><div class="summary-row grand"><span>Grand Total</span><b>₹${money(d.grand)}</b></div><div class="summary-row"><span>Amount Received</span><b>₹${money(d.paid)}</b></div><div class="summary-row"><span>Balance Due</span><b>₹${money(d.balance)}</b></div></div><p style="white-space:pre-wrap;margin-top:22px">${esc(d.notes||"")}</p>${documentSignatureHTML()}<p style="text-align:center;margin-top:20px">Thank you for your business.</p></div>`;
 }
 function previewInvoice(){const d=currentInvoice();if(!d.customer)return alert("Please enter Customer Name.");if(!d.items.some(x=>x.name.trim()))return alert("Add an item description.");const el=$("invoicePreview");el.innerHTML=invoiceHTML(d);el.classList.remove("hidden");el.scrollIntoView({behavior:"smooth",block:"start"});}
@@ -2775,21 +2785,27 @@ $("boCustomerPhone").value="";
  addBlindOrderRow();
  updateBlindBusinessInfo();showPage("blindOrder");
 }
+function ensureBlindOrderSuggestions(){
+ let typesList=document.getElementById("boTypeOptions"),catalogList=document.getElementById("boCatalogOptions");
+ if(!typesList){typesList=document.createElement("datalist");typesList.id="boTypeOptions";document.body.appendChild(typesList);}
+ if(!catalogList){catalogList=document.createElement("datalist");catalogList.id="boCatalogOptions";document.body.appendChild(catalogList);}
+ const types=[...new Set(["Zebra Blind","Roman Blind","Roller Blind","Venetian Blind","Wooden Blind","Bamboo Blind","Honeycomb Blind",...(settings.rftPriceList||[]).map(x=>String(x.name||x.type||""))].map(x=>String(x||"").trim()).filter(Boolean))];
+ const catalogs=[...(settings.blindsPriceList||[]).map(x=>x.type||x.name),...(settings.clothPriceList||[]).map(x=>x.name||x.type)];
+ typesList.innerHTML=types.map(x=>`<option value="${esc(x)}"></option>`).join("");
+ catalogList.innerHTML=[...new Set(catalogs.map(x=>String(x||"").trim()).filter(Boolean))].map(x=>`<option value="${esc(x)}"></option>`).join("");
+}
 function addBlindOrderRow(data={}){
  const tr=document.createElement("tr");
-tr.innerHTML=`<td class="bo-cell bo-number-cell" data-label="No."></td><td class="bo-cell" data-label="Width"><input class="bo-input bo-width" type="number" min="0" step="any" inputmode="decimal" aria-label="Width"></td><td class="bo-cell" data-label="Height"><input class="bo-input bo-height" type="number" min="0" step="any" inputmode="decimal" aria-label="Height"></td><td class="bo-cell bo-unit-cell" data-label="Unit"></td><td class="bo-cell" data-label="Blind Type"><select class="bo-input bo-type" aria-label="Blind Type"><option>Zebra</option><option>Roman</option><option>Roller</option><option>Venetian</option><option>Wooden</option><option>Bamboo</option><option>Honeycomb</option><option>Other</option></select></td><td class="bo-cell" data-label="Shade No."><input class="bo-input bo-shade" type="text" placeholder="Shade" aria-label="Shade number"></td><td class="bo-cell" data-label="Actions"><div class="row-actions"><button type="button" class="btn-red row-delete" aria-label="Delete row">Delete</button></div></td>`;
+tr.innerHTML=`<td class="bo-cell bo-number-cell" data-label="No."></td><td class="bo-cell" data-label="Width"><input class="bo-input bo-width" type="number" min="0" step="any" inputmode="decimal" aria-label="Width"></td><td class="bo-cell" data-label="Height"><input class="bo-input bo-height" type="number" min="0" step="any" inputmode="decimal" aria-label="Height"></td><td class="bo-cell bo-unit-cell" data-label="Unit"></td><td class="bo-cell" data-label="Blind Type"><input class="bo-input bo-type" list="boTypeOptions" type="text" placeholder="Select / type type" aria-label="Blind Type" autocomplete="off"></td><td class="bo-cell" data-label="Catalog Name"><input class="bo-input bo-catalog" list="boCatalogOptions" type="text" placeholder="Select / type catalog" aria-label="Catalog Name" autocomplete="off"></td><td class="bo-cell" data-label="Shade No."><input class="bo-input bo-shade" type="text" placeholder="Shade / Serial No." aria-label="Shade number"></td><td class="bo-cell" data-label="Actions"><div class="row-actions"><button type="button" class="btn-red row-delete" aria-label="Delete row">Delete</button></div></td>`;
 
 $("blindOrderBody").appendChild(tr);
 
 tr.querySelector(".bo-width").value=data.width??"";
 tr.querySelector(".bo-height").value=data.height??"";
-const typeSelect=tr.querySelector(".bo-type");
-const requestedType=String(data.type||"Zebra");
-if(!Array.from(typeSelect.options).some(o=>o.value===requestedType)){
- const customOption=document.createElement("option");customOption.value=requestedType;customOption.textContent=requestedType;typeSelect.appendChild(customOption);
-}
-typeSelect.value=requestedType;
+tr.querySelector(".bo-type").value=String(data.type||"Zebra Blind");
+tr.querySelector(".bo-catalog").value=String(data.catalogName||data.catalog||"");
 tr.querySelector(".bo-shade").value=data.shade||"";
+ensureBlindOrderSuggestions();
 
 tr.querySelector(".row-delete").onclick=()=>{
   tr.remove();
@@ -2803,7 +2819,7 @@ function renumberBlindOrderRows(){document.querySelectorAll("#blindOrderBody tr"
 function updateBlindUnitLabels(){const unit=$("boUnit").value;document.querySelectorAll(".bo-unit-cell").forEach(td=>td.textContent=unit);const show=$("boShowNumbers").value==="yes";document.querySelectorAll(".bo-number-head,.bo-number-cell").forEach(el=>el.classList.toggle("hidden",!show));}
 function getBlindOrderData(){
  const unit=$("boUnit").value;const rows=[];
- document.querySelectorAll("#blindOrderBody tr").forEach(tr=>{const width=tr.querySelector(".bo-width").value.trim(),height=tr.querySelector(".bo-height").value.trim(),type=tr.querySelector(".bo-type").value,shade=tr.querySelector(".bo-shade").value.trim();if(width!==""||height!==""||shade!=="")rows.push({width,height,unit,type,shade});});
+ document.querySelectorAll("#blindOrderBody tr").forEach(tr=>{const width=tr.querySelector(".bo-width").value.trim(),height=tr.querySelector(".bo-height").value.trim(),type=tr.querySelector(".bo-type").value.trim(),catalogName=tr.querySelector(".bo-catalog").value.trim(),shade=tr.querySelector(".bo-shade").value.trim();if(width!==""||height!==""||type!==""||catalogName!==""||shade!=="")rows.push({width,height,unit,type,catalogName,shade});});
  return {
  id:currentBlindOrderId||newId(),
  date:$("boDate").value||today(),
@@ -2865,16 +2881,17 @@ function renderBlindOrders(){
 }
 function blindOrderHTML(d){
  const logo=d.logo?`<img src="${d.logo}" alt="Shop logo">`:"";
- // Group items by Blind Type + Shade Number, preserving the first-seen order.
+ // Group items by Blind Type + Catalog Name + Shade Number, preserving the first-seen order.
  const groups=[];const groupMap=new Map();
  (d.rows||[]).forEach((r,i)=>{
   const type=String(r.type||"Other").trim()||"Other";
+  const catalogName=String(r.catalogName||"").trim()||"—";
   const shade=String(r.shade||"").trim()||"—";
-  const key=type.toLowerCase()+"\u0000"+shade.toLowerCase();
-  if(!groupMap.has(key)){const g={type,shade,rows:[]};groupMap.set(key,g);groups.push(g);}
+  const key=type.toLowerCase()+"\u0000"+catalogName.toLowerCase()+"\u0000"+shade.toLowerCase();
+  if(!groupMap.has(key)){const g={type,catalogName,shade,rows:[]};groupMap.set(key,g);groups.push(g);}
   groupMap.get(key).rows.push({...r,originalNo:i+1});
  });
- const groupsHTML=groups.map(g=>`<section class="bo-shade-group" style="border:1.5px solid #7b8794;border-radius:8px;overflow:hidden;margin:14px 0;page-break-inside:avoid;break-inside:avoid"><div class="bo-group-heading" style="padding:10px 12px;background:#eef2f7;border-bottom:1px solid #7b8794"><div style="display:flex;justify-content:center"><div style="display:grid;grid-template-columns:max-content 12px max-content;column-gap:5px;align-items:baseline;text-align:left;color:#203040;font-size:18px;font-weight:800"><span>Type</span><span>:</span><span style="font-size:20px;font-weight:900">${esc(g.type)}</span><span>Shade No.</span><span>:</span><span style="font-size:20px;font-weight:900">${esc(g.shade)}</span></div></div></div><table class="bo-print-table" style="margin:0;border:0"><thead><tr>${d.showNumbers?"<th>No.</th>":""}<th>Width</th><th>Height</th></tr></thead><tbody>${g.rows.map(r=>`<tr>${d.showNumbers?`<td>${r.originalNo}</td>`:""}<td>${esc(r.width)} ${esc(r.unit)}</td><td>${esc(r.height)} ${esc(r.unit)}</td></tr>`).join("")}</tbody></table></section>`).join("");
+ const groupsHTML=groups.map(g=>`<section class="bo-shade-group" style="border:1.5px solid #7b8794;border-radius:8px;overflow:hidden;margin:14px 0;page-break-inside:avoid;break-inside:avoid"><div class="bo-group-heading" style="padding:10px 12px;background:#eef2f7;border-bottom:1px solid #7b8794"><div style="display:flex;justify-content:center"><div style="display:grid;grid-template-columns:max-content 12px max-content;column-gap:5px;align-items:baseline;text-align:left;color:#203040;font-size:18px;font-weight:800"><span>Type</span><span>:</span><span style="font-size:20px;font-weight:900">${esc(g.type)}</span><span>Catalog</span><span>:</span><span style="font-size:20px;font-weight:900">${esc(g.catalogName)}</span><span>Shade No.</span><span>:</span><span style="font-size:20px;font-weight:900">${esc(g.shade)}</span></div></div></div><table class="bo-print-table" style="margin:0;border:0"><thead><tr>${d.showNumbers?"<th>No.</th>":""}<th>Width</th><th>Height</th></tr></thead><tbody>${g.rows.map(r=>`<tr>${d.showNumbers?`<td>${r.originalNo}</td>`:""}<td>${esc(r.width)} ${esc(r.unit)}</td><td>${esc(r.height)} ${esc(r.unit)}</td></tr>`).join("")}</tbody></table></section>`).join("");
  return `<div class="preview"><div class="bo-preview-header">${logo}<h2 style="margin:8px 0">${esc(d.shopName||"Curtain Shop")}</h2><div>${esc(d.address||"")}</div><div>${esc(d.phone||"")}</div></div><h3 style="text-align:center">BLINDS ORDER</h3><div style="text-align:right;margin-bottom:12px"><b>Order Date:</b> ${esc(formatDateDMY(d.date))}</div>${groupsHTML||`<p>No measurements entered</p>`}<div style="margin-top:18px"><b>Description / Special Instructions</b><div style="margin-top:6px;border:1.5px solid #8b969f;border-radius:5px;padding:10px 12px;min-height:38px;font-size:20px;font-weight:700;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;color:#203040">${esc(d.description||"")}</div></div></div>`;
 }
 function previewBlindOrder(){const d=getBlindOrderData();if(!d.rows.length)return alert("Enter at least one measurement row.");const el=$("blindOrderPreview");el.innerHTML=blindOrderHTML(d);el.classList.remove("hidden");el.scrollIntoView({behavior:"smooth",block:"start"});}
