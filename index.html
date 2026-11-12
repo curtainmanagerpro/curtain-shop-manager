@@ -251,7 +251,9 @@ td input,td select{min-width:80px;padding:8px}
 <style id="mobile-measurement-entry-polish">
 @media (max-width:700px){
  #measurement #measurementBody td{grid-template-columns:minmax(0,35%) minmax(0,1fr)!important;gap:9px;padding:7px 2px;}
-  #measurement #measurementBody td[data-label="Catalog Name"]{grid-template-columns:minmax(0,42%) minmax(0,1fr)!important;}
+  #measurement #measurementBody td[data-label="Catalog Name"]{grid-template-columns:minmax(0,35%) minmax(0,1fr)!important;}
+ #measurement #measurementBody td[data-label="Catalog Name"]::before{min-height:68px!important;padding-top:12px!important;padding-bottom:12px!important;}
+ #measurement #measurementBody td[data-label="Catalog Name"] .mPriceItem,#measurement #measurementBody td[data-label="Catalog Name"] .mCustomType{min-height:68px!important;}
  #measurement #measurementBody td::before{background:#174f86!important;color:#fff!important;border:1px solid #123f6b;border-radius:7px;padding:10px 5px;text-align:center;font-weight:700;font-size:15px;line-height:1.25;min-height:56px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;overflow-wrap:anywhere;}
  #measurement #measurementBody td input,#measurement #measurementBody td select{height:100%;min-height:56px!important;box-sizing:border-box;font-size:18px!important;font-weight:700!important;color:#172b40;padding:10px!important;}
  #measurement #measurementBody td .mCustomType,#measurement #measurementBody td .mCustomUnit{min-height:56px!important;}
@@ -567,12 +569,14 @@ td input,td select{min-width:80px;padding:8px}
 </div></section>
 <section id="rftPriceList" class="page"><div class="card">
  <h2>Curtain & Blinds Price List</h2><p class="small">Curtain, Blind Type-കളുടെ പേര്, Unit, Rate എന്നിവ ഇവിടെ ചേർക്കുക. Zebra Blind-ന്റെ വില പഴയ Catalog Name Price List-ൽ നിന്നായിരിക്കും.</p>
- <div id="rftPriceRows" class="hidden"></div>
+ <div id="rftPriceRows"></div>
+ <div class="price-list-actions"><button class="btn-green" type="button" onclick="saveExtraPriceList('rft')">Save</button><button class="btn-light" type="button" onclick="clearExtraPriceEntry('rft')">Clear</button></div>
  <div id="rftPriceSaved" class="price-saved-list"></div><button class="btn-light" onclick="showPage('priceLists')">← Back</button>
 </div></section>
 <section id="accessoryPriceList" class="page"><div class="card">
  <h2>Curtain Accessories Price List</h2><p class="small">Accessories-ന്റെ പേര്, ഓരോ Nos / Piece-നുള്ള Rate എന്നിവ ചേർക്കുക.</p>
- <div id="accessoryPriceRows" class="hidden"></div>
+ <div id="accessoryPriceRows"></div>
+ <div class="price-list-actions"><button class="btn-green" type="button" onclick="saveExtraPriceList('accessory')">Save</button><button class="btn-light" type="button" onclick="clearExtraPriceEntry('accessory')">Clear</button></div>
  <div id="accessoryPriceSaved" class="price-saved-list"></div><button class="btn-light" onclick="showPage('priceLists')">← Back</button>
 </div></section>
 <section id="admin" class="page">
