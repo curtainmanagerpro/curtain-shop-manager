@@ -151,8 +151,8 @@ td input,td select{min-width:80px;padding:8px}
 .admin-user-card{padding:12px 14px;margin-bottom:9px}
 .admin-user-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:4px 0;margin:0;background:transparent;color:var(--text);text-align:left;border:0}
 .admin-user-summary-main{min-width:0;display:flex;flex-direction:column;gap:4px}
-.admin-user-summary-name{font-size:16px;font-weight:800;overflow-wrap:anywhere}
-.admin-user-summary-email{font-size:13px;color:#647487;overflow-wrap:anywhere}
+.admin-user-summary-name{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;font-weight:700;letter-spacing:.1px;line-height:1.3;overflow-wrap:anywhere}
+.admin-user-summary-email{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:13px;font-weight:500;letter-spacing:.15px;color:#647487;overflow-wrap:anywhere}
 .admin-user-summary-side{display:flex;align-items:center;gap:8px;flex:0 0 auto}
 .admin-user-chevron{font-size:20px;font-weight:800;color:var(--primary-dark);transition:transform .15s}
 .admin-user-summary[aria-expanded="true"] .admin-user-chevron{transform:rotate(180deg)}
@@ -662,6 +662,7 @@ td input,td select{min-width:80px;padding:8px}
   <h2>Admin Panel — Authorized Users</h2>
   <div class="notice">Add and manage authorized Google accounts. Only an administrator should manage this list. Trial and annual dates require the Supabase columns listed in the supplied database update script.</div>
   <div class="grid" style="margin-top:14px">
+   <div class="field"><label for="adminName">Customer Name</label><input id="adminName" type="text" placeholder="Enter customer name" autocomplete="name"></div>
    <div class="field"><label for="adminEmail">Authorized Gmail</label><input id="adminEmail" type="email" placeholder="customer@gmail.com" autocomplete="off"></div>
    <div class="field"><label for="adminPhone">Phone / WhatsApp</label><div class="admin-phone-wrap"><span class="admin-phone-prefix">+91</span><input id="adminPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number" autocomplete="tel-national"></div></div>
    <div class="field"><label for="adminPlan">Plan</label><select id="adminPlan"><option value="customer">Customer</option><option value="admin">Administrator</option></select></div>
@@ -692,7 +693,7 @@ td input,td select{min-width:80px;padding:8px}
     <div class="notice">Expires Tomorrow: <b id="adminCountTomorrow">0</b></div>
    <div class="notice">Expired / Disabled: <b id="adminCountExpired">0</b></div>
   </div>
-  <input id="adminUserSearch" style="margin-top:12px" placeholder="Search Gmail or phone..." oninput="renderAuthorizedUsers()">
+  <input id="adminUserSearch" style="margin-top:12px" placeholder="Search name, Gmail or phone..." oninput="renderAuthorizedUsers()">
   <div class="admin-filter-row">
    <button class="btn-dark" type="button" onclick="setAdminFilter('all')">All Users</button>
    <button class="btn-light" type="button" onclick="setAdminFilter('trial')">In Trial</button>
@@ -2681,7 +2682,7 @@ function normalizeAdminPhone(value){
 }
 function resetAdminForm(){
  adminEditingEmail=null;
- ["adminEmail","adminPhone","adminTrialStart","adminTrialEnd","adminPaidStart","adminPaidEnd"].forEach(id=>$(id).value="");
+ ["adminName","adminEmail","adminPhone","adminTrialStart","adminTrialEnd","adminPaidStart","adminPaidEnd"].forEach(id=>$(id).value="");
  $("adminEmail").readOnly=false;
  $("adminPlan").value="customer";$("adminPaid").value="false";$("adminActive").value="true";$("adminAccessType").value="trial";
  $("adminTrialStart").value=today();adminTrialDateChanged();
@@ -2750,8 +2751,8 @@ function renderAuthorizedUsers(){
   return `<div class="customer-card admin-user-card">
    <button class="admin-user-summary" type="button" onclick="toggleAdminUser('${esc(email)}')" aria-expanded="${isOpen?"true":"false"}">
     <span class="admin-user-summary-main">
-     <span class="admin-user-summary-name">${esc(displayName||email)}</span>
-     ${displayName?`<span class="admin-user-summary-email">${esc(email)}</span>`:""}
+     <span class="admin-user-summary-name">${esc(displayName||"Name not added")}</span>
+     <span class="admin-user-summary-email">${esc(email)}</span>
     </span>
     <span class="admin-user-summary-side"><span class="admin-state ${status.cls}">${esc(status.label)}</span><span class="admin-user-chevron" aria-hidden="true">⌄</span></span>
    </button>
@@ -2780,6 +2781,7 @@ function editAuthorizedUser(email){
  if(!adminOnly())return alert("Administrator access required.");
  const u=adminUsersCache.find(x=>String(x.email).toLowerCase()===String(email).toLowerCase());if(!u)return alert("User was not found. Refresh the list and try again.");
  adminEditingEmail=u.email;
+ $("adminName").value=String(u.name||u.full_name||u.customer_name||"");
  $("adminEmail").value=u.email;$("adminEmail").readOnly=true;
  $("adminPlan").value=u.plan_name||"customer";$("adminPaid").value=String(!!u.is_paid);$("adminActive").value=String(!!u.is_active);
  $("adminAccessType").value=(u.access_type==="annual"||u.is_paid)?"annual":"trial";
@@ -2813,7 +2815,9 @@ function sendRenewalWhatsApp(email){
 async function saveAuthorizedUser(){
  if(!adminOnly())return alert("Administrator access required.");
  if(!sb)return alert("Supabase connection is not ready.");
+ const customerName=$("adminName").value.trim();
  const email=$("adminEmail").value.trim().toLowerCase();
+ if(!customerName)return alert("Enter the customer name.");
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return alert("Enter a valid email address.");
  if(email===String(authUser?.email||"").toLowerCase()&&$("adminActive").value!=="true")return alert("You cannot disable your own active administrator account here.");
  const phoneDigits=normalizeAdminPhone($("adminPhone").value);
@@ -2835,7 +2839,7 @@ async function saveAuthorizedUser(){
   paidEnd=adminDateAddYear(paidStart);
   if(!paidEnd)return alert("Could not calculate the annual expiry date.");
  }
- const record={email,is_active:$("adminActive").value==="true",is_paid:paid,plan_name:$("adminPlan").value,access_type:accessType,phone:(normalizeAdminPhone($("adminPhone").value).length===10?"91"+normalizeAdminPhone($("adminPhone").value):null),trial_started_at:trialStart||null,trial_ends_at:trialEnd||null,paid_started_at:paidStart||null,paid_expires_at:paidEnd||null};
+ const record={name:customerName,email,is_active:$("adminActive").value==="true",is_paid:paid,plan_name:$("adminPlan").value,access_type:accessType,phone:(normalizeAdminPhone($("adminPhone").value).length===10?"91"+normalizeAdminPhone($("adminPhone").value):null),trial_started_at:trialStart||null,trial_ends_at:trialEnd||null,paid_started_at:paidStart||null,paid_expires_at:paidEnd||null};
  $("adminMessage").textContent="Saving user...";
  let result;
  if(adminEditingEmail){
