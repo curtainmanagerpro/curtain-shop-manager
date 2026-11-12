@@ -251,6 +251,7 @@ td input,td select{min-width:80px;padding:8px}
 <style id="mobile-measurement-entry-polish">
 @media (max-width:700px){
  #measurement #measurementBody td{grid-template-columns:minmax(0,35%) minmax(0,1fr)!important;gap:9px;padding:7px 2px;}
+  #measurement #measurementBody td[data-label="Catalog Name"]{grid-template-columns:minmax(0,42%) minmax(0,1fr)!important;}
  #measurement #measurementBody td::before{background:#174f86!important;color:#fff!important;border:1px solid #123f6b;border-radius:7px;padding:10px 5px;text-align:center;font-weight:700;font-size:15px;line-height:1.25;min-height:56px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;overflow-wrap:anywhere;}
  #measurement #measurementBody td input,#measurement #measurementBody td select{height:100%;min-height:56px!important;box-sizing:border-box;font-size:18px!important;font-weight:700!important;color:#172b40;padding:10px!important;}
  #measurement #measurementBody td .mCustomType,#measurement #measurementBody td .mCustomUnit{min-height:56px!important;}
@@ -968,11 +969,21 @@ function ensureNewPriceLists(){
  }
  if(!Array.isArray(settings.clothPriceList))settings.clothPriceList=[];
  if(!Array.isArray(settings.rftPriceList))settings.rftPriceList=[];
- // Seed the common Curtain & Blinds list with the existing Type names once.
- const commonDefaults=types.filter(t=>!["Other","Cloth Fabric","Curtain Accessories"].includes(t));
+ // Roman Cloth Blinds is linked to Cloth Price List, not Curtain & Blinds Price List.
+ const oldRomanCloth=settings.rftPriceList.find(x=>priceKey(x.name||x.type)===priceKey("Roman Cloth Blinds"));
+ if(oldRomanCloth&&!settings.clothPriceList.some(x=>priceKey(x.name)===priceKey("Roman Cloth Blinds"))){
+  settings.clothPriceList.push({id:String(oldRomanCloth.id||newId()),name:"Roman Cloth Blinds",serial:"",rate:oldRomanCloth.rate??""});
+ }
+ settings.rftPriceList=settings.rftPriceList.filter(x=>priceKey(x.name||x.type)!==priceKey("Roman Cloth Blinds"));
+ const commonDefaults=types.filter(t=>!["Other","Cloth Fabric","Curtain Accessories","Roman Cloth Blinds"].includes(t));
  const existingNames=new Set(settings.rftPriceList.map(x=>priceKey(x.name||x.type)));
  commonDefaults.forEach(t=>{if(!existingNames.has(priceKey(t)))settings.rftPriceList.push({id:String(newId()),name:t,unit:rftTypes.includes(t)?"RFT":"Sq.Ft",rate:""});});
  settings.rftPriceList=settings.rftPriceList.map(x=>({...x,unit:x.unit||(rftTypes.includes(String(x.name||x.type))?"RFT":"Sq.Ft")}));
+ // Add missing default Zebra catalog entries without overwriting customer rates or custom entries.
+ const zebraDefaults=["Semi Blackout","Dimout Regular","Dimout Colors","Dimout 10CM","Dimout 10CM Colors","Lining Dimout","Lining 4 Dimout","Gradiant Dimout","Broad Lining","Triple Board Line Dimout","Paro Dimout","Small Trio Dimout","Dual Shade Dimout","Esther Dimout","Multiple Line Dimout","Matrix Lining 1 Dimout","Collective Lining Dimout","Blackout Wide Net","Banded Blackout N661 Series","Super Blackout","H03-Series","Stella Dimout","Eco Blackout Roller","Strip Dimout","Three Strip Dimout","Foil Print","Spiral","Leaf","Splash Blackout","Gradiant Blackout","Embroidery","Double Blackout","Monochrome Blackout","Wonderful Blackout","Marble Blackout","Quadrangle Blackout","Coluds Dimout","Pyramid Dimout","Partition Dimout","Wave Blackout","Regular Blackout"];
+ const zebraNames=new Set(settings.blindsPriceList.map(x=>priceKey(x.type||x.name)));
+ zebraDefaults.forEach(name=>{if(!zebraNames.has(priceKey(name)))settings.blindsPriceList.push({id:String(newId()),type:name,shade:"",rate:""});});
+ const semiIndex=settings.blindsPriceList.findIndex(x=>priceKey(x.type||x.name)===priceKey("Semi Blackout"));if(semiIndex>0)settings.blindsPriceList.unshift(settings.blindsPriceList.splice(semiIndex,1)[0]);
  if(!Array.isArray(settings.accessoryPriceList))settings.accessoryPriceList=[];
 }
 function priceKey(v){return String(v||"").trim().replace(/\s+/g," ").toLocaleLowerCase();}
@@ -1056,12 +1067,12 @@ function deletePriceItem(kind,id){
  if(!confirm("ഈ Price List entry delete ചെയ്യണോ?"))return;ensureNewPriceLists();const keys={blind:"blindsPriceList",cloth:"clothPriceList",rft:"rftPriceList",accessory:"accessoryPriceList"};const key=keys[kind];if(!key)return;
  settings[key]=settings[key].filter(x=>String(x.id)!==String(id));saveStorage();renderNewPriceLists();refreshMeasurementPricePickers();
 }
-function refreshMeasurementPricePickers(){document.querySelectorAll("#measurementBody tr").forEach(tr=>{const type=tr.querySelector(".mType")?.value||"",picker=tr.querySelector(".mPriceItem");if(!picker)return;ensureNewPriceLists();let list=[];if(rftTypes.includes(type)||type==="Cloth Fabric")list=settings.clothPriceList||[];else if(type==="Zebra Blind")list=settings.blindsPriceList||[];else if(type==="Curtain Accessories")list=settings.accessoryPriceList||[];const current=picker.value,names=[...new Map(list.map(x=>{const n=String((rftTypes.includes(type)||type==="Cloth Fabric")?x.name:x.type||"").trim();return [priceKey(n),n]})).values()].filter(Boolean);picker.innerHTML='<option value="">Select Price List Item</option>'+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");picker.value=names.find(n=>priceKey(n)===priceKey(current))||"";});}
+function refreshMeasurementPricePickers(){document.querySelectorAll("#measurementBody tr").forEach(tr=>{const type=tr.querySelector(".mType")?.value||"",picker=tr.querySelector(".mPriceItem");if(!picker)return;ensureNewPriceLists();let list=[];if(rftTypes.includes(type)||type==="Cloth Fabric"||type==="Roman Cloth Blinds")list=settings.clothPriceList||[];else if(type==="Zebra Blind")list=settings.blindsPriceList||[];else if(type==="Curtain Accessories")list=settings.accessoryPriceList||[];const current=picker.value,names=[...new Map(list.map(x=>{const n=String((rftTypes.includes(type)||type==="Cloth Fabric"||type==="Roman Cloth Blinds")?x.name:x.type||"").trim();return [priceKey(n),n]})).values()].filter(Boolean);picker.innerHTML='<option value="">Select Price List Item</option>'+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");picker.value=names.find(n=>priceKey(n)===priceKey(current))||"";});}
 function previewPriceList(kind){
  ensureNewPriceLists();const blind=kind==="blind";
  const key=kind==="blind"?"blindsPriceList":kind==="cloth"?"clothPriceList":kind==="rft"?"rftPriceList":"accessoryPriceList",items=settings[key]||[],title=kind==="blind"?"BLINDS PRICE LIST":kind==="cloth"?"CLOTH PRICE LIST":kind==="rft"?"CURTAIN & BLINDS PRICE LIST":"CURTAIN ACCESSORIES PRICE LIST",unit=kind==="blind"?"Sq.Ft":kind==="cloth"?"Meter":kind==="rft"?"RFT":"Nos";
- const rows=items.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.name||x.type)}</td><td>${esc(x.unit||unit)}</td><td>${esc(x.rate)}</td></tr>`).join("");
- const html=`<div id="priceListPrint" style="background:#fff;color:#182b3b;padding:28px;font-family:Arial,sans-serif;width:100%;max-width:794px;margin:auto"><h2 style="text-align:center">${esc(settings.name||"Home Style Curtains")}</h2><h3 style="text-align:center">${title}</h3><table style="width:100%;border-collapse:collapse;min-width:0"><thead><tr><th style="border:1px solid #333;padding:10px">No.</th><th style="border:1px solid #333;padding:10px">Item / Collection Name</th><th style="border:1px solid #333;padding:10px">Unit</th><th style="border:1px solid #333;padding:10px">Rate (₹)</th></tr></thead><tbody>${rows||'<tr><td colspan="3" style="padding:15px;text-align:center">No saved items</td></tr>'}</tbody></table></div>`;
+ const rows=items.map((x,i)=>`<tr><td style="border:1px solid #dce5eb;padding:8px;text-align:center">${i+1}</td><td style="border:1px solid #dce5eb;padding:8px;text-align:left">${esc(x.name||x.type)}</td><td style="border:1px solid #dce5eb;padding:8px;text-align:center">${esc(x.unit||unit)}</td><td style="border:1px solid #dce5eb;padding:8px;text-align:center">${esc(x.rate)}</td></tr>`).join("");
+ const html=`<div id="priceListPrint" style="background:#fff;color:#182b3b;padding:28px;font-family:Arial,sans-serif;width:100%;max-width:794px;margin:auto"><h2 style="text-align:center">${esc(settings.name||"Home Style Curtains")}</h2><h3 style="text-align:center">${title}</h3><table style="width:100%;border:1px solid #dce5eb;border-collapse:collapse;min-width:0"><thead><tr><th style="border:1px solid #dce5eb;padding:10px">No.</th><th style="border:1px solid #dce5eb;padding:10px;text-align:left">Item / Collection Name</th><th style="border:1px solid #dce5eb;padding:10px">Unit</th><th style="border:1px solid #dce5eb;padding:10px">Rate (₹)</th></tr></thead><tbody>${rows||'<tr><td colspan="3" style="padding:15px;text-align:center">No saved items</td></tr>'}</tbody></table></div>`;
  let box=document.getElementById("priceListPreviewModal");if(box)box.remove();
  box=document.createElement("div");box.id="priceListPreviewModal";box.style.cssText="position:fixed;inset:0;z-index:10000;background:#0009;overflow:auto;padding:12px";
  box.innerHTML=`<div style="max-width:850px;margin:15px auto;background:#fff;border-radius:12px;padding:12px"><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end" class="no-print"><button class="btn-green" id="priceJpgBtn">Save JPG</button><button class="btn-blue" id="priceShareBtn">Share</button><button class="btn-light" id="pricePrintBtn">Print / PDF</button><button class="btn-red" id="priceCloseBtn">Close</button></div>${html}</div>`;
@@ -1072,7 +1083,7 @@ function previewPriceList(kind){
 function printPriceListPreview(){
  const el=$("priceListPrint");if(!el)return;
  const w=window.open("","_blank");if(!w)return alert("Print window തുറക്കാൻ കഴിഞ്ഞില്ല. Pop-up അനുവദിക്കുക.");
- w.document.write(`<!doctype html><html><head><title>Price List</title><style>@page{size:A4 portrait;margin:12mm}body{font-family:Arial,sans-serif;margin:0}table{width:100%;border-collapse:collapse}th,td{border:1px solid #333;padding:10px;text-align:left}h2,h3{text-align:center}</style></head><body>${el.outerHTML}<script>window.onload=()=>window.print()<\/script></body></html>`);w.document.close();
+ w.document.write(`<!doctype html><html><head><title>Price List</title><style>@page{size:A4 portrait;margin:12mm}body{font-family:Arial,sans-serif;margin:0}table{width:100%;border:1px solid #dce5eb;border-collapse:collapse}th,td{border:1px solid #dce5eb;padding:10px;text-align:center}th:nth-child(2),td:nth-child(2){text-align:left}h2,h3{text-align:center}</style></head><body>${el.outerHTML}<script>window.onload=()=>window.print()<\/script></body></html>`);w.document.close();
 }
 async function exportPriceListImage(mode){
  const el=$("priceListPrint");if(!el)return;if(!window.html2canvas)return alert("Image export library load ചെയ്തിട്ടില്ല.");
@@ -1270,7 +1281,7 @@ function addMeasurementRow(data){
  $("measurementBody").appendChild(tr);
  const typeSelect=tr.querySelector(".mType"),customInput=tr.querySelector(".mCustomType"),customUnit=tr.querySelector(".mCustomUnit"),picker=tr.querySelector(".mPriceItem");
  function refreshPicker(){
-  const type=typeSelect.value,cloth=type==="Cloth Fabric"||rftTypes.includes(type),zebra=type==="Zebra Blind",accessory=type==="Curtain Accessories";ensureNewPriceLists();
+  const type=typeSelect.value,cloth=type==="Cloth Fabric"||type==="Roman Cloth Blinds"||rftTypes.includes(type),zebra=type==="Zebra Blind",accessory=type==="Curtain Accessories";ensureNewPriceLists();
   const list=cloth?(settings.clothPriceList||[]):zebra?(settings.blindsPriceList||[]):accessory?(settings.accessoryPriceList||[]):[];
   const unique=[...new Map(list.map(x=>{const n=String(cloth?x.name:x.type||"").trim();return [priceKey(n),n]})).values()].filter(Boolean);
   picker.innerHTML='<option value="">Select Price List Item</option>'+unique.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
