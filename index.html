@@ -245,8 +245,28 @@ td input,td select{min-width:80px;padding:8px}
 
 .price-list-table-wrap{overflow-x:auto;margin-top:12px}.price-list-table{width:100%;min-width:520px;border-collapse:collapse;table-layout:fixed}.price-list-table th{background:#24445c;color:#fff;padding:10px 6px;font-size:14px}.price-list-table td{padding:7px 5px;border-bottom:1px solid #dce5eb;text-align:center;vertical-align:middle}.price-list-table td:nth-child(2){text-align:left;overflow-wrap:anywhere}.price-list-table input,.price-list-table select{min-width:0;width:100%;padding:9px 6px;font-size:15px}.price-list-table .delete-small{margin:0;padding:6px 8px;font-size:12px;border-radius:7px;background:#c94343;color:#fff}.price-list-toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin:10px 0}.price-list-toolbar button{margin:0;min-width:92px}
 
-/* DigiCurt document item alignment */
-.quote-table th:nth-child(2),.quote-table td:nth-child(2){text-align:left!important;padding-left:12px!important}
+.calc-action-row,.calc-output-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.calc-action-row button,.calc-output-actions button{flex:1;min-width:95px;min-height:46px;margin:0;font-weight:800}
+.calc-add-row{width:100%;min-height:46px;font-weight:800}
+.calc-row-card{border:1px solid var(--line);border-radius:12px;padding:13px;margin:12px 0;background:#fbfdff}
+.calc-row-card b{display:block;margin-bottom:10px}
+.calc-preview-modal{position:fixed;inset:0;background:#071522b8;z-index:100000;display:flex;align-items:center;justify-content:center;padding:12px}
+.calc-preview-modal.hidden{display:none}
+.calc-preview-dialog{background:#fff;border-radius:14px;width:min(760px,100%);max-height:92vh;overflow:auto;padding:14px;color:#203040}
+.calc-preview-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.calc-preview-sheet{background:#fff;color:#203040;padding:18px;border:1px solid #dce5eb;border-radius:8px;font-family:Arial,sans-serif}
+.calc-preview-sheet h2{text-align:center}
+.calc-preview-sheet table{width:100%;border-collapse:collapse}
+.calc-preview-sheet th,.calc-preview-sheet td{border:1px solid #dce5eb;padding:8px;text-align:left}
+.calc-preview-sheet th{background:#eaf2f8}
+.digicurt-dialog-backdrop{position:fixed;inset:0;background:#07152299;z-index:100001;display:flex;align-items:center;justify-content:center;padding:18px}
+.digicurt-dialog{width:min(420px,100%);background:#fff;color:#203040;border-radius:15px;padding:20px;box-shadow:0 12px 40px #0004}
+.digicurt-dialog h3{margin:0 0 10px;color:#245b89}
+.digicurt-dialog p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 18px;line-height:1.5}
+.digicurt-dialog-actions{display:flex;justify-content:flex-end;gap:9px}
+.digicurt-dialog-actions button{min-width:88px;margin:0}
+.quote-table td:nth-child(2),.invoice-table td:nth-child(2){text-align:left!important}
+
 </style>
  <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#24445c">
@@ -269,14 +289,6 @@ td input,td select{min-width:80px;padding:8px}
 .digicurt-brand-logo{width:44px;height:44px;object-fit:cover;border-radius:10px;flex:0 0 44px}
 .login-card .digicurt-brand{justify-content:center}
 .app-header .digicurt-brand-logo{width:42px;height:42px;flex-basis:42px}
-</style>
-
-
-<style id="digicurt-message-style">
-#digicurtMessageOverlay{position:fixed;inset:0;background:rgba(10,20,35,.48);z-index:1000000;display:none;align-items:center;justify-content:center;padding:18px}
-#digicurtMessageBox{width:min(440px,94vw);background:#fff;border-radius:18px;padding:22px;box-shadow:0 18px 55px #0004;color:#243447;font-family:Arial,sans-serif}
-#digicurtMessageBox h3{margin:0 0 12px;color:#245b83;font-size:20px}#digicurtMessageText{white-space:pre-wrap;line-height:1.5;margin-bottom:20px}
-#digicurtMessageActions{display:flex;justify-content:flex-end;gap:10px}#digicurtMessageActions button{border:0;border-radius:10px;padding:11px 20px;font-weight:700;font-size:15px;cursor:pointer}#digicurtMessageCancel{background:#e8edf2;color:#243447}#digicurtMessageOk{background:#286b9b;color:#fff}
 </style>
 
 </head>
@@ -333,33 +345,33 @@ td input,td select{min-width:80px;padding:8px}
 
 
 <section id="measurementCalculator" class="page">
- <div class="card">
-  <h2>🧮 Measurement Calculator</h2>
-  <p class="small">Quick calculation മാത്രം. Measurement Sheet-ലെ ഡാറ്റയെയോ കണക്കുകളെയോ ഇത് മാറ്റില്ല.</p>
-  <div class="grid">
-   <button type="button" class="btn-blue calc-mode-btn" onclick="showCalculatorMode('roman')">Roman Cloth Calculation</button>
-   <button type="button" class="btn-blue calc-mode-btn" onclick="showCalculatorMode('cloth')">Cloth Curtain Calculation</button>
-   <button type="button" class="btn-blue calc-mode-btn" onclick="showCalculatorMode('blind')">Blind Square Feet Calculation</button>
-  </div>
- </div>
- <div id="romanCalculator" class="card hidden">
-  <h3>Roman Cloth Calculation</h3><div id="romanCalcRows"></div>
-  <div class="calc-actions"><button type="button" class="btn-light" onclick="addCalcRow('roman')">＋ Add Row</button><button type="button" class="btn-red" onclick="removeCalcRow('roman')">Remove Row</button><button type="button" class="btn-red" onclick="clearCalcRows('roman')">Clear</button><button type="button" class="btn-green" onclick="calculateRomanFabric()">Calculate</button></div>
-  <div id="romanCalcResult" class="notice hidden" style="margin-top:12px"></div>
- </div>
- <div id="clothCalculator" class="card hidden">
-  <h3>Cloth Curtain Calculation</h3><div id="clothCalcRows"></div>
-  <div class="calc-actions"><button type="button" class="btn-light" onclick="addCalcRow('cloth')">＋ Add Row</button><button type="button" class="btn-red" onclick="removeCalcRow('cloth')">Remove Row</button><button type="button" class="btn-red" onclick="clearCalcRows('cloth')">Clear</button><button type="button" class="btn-green" onclick="calculateClothCurtain()">Calculate</button></div>
-  <div id="clothCalcResult" class="notice hidden" style="margin-top:12px"></div>
- </div>
- <div id="blindCalculator" class="card hidden">
-  <h3>Blind Square Feet Calculation</h3><div id="blindCalcRows"></div>
-  <div class="calc-actions"><button type="button" class="btn-light" onclick="addCalcRow('blind')">＋ Add Row</button><button type="button" class="btn-red" onclick="removeCalcRow('blind')">Remove Row</button><button type="button" class="btn-red" onclick="clearCalcRows('blind')">Clear</button><button type="button" class="btn-green" onclick="calculateBlindSqft()">Calculate</button></div>
-  <div id="blindCalcResult" class="notice hidden" style="margin-top:12px"></div>
- </div>
- <button type="button" class="btn-light" onclick="showPage('home')">← Back to Home</button>
-</section>
-
+ <div class="card"><h2>🧮 Measurement Calculator</h2>
+ <p class="small">ഇവിടെ ചെയ്യുന്ന കണക്കുകൾ Measurement Sheet-നെ മാറ്റില്ല.</p>
+ <div class="grid" style="grid-template-columns:1fr">
+ <button class="btn-blue" type="button" onclick="showCalculatorMode('roman')">Roman Cloth Calculation</button>
+ <button class="btn-blue" type="button" onclick="showCalculatorMode('cloth')">Cloth Curtain Calculation</button>
+ <button class="btn-blue" type="button" onclick="showCalculatorMode('blind')">Blind Square Feet Calculation</button>
+ </div></div>
+ <div id="romanCalculator" class="card hidden"><h3>Roman Cloth Calculation</h3>
+ <div class="field"><label>Measurement Unit</label><select id="rcUnit"><option value="cm">Centimeter</option><option value="inch">Inch</option></select></div>
+ <div id="rcRows"></div><div class="calc-action-row">
+ <button class="btn-red" onclick="removeCalculatorRow('roman')">Remove Row</button><button class="btn-light" onclick="clearCalculator('roman')">Clear</button><button class="btn-green" onclick="calculateRomanFabric()">Calculate</button></div>
+ <button class="btn-blue calc-add-row" onclick="addCalculatorRow('roman')">＋ Add Row</button>
+ <div id="romanCalcResult" class="notice hidden"></div><div class="calc-output-actions"><button class="btn-blue" onclick="previewCalculator('roman')">Preview</button><button class="btn-green" onclick="saveCalculatorJPG('roman')">Save as JPG</button></div></div>
+ <div id="clothCalculator" class="card hidden"><h3>Cloth Curtain Calculation</h3>
+ <div class="field"><label>Measurement Unit</label><select id="ccUnit"><option value="cm">Centimeter</option><option value="inch">Inch</option></select></div>
+ <div id="ccRows"></div><div class="calc-action-row">
+ <button class="btn-red" onclick="removeCalculatorRow('cloth')">Remove Row</button><button class="btn-light" onclick="clearCalculator('cloth')">Clear</button><button class="btn-green" onclick="calculateClothCurtain()">Calculate</button></div>
+ <button class="btn-blue calc-add-row" onclick="addCalculatorRow('cloth')">＋ Add Row</button>
+ <div id="clothCalcResult" class="notice hidden"></div><div class="calc-output-actions"><button class="btn-blue" onclick="previewCalculator('cloth')">Preview</button><button class="btn-green" onclick="saveCalculatorJPG('cloth')">Save as JPG</button></div></div>
+ <div id="blindCalculator" class="card hidden"><h3>Blind Square Feet Calculation</h3>
+ <div class="field"><label>Measurement Unit</label><select id="bcUnit"><option value="cm">Centimeter</option><option value="inch">Inch</option></select></div>
+ <div id="bcRows"></div><div class="calc-action-row">
+ <button class="btn-red" onclick="removeCalculatorRow('blind')">Remove Row</button><button class="btn-light" onclick="clearCalculator('blind')">Clear</button><button class="btn-green" onclick="calculateBlindSqFt()">Calculate</button></div>
+ <button class="btn-blue calc-add-row" onclick="addCalculatorRow('blind')">＋ Add Row</button>
+ <div id="blindCalcResult" class="notice hidden"></div><div class="calc-output-actions"><button class="btn-blue" onclick="previewCalculator('blind')">Preview</button><button class="btn-green" onclick="saveCalculatorJPG('blind')">Save as JPG</button></div></div>
+ <button class="btn-light" onclick="showPage('home')">← Back to Home</button></section>
+ <div id="calculatorPreviewModal" class="calc-preview-modal hidden"><div class="calc-preview-dialog"><div class="calc-preview-head"><b>DigiCurt · Preview</b><button class="btn-red" onclick="closeCalculatorPreview()">✕ Close</button></div><div id="calculatorPreviewContent"></div><button class="btn-green" onclick="saveCalculatorJPG(window.activeCalculatorPreviewMode)">Save as JPG</button></div></div>
 <section id="measurement" class="page">
  <div class="card">
   <h2>📏 Measurement Sheet</h2>
@@ -684,6 +696,24 @@ td input,td select{min-width:80px;padding:8px}
 
 <script>
 "use strict";
+function digiDialog(message,kind){
+ return new Promise(resolve=>{
+  document.getElementById("digiCurtDialogBackdrop")?.remove();
+  const bg=document.createElement("div");bg.id="digiCurtDialogBackdrop";bg.className="digicurt-dialog-backdrop";
+  const box=document.createElement("div");box.className="digicurt-dialog";
+  const h=document.createElement("h3");h.textContent="DigiCurt";
+  const p=document.createElement("p");p.textContent=String(message??"");
+  const actions=document.createElement("div");actions.className="digicurt-dialog-actions";
+  const done=v=>{bg.remove();resolve(v);};
+  if(kind==="confirm"){const c=document.createElement("button");c.className="btn-light";c.textContent="Cancel";c.onclick=()=>done(false);actions.append(c);}
+  const ok=document.createElement("button");ok.className="btn-blue";ok.textContent="OK";ok.onclick=()=>done(kind!=="confirm"?true:true);actions.append(ok);
+  box.append(h,p,actions);bg.append(box);document.body.append(bg);
+ });
+}
+function digiAlert(message){digiDialog(message,"alert");}
+function digiConfirm(message){return digiDialog(message,"confirm");}
+window.alert=digiAlert;
+
 
 /* SUPABASE CONFIGURATION */
 const SUPABASE_URL="https://bhlttsdmlzrqerhwdozm.supabase.co";
@@ -1118,7 +1148,7 @@ function editPriceItem(kind,id){
  const cfg=map[kind];if(!cfg)return;const item=settings[cfg[0]].find(x=>String(x.id)===String(id));if(!item)return;cfg[2](item);const row=$(cfg[1]).querySelector(".price-entry-row");row.dataset.editId=String(id);$(cfg[1]).scrollIntoView({behavior:"smooth",block:"center"});
 }
 async function deletePriceItem(kind,id){
- if(!(await appConfirm("ഈ Price List entry delete ചെയ്യണോ?")))return;ensureNewPriceLists();const keys={blind:"blindsPriceList",cloth:"clothPriceList",rft:"rftPriceList",accessory:"accessoryPriceList"};const key=keys[kind];if(!key)return;
+ if(!(await digiConfirm("ഈ Price List entry delete ചെയ്യണോ?")))return;ensureNewPriceLists();const keys={blind:"blindsPriceList",cloth:"clothPriceList",rft:"rftPriceList",accessory:"accessoryPriceList"};const key=keys[kind];if(!key)return;
  settings[key]=settings[key].filter(x=>String(x.id)!==String(id));saveStorage();renderNewPriceLists();refreshMeasurementPricePickers();
 }
 function refreshMeasurementPricePickers(){document.querySelectorAll("#measurementBody tr").forEach(tr=>{const type=tr.querySelector(".mType")?.value||"",picker=tr.querySelector(".mPriceItem");if(!picker)return;ensureNewPriceLists();let list=[];if(rftTypes.includes(type)||type==="Cloth Fabric"||type==="Roman Cloth Blinds")list=settings.clothPriceList||[];else if(type==="Zebra Blind")list=settings.blindsPriceList||[];else if(type==="Curtain Accessories")list=settings.accessoryPriceList||[];const current=picker.value,names=[...new Map(list.map(x=>{const n=String((rftTypes.includes(type)||type==="Cloth Fabric"||type==="Roman Cloth Blinds")?x.name:x.type||"").trim();return [priceKey(n),n]})).values()].filter(Boolean);picker.innerHTML='<option value="">Select Price List Item</option>'+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");picker.value=names.find(n=>priceKey(n)===priceKey(current))||"";});}
@@ -1137,22 +1167,7 @@ function previewPriceList(kind){
 function printPriceListPreview(){
  const el=$("priceListPrint");if(!el)return;
  const w=window.open("","_blank");if(!w)return alert("Print window തുറക്കാൻ കഴിഞ്ഞില്ല. Pop-up അനുവദിക്കുക.");
- w.document.write(`<!doctype html><html><head><title>Price List</title><style>@page{size:A4 portrait;margin:12mm}body{font-family:Arial,sans-serif;margin:0}table{width:100%;border:1px solid #dce5eb;border-collapse:collapse}th,td{border:1px solid #dce5eb;padding:10px;text-align:center}th:nth-child(2),td:nth-child(2){text-align:left}h2,h3{text-align:center}</style></head><body>${el.outerHTML}<script>window.onload=()=>window.print()<\/script>
-<script>document.addEventListener('DOMContentLoaded',()=>{['roman','cloth','blind'].forEach(k=>{if(!calculatorRows[k].length)calculatorRows[k]=[{unit:'cm',type:'Ripple Curtain',clothWidth:''}];renderCalcRows(k);});});</script>
-
-<div id="digicurtMessageOverlay" role="dialog" aria-modal="true"><div id="digicurtMessageBox"><h3>DigiCurt</h3><div id="digicurtMessageText"></div><div id="digicurtMessageActions"><button id="digicurtMessageCancel" type="button">Cancel</button><button id="digicurtMessageOk" type="button">OK</button></div></div></div>
-<script>
-(function(){
- let pending=null;const overlay=()=>document.getElementById("digicurtMessageOverlay");
- function close(value){const o=overlay();if(!o)return;o.style.display="none";document.body.style.overflow="";if(pending){pending(value);pending=null;}}
- window.appConfirm=function(message){return new Promise(resolve=>{const o=overlay();if(!o){resolve(window.confirm(message));return;}pending=resolve;document.getElementById("digicurtMessageText").textContent=String(message||"");document.getElementById("digicurtMessageCancel").style.display="";document.getElementById("digicurtMessageOk").textContent="Confirm";o.style.display="flex";document.body.style.overflow="hidden";});};
- window.appAlert=function(message){const o=overlay();if(!o){return;}if(pending)close(false);document.getElementById("digicurtMessageText").textContent=String(message||"");document.getElementById("digicurtMessageCancel").style.display="none";document.getElementById("digicurtMessageOk").textContent="OK";pending=()=>{};o.style.display="flex";document.body.style.overflow="hidden";};
- document.addEventListener("click",e=>{if(e.target?.id==="digicurtMessageOk")close(true);if(e.target?.id==="digicurtMessageCancel")close(false);});
- document.addEventListener("keydown",e=>{if(e.key==="Escape"&&overlay()?.style.display==="flex")close(false);});
- window.alert=window.appAlert;
-})();
-</script>
-</body></html>`);w.document.close();
+ w.document.write(`<!doctype html><html><head><title>Price List</title><style>@page{size:A4 portrait;margin:12mm}body{font-family:Arial,sans-serif;margin:0}table{width:100%;border:1px solid #dce5eb;border-collapse:collapse}th,td{border:1px solid #dce5eb;padding:10px;text-align:center}th:nth-child(2),td:nth-child(2){text-align:left}h2,h3{text-align:center}</style></head><body>${el.outerHTML}<script>window.onload=()=>window.print()<\/script></body></html>`);w.document.close();
 }
 async function exportPriceListImage(mode){
  const el=$("priceListPrint");if(!el)return;if(!window.html2canvas)return alert("Image export library load ചെയ്തിട്ടില്ല.");
@@ -1273,7 +1288,7 @@ function saveDrawnSignature(){
 }
 async function removeSavedSignature(){
  if(!settings.signature)return alert("സൂക്ഷിച്ച ഒപ്പ് നിലവിലില്ല.");
- if(!(await appConfirm("സൂക്ഷിച്ച ഒപ്പ് നീക്കണോ?")))return;
+ if(!(await digiConfirm("സൂക്ഷിച്ച ഒപ്പ് നീക്കണോ?")))return;
  delete settings.signature;saveStorage();updateSignaturePreview();if($("sSignatureFile"))$("sSignatureFile").value="";alert("ഒപ്പ് നീക്കി.");
 }
 function updateHome(){
@@ -1287,33 +1302,46 @@ function updateHome(){
  if($("homeAccountEmail"))$("homeAccountEmail").textContent=authUser?.email||"";
 }
 
-function openMeasurementCalculator(){
- showPage("measurementCalculator");
- $("romanCalculator").classList.add("hidden");
- $("clothCalculator").classList.add("hidden");
- $("romanCalcResult").classList.add("hidden");
- $("clothCalcResult").classList.add("hidden");
+const calcData={roman:null,cloth:null,blind:null};
+function calcRowHTML(mode,n){
+ if(mode==='roman')return `<div class="calc-row-card"><b>Roman Cloth ${n}</b><div class="grid"><div class="field"><label>Blind Width</label><input class="cw" type="number" min="0"></div><div class="field"><label>Blind Height</label><input class="ch" type="number" min="0"></div><div class="field"><label>Cloth Width (Required)</label><select class="clothw"><option value="">Select</option><option value="120">120 cm</option><option value="140">140 cm</option></select></div></div></div>`;
+ if(mode==='cloth')return `<div class="calc-row-card"><b>Curtain ${n}</b><div class="grid"><div class="field"><label>Curtain Type</label><select class="ct"><option>Ripple Curtain</option><option>Cloth Curtain</option><option>Eyelet Curtain</option><option>Pleat Curtain</option><option>Curtain with Sheer</option><option>Sheer Curtain</option></select></div><div class="field"><label>Width</label><input class="cw" type="number" min="0"></div><div class="field"><label>Height</label><input class="ch" type="number" min="0"></div></div></div>`;
+ return `<div class="calc-row-card"><b>Blind ${n}</b><div class="grid"><div class="field"><label>Blind Width</label><input class="cw" type="number" min="0"></div><div class="field"><label>Blind Height</label><input class="ch" type="number" min="0"></div></div></div>`;
 }
-const calculatorRows={roman:[],cloth:[],blind:[]};
-function calculatorRowHTML(mode,row,index){
- const unitOptions='<option value="cm">Centimeter</option><option value="inch">Inch</option>';
- if(mode==="roman")return `<div class="calc-row-card"><div class="calc-row-title">Row ${index+1}</div><div class="grid"><div class="field"><label>Blind Width</label><input type="number" min="0" step="0.1" data-calc="width" value="${esc(row.width||"")}" placeholder="Width"></div><div class="field"><label>Blind Height</label><input type="number" min="0" step="0.1" data-calc="height" value="${esc(row.height||"")}" placeholder="Height"></div><div class="field"><label>Measurement Unit</label><select data-calc="unit">${unitOptions.replace('value="cm"','value="cm"'+(row.unit!=="inch"?' selected':'' )).replace('value="inch"','value="inch"'+(row.unit==="inch"?' selected':''))}</select></div><div class="field"><label>Cloth Width (Required)</label><select data-calc="clothWidth"><option value="">Select cloth width</option><option value="120" ${String(row.clothWidth)==="120"?'selected':''}>120 cm</option><option value="140" ${String(row.clothWidth)==="140"?'selected':''}>140 cm</option></select></div></div></div>`;
- const typeOptions=['Ripple Curtain','Cloth Curtain','Eyelet Curtain','Pleat Curtain','Curtain with Sheer','Sheer Curtain'].map(t=>`<option value="${t}" ${row.type===t?'selected':''}>${t}</option>`).join('');
- return `<div class="calc-row-card"><div class="calc-row-title">Row ${index+1}</div><div class="grid">${mode==='cloth'?`<div class="field"><label>Curtain Type</label><select data-calc="type">${typeOptions}</select></div>`:''}<div class="field"><label>${mode==='blind'?'Blind Width':'Width'}</label><input type="number" min="0" step="0.1" data-calc="width" value="${esc(row.width||"")}" placeholder="Width"></div><div class="field"><label>${mode==='blind'?'Blind Height':'Height'}</label><input type="number" min="0" step="0.1" data-calc="height" value="${esc(row.height||"")}" placeholder="Height"></div><div class="field"><label>Measurement Unit</label><select data-calc="unit"><option value="cm" ${row.unit!=='inch'?'selected':''}>Centimeter</option><option value="inch" ${row.unit==='inch'?'selected':''}>Inch</option></select></div></div></div>`;
+function calcContainer(mode){return $(mode==='roman'?'rcRows':mode==='cloth'?'ccRows':'bcRows');}
+function addCalculatorRow(mode){const c=calcContainer(mode);c.insertAdjacentHTML('beforeend',calcRowHTML(mode,c.children.length+1));calcData[mode]=null;}
+function clearCalculator(mode){calcContainer(mode).innerHTML=calcRowHTML(mode,1);calcData[mode]=null;$(mode+'CalcResult').classList.add('hidden');}
+function removeCalculatorRow(mode){const c=calcContainer(mode);if(c.children.length<=1)return digiAlert('കുറഞ്ഞത് ഒരു Row എങ്കിലും വേണം.');c.lastElementChild.remove();[...c.children].forEach((x,i)=>x.querySelector('b').textContent=(mode==='roman'?'Roman Cloth ':mode==='cloth'?'Curtain ':'Blind ')+(i+1));calcData[mode]=null;$(mode+'CalcResult').classList.add('hidden');}
+function readCalcRows(mode){return [...calcContainer(mode).children].map(el=>({w:Number(el.querySelector('.cw').value),h:Number(el.querySelector('.ch').value),cloth:Number(el.querySelector('.clothw')?.value||0),type:el.querySelector('.ct')?.value||''}));}
+function openMeasurementCalculator(){showPage('measurementCalculator');['roman','cloth','blind'].forEach(m=>{const id=m==='roman'?'romanCalculator':m==='cloth'?'clothCalculator':'blindCalculator';$(id).classList.add('hidden');if(!calcContainer(m).children.length)clearCalculator(m);});}
+function showCalculatorMode(mode){['roman','cloth','blind'].forEach(m=>$(m==='roman'?'romanCalculator':m==='cloth'?'clothCalculator':'blindCalculator').classList.toggle('hidden',m!==mode));}
+function calculateRomanFabric(){
+ const unit=$('rcUnit').value,rows=readCalcRows('roman');if(rows.some(r=>!(r.w>0&&r.h>0&&[120,140].includes(r.cloth))))return digiAlert('ഓരോ Row-ലും Width, Height, Cloth Width എന്നിവ നൽകുക.');
+ const result=rows.map((r,i)=>{const w=unit==='cm'?r.w:r.w*2.54,h=unit==='cm'?r.h:r.h*2.54,max=r.cloth===120?110:125,panels=Math.ceil(w/max),meters=(h+25)*panels/100;return {n:i+1,...r,max,panels,meters};});
+ const total=result.reduce((a,r)=>a+r.meters,0);calcData.roman={title:'Roman Cloth Calculation',unit,rows:result,total,unitOut:'Mtr'};
+ $('romanCalcResult').innerHTML='<b>Calculation Result</b>'+result.map(r=>`<p>Row ${r.n}: ${r.w} × ${r.h} · Cloth ${r.cloth} cm · ${r.panels} Panels · <b>${r.meters.toFixed(2)} Mtr</b></p>`).join('')+`<hr><b>Total Fabric Required: ${total.toFixed(2)} Mtr</b>`;$('romanCalcResult').classList.remove('hidden');
 }
-function syncCalcRows(mode){const host=$(mode+'CalcRows');if(!host)return;host.querySelectorAll('.calc-row-card').forEach((card,i)=>{const row={};card.querySelectorAll('[data-calc]').forEach(el=>row[el.dataset.calc]=el.value);calculatorRows[mode][i]=row;});}
-function renderCalcRows(mode){const host=$(mode+'CalcRows');if(host)host.innerHTML=calculatorRows[mode].map((r,i)=>calculatorRowHTML(mode,r,i)).join('');}
-function addCalcRow(mode){syncCalcRows(mode);calculatorRows[mode].push({unit:'cm',type:'Ripple Curtain',clothWidth:''});renderCalcRows(mode);$(mode+'CalcResult').classList.add('hidden');}
-function removeCalcRow(mode){syncCalcRows(mode);if(calculatorRows[mode].length>1)calculatorRows[mode].pop();else calculatorRows[mode]=[{unit:'cm',type:'Ripple Curtain',clothWidth:''}];renderCalcRows(mode);$(mode+'CalcResult').classList.add('hidden');}
-function clearCalcRows(mode){calculatorRows[mode]=[{unit:'cm',type:'Ripple Curtain',clothWidth:''}];renderCalcRows(mode);$(mode+'CalcResult').classList.add('hidden');}
-function showCalculatorMode(mode){['roman','cloth','blind'].forEach(k=>$(k+'Calculator').classList.toggle('hidden',k!==mode));['roman','cloth','blind'].forEach(k=>$(k+'CalcResult').classList.add('hidden'));if(!calculatorRows[mode].length){calculatorRows[mode]=[{unit:'cm',type:'Ripple Curtain',clothWidth:''}];renderCalcRows(mode);}}
-function calculatorResultHTML(title,rows,totalLabel,total){return `<div class="calc-print" style="background:#fff;color:#243447;padding:20px;border-radius:12px"><h2 style="text-align:center;color:#245b83">DigiCurt</h2><h3 style="text-align:center">${esc(title)}</h3><div>${rows.join('')}</div><hr><h3>${esc(totalLabel)}: <b>${esc(total)}</b></h3></div>`;}
-function showCalcResult(mode,html){const out=$(mode+'CalcResult');out.innerHTML=html+`<div class="calc-result-actions"><button type="button" class="btn-blue" onclick="previewCalculatorResult('${mode}')">Preview</button><button type="button" class="btn-green" onclick="saveCalculatorJPG('${mode}')">Save as JPG</button></div>`;out.classList.remove('hidden');}
-function previewCalculatorResult(mode){const el=$(mode+'CalcResult')?.querySelector('.calc-print');if(!el)return alert('ആദ്യം Calculate ചെയ്യുക.');showSavedDocumentPreview('DigiCurt · Calculation Preview',el.outerHTML);}
-async function saveCalculatorJPG(mode){const el=$(mode+'CalcResult')?.querySelector('.calc-print');if(!el)return alert('ആദ്യം Calculate ചെയ്യുക.');if(!window.html2canvas)return alert('JPG export library load ആയിട്ടില്ല. Internet പരിശോധിക്കുക.');let host;try{host=document.createElement('div');host.style.cssText='position:fixed;left:-100000px;top:0;width:800px;background:#fff;padding:20px';host.innerHTML=el.outerHTML;document.body.appendChild(host);await waitForImages(host);const canvas=await html2canvas(host,{scale:2,backgroundColor:'#fff',useCORS:true});const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.95));if(!blob)throw new Error('JPG create failed');const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download='DigiCurt-'+mode+'-Calculation.jpg';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);alert('JPG ഫയൽ തയ്യാറായി.');}catch(e){alert('JPG തയ്യാറാക്കാൻ കഴിഞ്ഞില്ല: '+e.message);}finally{host?.remove();}}
-function calculateRomanFabric(){syncCalcRows('roman');const details=[];let total=0;for(let i=0;i<calculatorRows.roman.length;i++){const r=calculatorRows.roman[i],w=Number(r.width),h=Number(r.height),cw=Number(r.clothWidth);if(!(w>0&&h>0))continue;if(![120,140].includes(cw))return alert(`Row ${i+1}: Cloth Width തിരഞ്ഞെടുക്കുക.`);const widthCm=r.unit==='inch'?w*2.54:w,heightCm=r.unit==='inch'?h*2.54:h,max=cw===120?110:125,panels=Math.ceil(widthCm/max),per=heightCm+25,meters=per*panels/100;total+=meters;details.push(`<p><b>Row ${i+1}</b> · ${w} × ${h} ${r.unit==='inch'?'inch':'cm'}<br>Cloth Width: ${cw} cm · Panels: ${panels} · Fabric per Panel: ${(per/100).toFixed(2)} Mtr<br><b>Total: ${meters.toFixed(2)} Mtr</b></p>`);}if(!details.length)return alert('Width, Height എന്നിവ നൽകുക.');showCalcResult('roman',calculatorResultHTML('Roman Cloth Calculation',details,'Total Fabric Required',total.toFixed(2)+' Mtr'));}
-function calculateClothCurtain(){syncCalcRows('cloth');const details=[];let total=0;for(let i=0;i<calculatorRows.cloth.length;i++){const r=calculatorRows.cloth[i],w=Number(r.width),h=Number(r.height);if(!(w>0&&h>0))continue;const result=clothMeters({type:r.type||'Ripple Curtain',width:w,height:h,qty:1,customUnit:'RFT'},r.unit||'cm');const meters=Number(result.curtain||0)+Number(result.sheer||0);if(!(meters>0))return alert(`Row ${i+1}: ഈ Curtain Type-ന് കണക്കാക്കാൻ കഴിയുന്നില്ല.`);total+=meters;details.push(`<p><b>Row ${i+1} · ${esc(r.type)}</b> · ${w} × ${h} ${r.unit==='inch'?'inch':'cm'}<br>${result.curtain>0?`Main Cloth: ${result.curtain.toFixed(2)} Mtr (${result.mainPanels} Panels)<br>`:''}${result.sheer>0?`Sheer Cloth: ${result.sheer.toFixed(2)} Mtr (${result.sheerPanels} Panels)<br>`:''}<b>Total: ${meters.toFixed(2)} Mtr</b></p>`);}if(!details.length)return alert('Width, Height എന്നിവ നൽകുക.');showCalcResult('cloth',calculatorResultHTML('Cloth Curtain Calculation',details,'Total Fabric',total.toFixed(2)+' Mtr'));}
-function calculateBlindSqft(){syncCalcRows('blind');const details=[];let total=0;for(let i=0;i<calculatorRows.blind.length;i++){const r=calculatorRows.blind[i],w=Number(r.width),h=Number(r.height);if(!(w>0&&h>0))continue;const widthCm=r.unit==='inch'?w*2.54:w,heightCm=r.unit==='inch'?h*2.54:h,sqft=(widthCm*heightCm)/929.0304;total+=sqft;details.push(`<p><b>Row ${i+1}</b> · ${w} × ${h} ${r.unit==='inch'?'inch':'cm'}<br><b>${sqft.toFixed(2)} Sq.Ft</b></p>`);}if(!details.length)return alert('Blind Width, Blind Height എന്നിവ നൽകുക.');showCalcResult('blind',calculatorResultHTML('Blind Square Feet Calculation',details,'Total Sq.Ft',total.toFixed(2)+' Sq.Ft'));}
+function calculateClothCurtain(){
+ const unit=$('ccUnit').value,rows=readCalcRows('cloth');if(rows.some(r=>!(r.w>0&&r.h>0)))return digiAlert('ഓരോ Row-ലും Width, Height നൽകുക.');
+ const result=rows.map((r,i)=>{const f=clothMeters({type:r.type,width:r.w,height:r.h,qty:1,customUnit:'RFT'},unit);return {n:i+1,...r,main:f.curtain||0,sheer:f.sheer||0,panels:f.mainPanels||0,sheerPanels:f.sheerPanels||0,total:(f.curtain||0)+(f.sheer||0)};});
+ const total=result.reduce((a,r)=>a+r.total,0);calcData.cloth={title:'Cloth Curtain Calculation',unit,rows:result,total,unitOut:'Mtr'};
+ $('clothCalcResult').innerHTML='<b>Calculation Result</b>'+result.map(r=>`<p>Row ${r.n}: ${esc(r.type)} · ${r.w} × ${r.h}<br>${r.main?`Main Cloth: ${r.main.toFixed(2)} Mtr (${r.panels}P)<br>`:''}${r.sheer?`Sheer Cloth: ${r.sheer.toFixed(2)} Mtr (${r.sheerPanels}P)<br>`:''}<b>${r.total.toFixed(2)} Mtr</b></p>`).join('')+`<hr><b>Total Fabric: ${total.toFixed(2)} Mtr</b>`;$('clothCalcResult').classList.remove('hidden');
+}
+function calculateBlindSqFt(){
+ const unit=$('bcUnit').value,rows=readCalcRows('blind');if(rows.some(r=>!(r.w>0&&r.h>0)))return digiAlert('ഓരോ Row-ലും Blind Width, Height നൽകുക.');
+ const result=rows.map((r,i)=>({n:i+1,...r,sqft:unit==='cm'?r.w*r.h/929.0304:r.w*r.h/144}));const total=result.reduce((a,r)=>a+r.sqft,0);calcData.blind={title:'Blind Square Feet Calculation',unit,rows:result,total,unitOut:'Sq.Ft'};
+ $('blindCalcResult').innerHTML='<b>Calculation Result</b>'+result.map(r=>`<p>Row ${r.n}: ${r.w} × ${r.h} = <b>${r.sqft.toFixed(2)} Sq.Ft</b></p>`).join('')+`<hr><b>Total Sq.Ft: ${total.toFixed(2)}</b>`;$('blindCalcResult').classList.remove('hidden');
+}
+function calcPreviewHTML(mode){const d=calcData[mode];if(!d)return '';const dim=d.unit==='cm'?'cm':'inch';let rows='';
+ if(mode==='roman')rows=d.rows.map(r=>`<tr><td>${r.n}</td><td>${r.w} × ${r.h} ${dim}</td><td>${r.cloth} cm</td><td>${r.panels}</td><td>${r.meters.toFixed(2)} Mtr</td></tr>`).join('');
+ else if(mode==='cloth')rows=d.rows.map(r=>`<tr><td>${r.n}</td><td>${esc(r.type)}</td><td>${r.w} × ${r.h} ${dim}</td><td>${r.main.toFixed(2)}</td><td>${r.sheer.toFixed(2)}</td><td>${r.total.toFixed(2)} Mtr</td></tr>`).join('');
+ else rows=d.rows.map(r=>`<tr><td>${r.n}</td><td>${r.w} × ${r.h} ${dim}</td><td>${r.sqft.toFixed(2)} Sq.Ft</td></tr>`).join('');
+ const heads=mode==='roman'?'<th>No.</th><th>Blind Size</th><th>Cloth Width</th><th>Panels</th><th>Fabric</th>':mode==='cloth'?'<th>No.</th><th>Type</th><th>Size</th><th>Main Cloth</th><th>Sheer</th><th>Total</th>':'<th>No.</th><th>Blind Size</th><th>Sq.Ft</th>';
+ return `<div id="calculatorJpgSheet" class="calc-preview-sheet"><h2>DigiCurt</h2><h3 style="text-align:center">${d.title}</h3><p>Date: ${new Date().toLocaleDateString('en-GB')}</p><table><thead><tr>${heads}</tr></thead><tbody>${rows}</tbody></table><h3 style="text-align:right">Total: ${d.total.toFixed(2)} ${d.unitOut}</h3></div>`;
+}
+function previewCalculator(mode){if(!calcData[mode]){if(mode==='roman')calculateRomanFabric();else if(mode==='cloth')calculateClothCurtain();else calculateBlindSqFt();}if(!calcData[mode])return;window.activeCalculatorPreviewMode=mode;$('calculatorPreviewContent').innerHTML=calcPreviewHTML(mode);$('calculatorPreviewModal').classList.remove('hidden');}
+function closeCalculatorPreview(){$('calculatorPreviewModal').classList.add('hidden');}
+async function saveCalculatorJPG(mode){if(!calcData[mode]){if(mode==='roman')calculateRomanFabric();else if(mode==='cloth')calculateClothCurtain();else calculateBlindSqFt();}if(!calcData[mode])return;const content=$('calculatorPreviewContent');content.innerHTML=calcPreviewHTML(mode);$('calculatorPreviewModal').classList.remove('hidden');await new Promise(resolve=>requestAnimationFrame(()=>resolve()));try{const canvas=await html2canvas(content.querySelector('#calculatorJpgSheet'),{scale:2,backgroundColor:'#fff'});const a=document.createElement('a');a.href=canvas.toDataURL('image/jpeg',.95);a.download='DigiCurt-'+mode+'-Calculation.jpg';a.click();}catch(e){console.error(e);digiAlert('JPG തയ്യാറാക്കാൻ കഴിഞ്ഞില്ല. വീണ്ടും ശ്രമിക്കുക.');}}
 
 let pageHistory=[];
 function goBackPage(){if(pageHistory.length){const previous=pageHistory.pop();showPage(previous,false);}else showPage("home",false);}
@@ -1550,8 +1578,8 @@ function recalculateMeasurements(){
   const fabricLines=[];if(fabric.curtain>0)fabricLines.push(`Main Cloth: ${money(fabric.curtain)} Mtr (${fabric.mainPanels}P)`);if(fabric.sheer>0)fabricLines.push(`Sheer: ${money(fabric.sheer)} Mtr (${fabric.sheerPanels}P)`);
   tr.querySelector(".mFabricCalc").textContent=fabricLines.join(" | ");
   totalSqft+=c.sqft;totalRft+=c.rft;
-  if(rateCalcEnabled&&c.area>0){const key=(c.unit+"::"+productName).toLocaleLowerCase();if(!grouped.has(key))grouped.set(key,{name:productName,unit:c.unit,area:0,amount:0});const g=grouped.get(key);g.area+=c.area;g.amount+=amount;}
-  if(clothAmount>0){const key=("Cloth::"+productName).toLocaleLowerCase();if(!grouped.has(key))grouped.set(key,{name:productName+" (Cloth)",unit:"Meter",area:0,amount:0});const g=grouped.get(key);g.area+=Number(fabric.curtain||0);g.amount+=clothAmount;}
+  if(rateCalcEnabled&&c.area>0){const key=[c.unit,productName,measurementRowCatalogName(tr),tr.querySelector(".mShade").value.trim(),rate.toFixed(4)].join("::").toLocaleLowerCase();if(!grouped.has(key))grouped.set(key,{name:productName+(tr.querySelector(".mShade").value.trim()?" · "+tr.querySelector(".mShade").value.trim():""),unit:c.unit,area:0,amount:0});const g=grouped.get(key);g.area+=c.area;g.amount+=amount;}
+  if(clothAmount>0){const key=["Cloth",productName,measurementRowCatalogName(tr),tr.querySelector(".mShade").value.trim(),clothRate.toFixed(4)].join("::").toLocaleLowerCase();if(!grouped.has(key))grouped.set(key,{name:productName+" (Cloth)"+(tr.querySelector(".mShade").value.trim()?" · "+tr.querySelector(".mShade").value.trim():""),unit:"Meter",area:0,amount:0});const g=grouped.get(key);g.area+=Number(fabric.curtain||0);g.amount+=clothAmount;}
   totalAmount+=amount+clothAmount;
  });
  $("measurementSqft").textContent=money(totalSqft);$("measurementRft").textContent=money(totalRft);
@@ -1602,7 +1630,7 @@ function resetMeasurementSheetAfterSave(){
  addMeasurementRow();recalculateMeasurements();
 }
 async function clearMeasurement(){
- if(!(await appConfirm("Clear all unsaved measurement details?")))return;
+ if(!(await digiConfirm("Clear all unsaved measurement details?")))return;
  clearMeasurementDraft();
  resetMeasurementSheetAfterSave();
 }
@@ -1647,7 +1675,7 @@ function addDeletedRecordId(collection,id){
 function showDeleteSyncNotice(message,success=true){
  let el=document.getElementById("deleteSyncNotice");
  if(!el){el=document.createElement("div");el.id="deleteSyncNotice";el.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:999999;padding:20px 30px;border-radius:16px;color:#fff;font:700 20px Arial,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.32);max-width:88vw;text-align:center;min-width:220px";document.body.appendChild(el);}
- el.style.background=success?"#16803c":"#b42323";el.textContent="DigiCurt · "+(success?"✓ ":"⚠ ")+message;el.style.display="block";
+ el.style.background=success?"#16803c":"#b42323";el.textContent=(success?"✓ ":"⚠ ")+message;el.style.display="block";
  clearTimeout(window.deleteSyncNoticeTimer);window.deleteSyncNoticeTimer=setTimeout(()=>{el.style.display="none";},1800);
 }
 async function persistDeleteAndNotify(){
@@ -1660,7 +1688,7 @@ async function persistDeleteAndNotify(){
 }
 
 async function deleteMeasurement(id){
- if(!(await appConfirm("Delete this measurement sheet?")))return;
+ if(!(await digiConfirm("Delete this measurement sheet?")))return;
  const key=deletedMeasurementsStorageKey();
  let deleted=[];try{deleted=JSON.parse(localStorage.getItem(key)||"[]");}catch(e){deleted=[];}
  const idText=String(id);if(!deleted.map(String).includes(idText))deleted.push(idText);
@@ -1732,19 +1760,19 @@ function measurementSheetHTML(m){
   const unit=String(r.unit||(isRFT(typeName,r.customUnit||"Sq.Ft")?"RFT":"Sq.Ft"));
   const blind=typeName!=="Cloth Fabric"&&typeName!=="Curtain Accessories"&&!isRFT(typeName,r.customUnit||"Sq.Ft");
   const measure=blind?Number(r.sqft||r.areaValue||0):Number(r.rft||0);
-  const shadeKey=String(r.shade||"").trim();const rateKey=String(r.rate??r.price??"").trim();const key=(typeName+"|"+unit+"|"+shadeKey+"|"+rateKey).toLocaleLowerCase();
-  if(!typeTotals.has(key))typeTotals.set(key,{name:typeName,unit,shade:shadeKey,rate:rateKey,amount:0,measure:0});
+  const key=(typeName+"|"+unit).toLocaleLowerCase();
+  if(!typeTotals.has(key))typeTotals.set(key,{name:typeName,unit,amount:0,measure:0});
   const g=typeTotals.get(key);g.measure+=measure;
   if(priceListEnabled("measurement"))g.amount+=Number(r.amount||0);
   const meters=Number(r.curtainMeters||0);
-  if(meters>0){const catalog=String(r.catalogName||r.customType||"Curtain Cloth").trim()||"Curtain Cloth",shade=String(r.shade||"").trim(),clothRate=Number(r.clothRate)||0,ck=(catalog+"|"+shade+"|"+clothRate).toLocaleLowerCase();
-   if(!clothTotals.has(ck))clothTotals.set(ck,{name:catalog,shade,rate:clothRate,meters:0,amount:0});const cg=clothTotals.get(ck);cg.meters+=meters;cg.amount+=Number(r.clothAmount||0);
+  if(meters>0){const catalog=String(r.catalogName||r.customType||"Curtain Cloth").trim()||"Curtain Cloth",shade=String(r.shade||"").trim(),ck=(catalog+"|"+shade).toLocaleLowerCase();
+   if(!clothTotals.has(ck))clothTotals.set(ck,{name:catalog,shade,meters:0,amount:0});const cg=clothTotals.get(ck);cg.meters+=meters;cg.amount+=Number(r.clothAmount||0);
   }
  });
  const totalSheerMeters=(m.rows||[]).reduce((sum,r)=>sum+Number(r.sheerMeters||0),0);
  const rateCalculationEnabled=priceListEnabled("measurement");
- const totalLines=[...typeTotals.values()].map(g=>`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;width:100%"><b>Total ${esc(g.name)}${g.shade?` · Shade: ${esc(g.shade)}`:""}${g.rate?` · Rate: ₹${esc(g.rate)}`:""}: ${money(g.measure)} ${esc(g.unit)}</b>${rateCalculationEnabled&&g.amount>0?`<b style="white-space:nowrap">₹${money(g.amount)}</b>`:""}</div>`).join("");
- const clothTotalLines=[...clothTotals.values()].map(g=>`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;width:100%"><b>${esc(g.name)}${g.shade?` · Shade: ${esc(g.shade)}`:""}${g.rate?` · Rate: ₹${money(g.rate)}/Mtr`:""}: ${money(g.meters)} Mtr</b>${rateCalculationEnabled&&g.amount>0?`<b style="white-space:nowrap">₹${money(g.amount)}</b>`:""}</div>`).join("");
+ const totalLines=[...typeTotals.values()].map(g=>`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;width:100%"><b>Total ${esc(g.name)}: ${money(g.measure)} ${esc(g.unit)}</b>${rateCalculationEnabled&&g.amount>0?`<b style="white-space:nowrap">₹${money(g.amount)}</b>`:""}</div>`).join("");
+ const clothTotalLines=[...clothTotals.values()].map(g=>`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;width:100%"><b>${esc(g.name)}${g.shade?` · Shade: ${esc(g.shade)}`:""}: ${money(g.meters)} Mtr</b>${rateCalculationEnabled&&g.amount>0?`<b style="white-space:nowrap">₹${money(g.amount)}</b>`:""}</div>`).join("");
  const rateGrandTotal=rateCalculationEnabled?[...typeTotals.values()].reduce((a,g)=>a+g.amount,0)+[...clothTotals.values()].reduce((a,g)=>a+g.amount,0):0;
  const business=settings.name||"Home Style Curtains";
  return `<div class="measurement-print">
@@ -1834,7 +1862,7 @@ async function createMeasurementPDF(m){
   remaining-=pageHeight-2*margin;
   while(remaining>0){position=margin-(imgHeight-remaining);pdf.addPage();pdf.addImage(imgData,"JPEG",margin,position,imgWidth,imgHeight);remaining-=pageHeight-2*margin;}
   const blob=pdf.output("blob"),safeName=String(m.customer||"Customer").replace(/[^a-z0-9-_]/gi,"-");
-  const filename=safeName+"-Measurement.pdf",file=new File([blob],filename,{type:"application/pdf"});
+  const filename="Measurement-"+safeName+".pdf",file=new File([blob],filename,{type:"application/pdf"});
   if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
    try{await navigator.share({title:"Measurement Sheet",text:"Measurement sheet - "+(m.customer||""),files:[file]});return;}
    catch(e){if(e&&e.name==="AbortError")return;}
@@ -1867,17 +1895,17 @@ function measurementToQuotation(){
   const type=String(r.type||"Item"),blind=type!=="Cloth Fabric"&&type!=="Curtain Accessories"&&!isRFT(type,r.customUnit||"Sq.Ft");
   const unit=type==="Cloth Fabric"?"Meter":type==="Curtain Accessories"?"Nos":(blind?"Sq.Ft":"RFT");
   const qty=type==="Cloth Fabric"?Number(r.areaValue||0):type==="Curtain Accessories"?1:(blind?Number(r.sqft||r.areaValue||0):Number(r.rft||0));
-  const name=(type==="Other"?(r.customType||type):type),shade=String(r.shade||"").trim();
-  const matchedRate=priceListEnabled("quotation")?applyPriceFromList(name,"quotation",shade,unit,type):null;
-  const rate=(r.rate!==undefined&&r.rate!==null&&r.rate!=="")?Number(r.rate):(matchedRate===null||matchedRate===undefined?"":Number(matchedRate));
+  const name=type==="Other"?(r.customType||type):type,shade=String(r.shade||"").trim();
+  const rate=(priceListEnabled("quotation")?applyPriceFromList(name,"quotation",shade,unit,type):null)??"";
   const key=[name,unit,shade,String(rate)].join("|");
   if(qty>0){if(!grouped.has(key))grouped.set(key,{name,qty:0,unit,shade,type,rate});grouped.get(key).qty+=qty;}
-  const cm=Number(r.curtainMeters||0),sm=Number(r.sheerMeters||0),catalog=String(r.catalogName||r.customType||"Curtain Cloth").trim()||"Curtain Cloth";
-  if(cm>0){const ck=[catalog,shade].join("|");if(!clothGrouped.has(ck))clothGrouped.set(ck,{name:"Curtain Cloth - "+catalog,qty:0,unit:"Meter",shade,rate:""});clothGrouped.get(ck).qty+=cm;}
-  if(sm>0){const sk=[catalog,shade].join("|");if(!sheerGrouped.has(sk))sheerGrouped.set(sk,{name:"Sheer Cloth - "+catalog,qty:0,unit:"Meter",shade,rate:""});sheerGrouped.get(sk).qty+=sm;}
+  const catalog=String(r.catalogName||r.customType||"Curtain Cloth").trim()||"Curtain Cloth";
+  const cm=Number(r.curtainMeters||0),sm=Number(r.sheerMeters||0);
+  if(cm>0){const p=findPrice(settings.clothPriceList,catalog,""),fr=priceListEnabled("quotation")&&p?Number(p.rate)||0:"",ck=[catalog,shade,String(fr)].join("|");if(!clothGrouped.has(ck))clothGrouped.set(ck,{name:"Curtain Cloth - "+catalog,qty:0,unit:"Meter",shade,rate:fr});clothGrouped.get(ck).qty+=cm;}
+  if(sm>0){const p=findPrice(settings.clothPriceList,catalog,""),fr=priceListEnabled("quotation")&&p?Number(p.rate)||0:"",sk=[catalog,shade,String(fr)].join("|");if(!sheerGrouped.has(sk))sheerGrouped.set(sk,{name:"Sheer Cloth - "+catalog,qty:0,unit:"Meter",shade,rate:fr});sheerGrouped.get(sk).qty+=sm;}
  });
- const mainItems=[...grouped.values()].map(g=>({name:g.name,qty:Number(g.qty.toFixed(2)),rate:g.rate,unit:g.unit,shade:g.shade}));
- const fabricItems=[...clothGrouped.values(),...sheerGrouped.values()].map(g=>{const p=findPrice(settings.clothPriceList,g.name.replace(/^(Curtain Cloth|Sheer Cloth) - /,""),"");return {...g,qty:Number(g.qty.toFixed(2)),rate:g.rate!==""?g.rate:(priceListEnabled("quotation")&&p?Number(p.rate)||0:"")};});
+ const mainItems=[...grouped.values()].map(g=>({...g,qty:Number(g.qty.toFixed(2))}));
+ const fabricItems=[...clothGrouped.values(),...sheerGrouped.values()].map(g=>({...g,qty:Number(g.qty.toFixed(2))}));
  quotationItems=mergeSameDocumentItems([...mainItems,...fabricItems]);renderQuotationItems();
 }
 function measurementToQuotationSaved(id){const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;loadMeasurementIntoForm(m);measurementToQuotation();}
@@ -1891,13 +1919,14 @@ function measurementToInvoice(id){
   const unit=type==="Cloth Fabric"?"Meter":type==="Curtain Accessories"?"Nos":(blind?"Sq.Ft":"RFT");
   const qty=type==="Cloth Fabric"?Number(r.areaValue||0):type==="Curtain Accessories"?1:(blind?Number(r.sqft||r.areaValue||0):Number(r.rft||0));
   const name=type==="Other"?(r.customType||type):type,shade=String(r.shade||"").trim();
-  if(qty>0)items.push({name,qty:Number(qty).toFixed(2),unit,shade,rate:(priceListEnabled("invoice")?applyPriceFromList(name,"invoice",shade,unit,type):null)??""});
+  const rate=(priceListEnabled("invoice")?applyPriceFromList(name,"invoice",shade,unit,type):null)??"";
+  if(qty>0)items.push({name,qty:Number(qty.toFixed(2)),unit,shade,rate});
   const catalog=String(r.catalogName||r.customType||"Curtain Cloth").trim()||"Curtain Cloth";
-  const cm=Number(r.curtainMeters||0),sm=Number(r.sheerMeters||0);
-  if(cm>0){const key=[catalog,shade].join("|");if(!clothGrouped.has(key))clothGrouped.set(key,{name:"Curtain Cloth - "+catalog,qty:0,unit:"Meter",shade,rate:""});clothGrouped.get(key).qty+=cm;}
-  if(sm>0){const key=[catalog,shade].join("|");if(!sheerGrouped.has(key))sheerGrouped.set(key,{name:"Sheer Cloth - "+catalog,qty:0,unit:"Meter",shade,rate:""});sheerGrouped.get(key).qty+=sm;}
+  const cm=Number(r.curtainMeters||0),sm=Number(r.sheerMeters||0),p=findPrice(settings.clothPriceList,catalog,""),fr=priceListEnabled("invoice")&&p?Number(p.rate)||0:"";
+  if(cm>0){const key=[catalog,shade,String(fr)].join("|");if(!clothGrouped.has(key))clothGrouped.set(key,{name:"Curtain Cloth - "+catalog,qty:0,unit:"Meter",shade,rate:fr});clothGrouped.get(key).qty+=cm;}
+  if(sm>0){const key=[catalog,shade,String(fr)].join("|");if(!sheerGrouped.has(key))sheerGrouped.set(key,{name:"Sheer Cloth - "+catalog,qty:0,unit:"Meter",shade,rate:fr});sheerGrouped.get(key).qty+=sm;}
  });
- const fabric=[...clothGrouped.values(),...sheerGrouped.values()].map(g=>{const catalog=g.name.replace(/^(Curtain Cloth|Sheer Cloth) - /,"");const p=findPrice(settings.clothPriceList,catalog,"");return {...g,qty:Number(g.qty.toFixed(2)),rate:(priceListEnabled("invoice")&&p?Number(p.rate)||0:"")};});
+ const fabric=[...clothGrouped.values(),...sheerGrouped.values()].map(g=>({...g,qty:Number(g.qty.toFixed(2))}));
  invoiceItems=mergeSameDocumentItems([...items,...fabric]);if(!invoiceItems.length)invoiceItems=[{name:"",qty:"",unit:"Item",rate:"",shade:""}];renderInvoiceItems();
 }
 function measurementToBlindOrder(id){
@@ -2125,8 +2154,7 @@ function waitForImages(container) {
     }
 
     const blob = pdf.output("blob");
-    const safeCustomerName=String(q.customer||"Customer").trim().replace(/[^a-z0-9 _-]/gi,"").replace(/\s+/g,"-");
-    const filename = safeCustomerName + "-Quotation-" + q.number + ".pdf";
+    const filename = "Quotation-" + q.number + ".pdf";
     const file = new File([blob], filename, {
       type: "application/pdf"
     });
@@ -2178,7 +2206,7 @@ function editQuotation(id){
  $("qNumber").value=q.number;$("qDate").value=q.date;$("discountType").value=q.discountType||"percent";$("discountValue").value=q.discountValue||0;$("gstValue").value=q.gstRate||0;$("qTerms").value=q.terms||"";
  quotationItems=JSON.parse(JSON.stringify(q.items||[]));renderQuotationItems();showPage("quotation");
 }
-async function deleteQuote(id){if(!(await appConfirm("Delete this quotation?")))return;addDeletedRecordId("quotations",id);quotations=quotations.filter(q=>String(q.id)!==String(id));renderSavedQuotes();await persistDeleteAndNotify();}
+async function deleteQuote(id){if(!(await digiConfirm("Delete this quotation?")))return;addDeletedRecordId("quotations",id);quotations=quotations.filter(q=>String(q.id)!==String(id));renderSavedQuotes();await persistDeleteAndNotify();}
 function documentSignatureHTML(){
  const signature=settings.signature?`<img src="${settings.signature}" alt="Authorized signature" style="display:block;max-width:170px;width:100%;height:48px;object-fit:contain;margin:0 auto 3px">`:"";
  return `<div style="display:flex;justify-content:flex-end;margin-top:28px;break-inside:avoid"><div style="width:210px;text-align:center;padding:8px 10px 0">${signature}<div style="height:${settings.signature?'0':'42px'}"></div><div style="border-bottom:1px solid #6f2948"></div><div style="font-size:12px;font-weight:bold;margin-top:6px">Authorized Signature</div></div></div>`;
@@ -2188,7 +2216,7 @@ function groupDocumentItems(items){
  (Array.isArray(items)?items:[]).forEach(it=>{
   const name=String(it.name||"").trim(),unit=String(it.unit||"").trim(),qty=Math.max(0,Number(it.qty)||0),rate=Math.max(0,Number(it.rate)||0);
   if(!name)return;
-  const shade=String(it.shade||"").trim();const key=[priceKey(name),priceKey(unit),shade.toLocaleLowerCase(),rate.toFixed(4)].join("|");
+  const key=[priceKey(name),priceKey(unit),priceKey(it.shade||""),rate.toFixed(4)].join("|");
   if(!grouped.has(key))grouped.set(key,{...it,name,unit,qty:0,rate});
   grouped.get(key).qty+=qty;
  });
@@ -2196,7 +2224,7 @@ function groupDocumentItems(items){
 }
 function quoteHTML(q){
  const displayItems=groupDocumentItems(q.items);
- const items=displayItems.map((it,i)=>`<tr><td>${i+1}</td><td style="text-align:left">${esc(it.name)}${it.shade?`<div style="font-size:10px;color:#526174">Shade: ${esc(it.shade)}</div>`:""}</td><td>${money(it.qty)}</td><td>${esc(it.unit)}</td><td>₹${money(it.rate)}</td><td>₹${money(Math.max(0,Number(it.qty)||0)*Math.max(0,Number(it.rate)||0))}</td></tr>`).join("");
+ const items=displayItems.map((it,i)=>`<tr><td>${i+1}</td><td>${esc(it.name)}</td><td>${money(it.qty)}</td><td>${esc(it.unit)}</td><td>₹${money(it.rate)}</td><td>₹${money(Math.max(0,Number(it.qty)||0)*Math.max(0,Number(it.rate)||0))}</td></tr>`).join("");
  return `<div class="preview"><div class="quote-header">${settings.logo?`<img class="logo" src="${settings.logo}">`:""}<h1>${esc(settings.name||"Curtain Shop")}</h1><div>${esc(settings.address||"")}</div><div>${esc(settings.phone||"")} ${settings.whatsapp?" · WhatsApp: "+esc(settings.whatsapp):""}</div><div>${esc(settings.email||"")}</div>${settings.gst?"GST: "+esc(settings.gst):""}</div>
  <div class="quote-info"><div><b>Customer</b><br>${esc(q.customer)}<br>${esc(q.phone||"")}<br>${esc(q.address||"")}</div><div><b>Quotation:</b> ${esc(q.number)}<br><b>Date:</b> ${esc(formatDateDMY(q.date))}</div></div>
  <table class="quote-table"><thead><tr><th>No.</th><th>Item</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${items}</tbody></table>
@@ -2218,7 +2246,7 @@ async function restoreBackup(e){
   const backupData=d.data&&typeof d.data==="object"?d.data:d;
   const requiredLists=["measurements","quotations","blindOrders","invoices","receipts"];
   if(!requiredLists.some(k=>Array.isArray(backupData[k])))throw new Error("Backup lists not found");
-  if(!(await appConfirm("Restore the records saved in this backup? Current records will be replaced.")))return;
+  if(!(await digiConfirm("Restore the records saved in this backup? Current records will be replaced.")))return;
 
   // Keep a frozen snapshot of the selected backup. Restore must not merge with current data.
   const snapshot={
@@ -2354,7 +2382,7 @@ function editInvoice(id){
 }
 function invoiceHTML(d){
  const displayItems=groupDocumentItems(d.items);
- const rows=displayItems.map((it,i)=>`<tr><td>${i+1}</td><td style="text-align:left">${esc(it.name)}${it.shade?`<div style="font-size:10px;color:#526174">Shade: ${esc(it.shade)}</div>`:""}</td><td>${money(it.qty)}</td><td>${esc(it.unit)}</td><td>₹${money(it.rate)}</td><td>₹${money(Math.max(0,Number(it.qty)||0)*Math.max(0,Number(it.rate)||0))}</td></tr>`).join("");
+ const rows=displayItems.map((it,i)=>`<tr><td>${i+1}</td><td>${esc(it.name)}</td><td>${money(it.qty)}</td><td>${esc(it.unit)}</td><td>₹${money(it.rate)}</td><td>₹${money(Math.max(0,Number(it.qty)||0)*Math.max(0,Number(it.rate)||0))}</td></tr>`).join("");
  return `<div class="preview"><div class="quote-header">${settings.logo?`<img class="logo" src="${settings.logo}">`:""}<h1>${esc(settings.name||"Curtain Shop")}</h1><div>${esc(settings.address||"")}</div><div>${esc(settings.phone||"")}${settings.whatsapp?" · WhatsApp: "+esc(settings.whatsapp):""}</div><div>${esc(settings.email||"")}</div>${settings.gst?"GST: "+esc(settings.gst):""}</div><h2 style="text-align:center">INVOICE</h2><div class="quote-info"><div><b>Customer</b><br>${esc(d.customer)}<br>${esc(d.phone||"")}<br>${esc(d.address||"")}</div><div><b>Invoice No:</b> ${esc(d.number)}<br><b>Date:</b> ${esc(formatDateDMY(d.date))}</div></div><table class="quote-table"><thead><tr><th>No.</th><th>Item</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table><div class="quote-total"><div class="summary-row"><span>Subtotal</span><b>₹${money(d.subtotal)}</b></div><div class="summary-row"><span>Discount</span><b>₹${money(d.discount)}</b></div><div class="summary-row"><span>GST (${money(d.gstRate)}%)</span><b>₹${money(d.gst)}</b></div><div class="summary-row grand"><span>Grand Total</span><b>₹${money(d.grand)}</b></div><div class="summary-row"><span>Amount Received</span><b>₹${money(d.paid)}</b></div><div class="summary-row"><span>Balance Due</span><b>₹${money(d.balance)}</b></div></div><p style="white-space:pre-wrap;margin-top:22px">${esc(d.notes||"")}</p>${documentSignatureHTML()}<p style="text-align:center;margin-top:20px">Thank you for your business.</p></div>`;
 }
 function previewInvoice(){const d=currentInvoice();if(!d.customer)return alert("Please enter Customer Name.");if(!d.items.some(x=>x.name.trim()))return alert("Add an item description.");const el=$("invoicePreview");el.innerHTML=invoiceHTML(d);el.classList.remove("hidden");el.scrollIntoView({behavior:"smooth",block:"start"});}
@@ -2363,7 +2391,7 @@ function renderInvoices(){
  $("invoiceList").innerHTML=invoices.filter(d=>[d.number,d.customer,d.phone,d.date].join(" ").toLowerCase().includes(q)).slice().reverse().map(d=>`<div class="customer-card"><h3>${esc(d.number)}</h3><b>${esc(d.customer)}</b><p class="small">${esc(formatDateDMY(d.date))}</p><p>Grand Total: <b>₹${money(d.grand)}</b> · Balance: <b>₹${money(d.balance)}</b></p><div class="doc-actions"><button class="btn-blue" onclick="editInvoice('${String(d.id)}')">Edit / Open</button><button class="btn-green" onclick="previewSavedInvoice('${String(d.id)}')">Preview</button><button class="btn-dark" onclick="shareSavedInvoicePDF('${String(d.id)}')">Share PDF</button><button class="btn-purple" onclick="createReceiptFromSavedDocument('invoice','${String(d.id)}')">Create Receipt</button><button class="btn-red" onclick="deleteInvoice('${String(d.id)}')">Delete</button></div></div>`).join("")||'<div class="empty">No saved invoices.</div>';
 }
 function previewSavedInvoice(id){const d=invoices.find(x=>String(x.id)===String(id));if(!d)return;showSavedDocumentPreview("Invoice · "+(d.number||""),invoiceHTML(d));}
-async function deleteInvoice(id){if(!(await appConfirm("Delete this invoice?")))return;addDeletedRecordId("invoices",id);invoices=invoices.filter(x=>String(x.id)!==String(id));renderInvoices();await persistDeleteAndNotify();}
+async function deleteInvoice(id){if(!(await digiConfirm("Delete this invoice?")))return;addDeletedRecordId("invoices",id);invoices=invoices.filter(x=>String(x.id)!==String(id));renderInvoices();await persistDeleteAndNotify();}
 function inferReceiptReference(doc){
  const names=(doc.items||[]).map(x=>String(x.name||"").toLowerCase()).join(" ");
  const notes=String(doc.notes||doc.terms||"").toLowerCase();
@@ -2404,7 +2432,7 @@ function calculateReceipt(){
 function currentReceipt(){const c=calculateReceipt();return {id:currentReceiptId||newId(),number:$("rNumber").value||nextReceiptNumber(),date:$("rDate").value||today(),customer:$("rCustomer").value.trim(),phone:$("rPhone").value.trim(),address:$("rAddress").value.trim(),reference:$("rReference").value.trim(),total:c.total,received:c.received,balance:c.balance,method:$("rMethod").value||"Cash",note:$("rNote").value.trim()};}
 async function saveReceipt(){
  const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");if(d.received<=0)return alert("Enter the amount received.");
- if(d.received>d.total&&!(await appConfirm("The received amount is greater than the total job amount. Save anyway?")))return;
+ if(d.received>d.total&&!(await digiConfirm("The received amount is greater than the total job amount. Save anyway?")))return;
  const i=receipts.findIndex(x=>String(x.id)===String(d.id));if(i>=0)receipts[i]=d;else receipts.push(d);
  currentReceiptId=d.id;saveStorage();renderReceipts();alert("Payment receipt saved.");showPage("savedReceipts");
 }
@@ -2509,7 +2537,7 @@ function renderReceipts(){
  $("receiptList").innerHTML=receipts.filter(d=>[d.number,d.customer,d.phone,d.date,d.reference].join(" ").toLowerCase().includes(q)).slice().reverse().map(d=>`<div class="customer-card"><h3>${esc(d.number)}</h3><b>${esc(d.customer)}</b><p class="small">${esc(formatDateDMY(d.date))}</p><p>Received: <b>₹${money(d.received)}</b> · Balance: <b>₹${money(d.balance)}</b></p><div class="doc-actions"><button class="btn-blue" onclick="editReceipt('${String(d.id)}')">Edit / Open</button><button class="btn-green" onclick="previewSavedReceipt('${String(d.id)}')">Preview</button><button class="btn-dark" onclick="shareSavedReceiptPDF('${String(d.id)}')">Share PDF</button><button class="btn-red" onclick="deleteReceipt('${String(d.id)}')">Delete</button></div></div>`).join("")||'<div class="empty">No saved payment receipts.</div>';
 }
 function previewSavedReceipt(id){const d=receipts.find(x=>String(x.id)===String(id));if(!d)return;showSavedDocumentPreview("Payment Receipt · "+(d.number||""),receiptHTML(d));applyReceiptPreviewResponsive();}
-async function deleteReceipt(id){if(!(await appConfirm("Delete this payment receipt?")))return;addDeletedRecordId("receipts",id);receipts=receipts.filter(x=>String(x.id)!==String(id));renderReceipts();await persistDeleteAndNotify();}
+async function deleteReceipt(id){if(!(await digiConfirm("Delete this payment receipt?")))return;addDeletedRecordId("receipts",id);receipts=receipts.filter(x=>String(x.id)!==String(id));renderReceipts();await persistDeleteAndNotify();}
 async function makeDocumentPDF(html,filename,title,customerPhone=""){
  if(!window.jspdf||!window.html2canvas)return alert("PDF libraries did not load. Check your internet connection and try again.");
  const host=$("pdfSheet");host.innerHTML=html;host.style.width="794px";
@@ -2524,10 +2552,10 @@ async function makeDocumentPDF(html,filename,title,customerPhone=""){
   const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);alert("PDF downloaded. Open WhatsApp and attach the downloaded PDF.");
  }catch(e){alert("PDF Error: "+(e.message||e.name||"Unknown error"));}finally{host.innerHTML="";}
 }
-async function shareInvoicePDF(){const d=currentInvoice();if(!d.customer)return alert("Please enter Customer Name.");if(!d.items.some(x=>x.name.trim()))return alert("Add an item description.");await makeDocumentPDF(invoiceHTML(d),String(d.customer||"Customer").trim().replace(/[^a-z0-9 _-]/gi,"").replace(/\s+/g,"-")+"-Invoice-"+d.number+".pdf","Invoice "+d.number,d.phone||"");}
-async function shareSavedInvoicePDF(id){const d=invoices.find(x=>String(x.id)===String(id));if(d)await makeDocumentPDF(invoiceHTML(d),String(d.customer||"Customer").trim().replace(/[^a-z0-9 _-]/gi,"").replace(/\s+/g,"-")+"-Invoice-"+d.number+".pdf","Invoice "+d.number,d.phone||"");}
-async function shareReceiptPDF(){const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");await makeDocumentPDF(receiptHTML(d),String(d.customer||"Customer").trim().replace(/[^a-z0-9 _-]/gi,"").replace(/\s+/g,"-")+"-Receipt-"+d.number+".pdf","Receipt "+d.number,d.phone||"");}
-async function shareSavedReceiptPDF(id){const d=receipts.find(x=>String(x.id)===String(id));if(d)await makeDocumentPDF(receiptHTML(d),String(d.customer||"Customer").trim().replace(/[^a-z0-9 _-]/gi,"").replace(/\s+/g,"-")+"-Receipt-"+d.number+".pdf","Receipt "+d.number,d.phone||"");}
+async function shareInvoicePDF(){const d=currentInvoice();if(!d.customer)return alert("Please enter Customer Name.");if(!d.items.some(x=>x.name.trim()))return alert("Add an item description.");await makeDocumentPDF(invoiceHTML(d),"Invoice-"+d.number+".pdf","Invoice "+d.number,d.phone||"");}
+async function shareSavedInvoicePDF(id){const d=invoices.find(x=>String(x.id)===String(id));if(d)await makeDocumentPDF(invoiceHTML(d),"Invoice-"+d.number+".pdf","Invoice "+d.number,d.phone||"");}
+async function shareReceiptPDF(){const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");await makeDocumentPDF(receiptHTML(d),"Receipt-"+d.number+".pdf","Receipt "+d.number,d.phone||"");}
+async function shareSavedReceiptPDF(id){const d=receipts.find(x=>String(x.id)===String(id));if(d)await makeDocumentPDF(receiptHTML(d),"Receipt-"+d.number+".pdf","Receipt "+d.number,d.phone||"");}
 
 /* ADMIN USER MANAGEMENT: admin-only UI; Supabase RLS must also protect this table. */
 let adminUsersCache=[];
@@ -2672,7 +2700,7 @@ function sendRenewalWhatsApp(email){
  const u=adminUsersCache.find(x=>String(x.email).toLowerCase()===String(email).toLowerCase());if(!u)return alert("User was not found.");
  const phone=String(u.phone||"").replace(/\D/g,"");if(!phone)return alert("Add the customer's phone number with country code in Edit before opening WhatsApp.");
  const status=adminUserStatus(u);
- const message=(u.access_type!=="annual"&&!u.is_paid)?`Hello, your 7-day free trial of DigiCurt ${status.key==="trialExpired"?"has ended":(status.key==="trialExpiresTomorrow"||status.key==="annualExpiresTomorrow")?"expires tomorrow":status.key==="trialDue"?"expires today":"is ending soon"}. Would you like to continue with the one-year plan? Please reply to let us know.`:`Hello, your DigiCurt annual access ${(status.key==="trialExpiresTomorrow"||status.key==="annualExpiresTomorrow")?"expires tomorrow":"is due for renewal"}. Would you like to renew for another year? Please reply to let us know.`;
+ const message=(u.access_type!=="annual"&&!u.is_paid)?`Hello, your 7-day free trial of DigiCurt App ${status.key==="trialExpired"?"has ended":(status.key==="trialExpiresTomorrow"||status.key==="annualExpiresTomorrow")?"expires tomorrow":status.key==="trialDue"?"expires today":"is ending soon"}. Would you like to continue with the one-year plan? Please reply to let us know.`:`Hello, your DigiCurt App annual access ${(status.key==="trialExpiresTomorrow"||status.key==="annualExpiresTomorrow")?"expires tomorrow":"is due for renewal"}. Would you like to renew for another year? Please reply to let us know.`;
  window.open("https://wa.me/"+phone+"?text="+encodeURIComponent(message),"_blank","noopener");
 }
 async function saveAuthorizedUser(){
@@ -2714,7 +2742,7 @@ async function saveAuthorizedUser(){
 async function disableAuthorizedUser(email){
  if(!adminOnly())return alert("Administrator access required.");
  if(String(email).toLowerCase()===String(authUser?.email||"").toLowerCase())return alert("You cannot disable your own account.");
- if(!(await appConfirm("Disable sign-in access for "+email+"? The record and customer data will remain.")))return;
+ if(!(await digiConfirm("Disable sign-in access for "+email+"? The record and customer data will remain.")))return;
  const {error}=await sb.from("authorized_users").update({is_active:false}).eq("email",email);
  if(error){$("adminMessage").textContent="Could not disable user: "+error.message;return;}
  $("adminMessage").textContent="Access disabled for "+email;await loadAuthorizedUsers();
@@ -2722,7 +2750,7 @@ async function disableAuthorizedUser(email){
 async function deleteAuthorizedUser(email){
  if(!adminOnly())return alert("Administrator access required.");
  if(String(email).toLowerCase()===String(authUser?.email||"").toLowerCase())return alert("You cannot delete your own administrator account.");
- if(!(await appConfirm("Delete the authorization record for "+email+"? This removes access-list entry only. Saved customer data in the separate customer_data table will not be deleted.")))return;
+ if(!(await digiConfirm("Delete the authorization record for "+email+"? This removes access-list entry only. Saved customer data in the separate customer_data table will not be deleted.")))return;
  const {data,error}=await sb.from("authorized_users").delete().eq("email",email).select("email");
  if(error){$("adminMessage").textContent="Delete failed: "+error.message+". Supabase RLS/delete permission must allow the administrator to remove this record.";return;}
  if(!data||data.length===0){$("adminMessage").textContent="Delete was not completed: Supabase did not return a deleted row. Check the authorized_users DELETE policy and administrator permissions.";return;}
@@ -2806,9 +2834,9 @@ function editBlindOrder(id){
 $("boCustomerPlace").value=d.customerPlace||"";
 $("boCustomerPhone").value=d.customerPhone||"";
  $("blindOrderBody").innerHTML="";(d.rows||[]).forEach(r=>addBlindOrderRow(r));if(!(d.rows||[]).length){addBlindOrderRow();addBlindOrderRow();}
- $("blindOrderPreview").classList.add("hidden");updateBlindBusinessInfo();showPage("blindOrder");window.scrollTo({top:0,behavior:"smooth"});
+ $("blindOrderPreview").classList.add("hidden");updateBlindBusinessInfoasync ();showPage("blindOrder");window.scrollTo({top:0,behavior:"smooth"});
 }
-async function deleteBlindOrder(id){if(!(await appConfirm("Delete this saved Blinds Order?")))return;addDeletedRecordId("blindOrders",id);blindOrders=blindOrders.filter(x=>String(x.id)!==String(id));if(String(currentBlindOrderId)===String(id))currentBlindOrderId=null;renderBlindOrders();await persistDeleteAndNotify();}
+async function deleteBlindOrder(id){if(!(await digiConfirm("Delete this saved Blinds Order?")))return;addDeletedRecordId("blindOrders",id);blindOrders=blindOrders.filter(x=>String(x.id)!==String(id));if(String(currentBlindOrderId)===String(id))currentBlindOrderId=null;renderBlindOrders();await persistDeleteAndNotify();}
 function renderBlindOrders(){
  const q=($("blindOrderSearch")?.value||"").toLowerCase();
 
