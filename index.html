@@ -145,6 +145,21 @@ td input,td select{min-width:80px;padding:8px}
 .admin-phone-prefix{display:flex;align-items:center;padding:0 13px;background:#edf2f6;border:1px solid #ccd7df;border-right:0;border-radius:9px 0 0 9px;font-weight:bold;white-space:nowrap}
 .admin-phone-wrap input{border-radius:0 9px 9px 0;min-width:0}
 @media(max-width:520px){.admin-user-meta{grid-template-columns:1fr}}
+/* Admin user list: compact expandable rows */
+.admin-filter-row button{border:2px solid transparent;transition:border-color .15s,box-shadow .15s,background .15s}
+.admin-filter-row button.active{border:2px solid #0e9b91!important;outline:2px solid #0e9b9140;outline-offset:1px;background:#d9f2ef!important;color:#174f55!important;box-shadow:0 0 0 2px #fff inset}
+.admin-user-card{padding:12px 14px;margin-bottom:9px}
+.admin-user-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:4px 0;margin:0;background:transparent;color:var(--text);text-align:left;border:0}
+.admin-user-summary-main{min-width:0;display:flex;flex-direction:column;gap:4px}
+.admin-user-summary-name{font-size:16px;font-weight:800;overflow-wrap:anywhere}
+.admin-user-summary-email{font-size:13px;color:#647487;overflow-wrap:anywhere}
+.admin-user-summary-side{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.admin-user-chevron{font-size:20px;font-weight:800;color:var(--primary-dark);transition:transform .15s}
+.admin-user-summary[aria-expanded="true"] .admin-user-chevron{transform:rotate(180deg)}
+.admin-user-details{padding-top:10px;margin-top:9px;border-top:1px solid var(--line)}
+.admin-user-details[hidden]{display:none!important}
+@media(max-width:520px){.admin-user-card{padding:11px}.admin-user-summary-name{font-size:15px}.admin-user-summary-email{font-size:12px}}
+
 #signatureCanvas{touch-action:none;cursor:crosshair}
 #signaturePreview{object-position:center}
 
@@ -2611,6 +2626,7 @@ async function shareSavedReceiptPDF(id){const d=receipts.find(x=>String(x.id)===
 /* ADMIN USER MANAGEMENT: admin-only UI; Supabase RLS must also protect this table. */
 let adminUsersCache=[];
 let adminCurrentFilter="all";
+let adminExpandedUsers=new Set();
 let adminEditingEmail=null;
 function adminOnly(){return String(authRecord?.plan_name||"").toLowerCase()==="admin";}
 function adminDateAdd(dateValue,days){
@@ -2702,22 +2718,62 @@ function adminUserStatus(u){
  return {key:"trial",label:"Trial — "+days+" day(s) left",cls:"trial"};
 }
 function setAdminFilter(filter){adminCurrentFilter=filter;renderAuthorizedUsers();}
+function toggleAdminUser(email){
+ const key=String(email||"").toLowerCase();
+ if(adminExpandedUsers.has(key))adminExpandedUsers.delete(key);else adminExpandedUsers.add(key);
+ renderAuthorizedUsers();
+}
 function renderAuthorizedUsers(){
  const search=($("adminUserSearch")?.value||"").trim().toLowerCase();
  const enriched=adminUsersCache.map(u=>({u,status:adminUserStatus(u)}));
  const counts={all:enriched.length,trial:enriched.filter(x=>["trial","trialDue","trialNoDate","trialExpiresTomorrow"].includes(x.status.key)).length,trialExpired:enriched.filter(x=>x.status.key==="trialExpired").length,paid:enriched.filter(x=>["paid","paidNoDate","annualExpiresTomorrow"].includes(x.status.key)).length,renewal:enriched.filter(x=>["renewal","annualExpiresTomorrow"].includes(x.status.key)).length,expiresTomorrow:enriched.filter(x=>["trialExpiresTomorrow","annualExpiresTomorrow"].includes(x.status.key)).length,expired:enriched.filter(x=>["expired","disabled","trialExpired"].includes(x.status.key)).length};
  Object.entries({adminCountAll:counts.all,adminCountTrial:counts.trial,adminCountTrialExpired:counts.trialExpired,adminCountPaid:counts.paid,adminCountRenewal:counts.renewal,adminCountTomorrow:counts.expiresTomorrow,adminCountExpired:counts.expired}).forEach(([id,value])=>{if($(id))$(id).textContent=value;});
  const filterKeys={all:null,trial:["trial","trialDue","trialNoDate","trialExpiresTomorrow"],trialExpired:["trialExpired"],paid:["paid","paidNoDate","annualExpiresTomorrow"],renewal:["renewal","annualExpiresTomorrow"],expiresTomorrow:["trialExpiresTomorrow","annualExpiresTomorrow"],expired:["expired","disabled","trialExpired"]};
+ document.querySelectorAll(".admin-filter-row button").forEach(btn=>{
+  const match=btn.getAttribute("onclick")?.match(/setAdminFilter\('([^']+)'\)/);
+  const active=!!match&&match[1]===adminCurrentFilter;
+  btn.classList.toggle("active",active);
+  btn.setAttribute("aria-pressed",active?"true":"false");
+ });
  const rows=enriched.filter(({u,status})=>{
-  if(search&&!(String(u.email||"")+" "+String(u.phone||"")).toLowerCase().includes(search))return false;
+  if(search&&!(String(u.email||"")+" "+String(u.phone||"")+" "+String(u.name||u.full_name||u.customer_name||"")).toLowerCase().includes(search))return false;
   const allowed=filterKeys[adminCurrentFilter];return !allowed||allowed.includes(status.key);
  });
  $("authorizedUserList").innerHTML=rows.map(({u,status})=>{
   const email=String(u.email||"");
+  const key=email.toLowerCase();
+  const isOpen=adminExpandedUsers.has(key);
+  const displayName=String(u.name||u.full_name||u.customer_name||"").trim();
   const trialStart=formatDateDMY(u.trial_started_at),trialEnd=formatDateDMY(u.trial_ends_at),paidStart=formatDateDMY(u.paid_started_at),paidEnd=formatDateDMY(u.paid_expires_at);
   const accessLabel=(u.access_type==="annual"||u.is_paid)?"Annual — 1 Year":"Free Trial — 7 Days";
   const phone=String(u.phone||"");
-  return `<div class="customer-card"><b style="font-size:17px;overflow-wrap:anywhere">${esc(email)}</b><p class="small">Plan: ${esc(u.plan_name||"customer")} · Paid: ${u.is_paid?"Yes":"No"} · Active: ${u.is_active?"Yes":"No"}</p><span class="admin-state ${status.cls}">${esc(status.label)}</span><div class="admin-user-meta"><div><b>Access type</b><br>${esc(accessLabel)}</div><div><b>Phone / WhatsApp</b><br>${esc(phone||"Not added")}</div><div><b>Trial start</b><br>${esc(trialStart||"Not set")}</div><div><b>Trial expiry</b><br>${esc(trialEnd||"Not set")}</div><div><b>Payment date</b><br>${esc(paidStart||"Not set")}</div><div><b>Annual expiry</b><br>${esc(paidEnd||"Not set")}</div></div><div class="admin-user-actions"><button class="btn-blue" onclick="editAuthorizedUser('${esc(email)}')">Edit</button><button class="btn-light" onclick="copyAuthorizedEmail('${esc(email)}')">Copy Email</button><button class="btn-green" onclick="sendRenewalWhatsApp('${esc(email)}')">WhatsApp Message</button><button class="btn-red" onclick="disableAuthorizedUser('${esc(email)}')">Disable</button><button class="btn-red" onclick="deleteAuthorizedUser('${esc(email)}')">Delete</button></div></div>`;
+  return `<div class="customer-card admin-user-card">
+   <button class="admin-user-summary" type="button" onclick="toggleAdminUser('${esc(email)}')" aria-expanded="${isOpen?"true":"false"}">
+    <span class="admin-user-summary-main">
+     <span class="admin-user-summary-name">${esc(displayName||email)}</span>
+     ${displayName?`<span class="admin-user-summary-email">${esc(email)}</span>`:""}
+    </span>
+    <span class="admin-user-summary-side"><span class="admin-state ${status.cls}">${esc(status.label)}</span><span class="admin-user-chevron" aria-hidden="true">⌄</span></span>
+   </button>
+   <div class="admin-user-details" ${isOpen?"":"hidden"}>
+    <p class="small">Plan: ${esc(u.plan_name||"customer")} · Paid: ${u.is_paid?"Yes":"No"} · Active: ${u.is_active?"Yes":"No"}</p>
+    <div class="admin-user-meta">
+     <div><b>Access type</b><br>${esc(accessLabel)}</div>
+     <div><b>Phone / WhatsApp</b><br>${esc(phone||"Not added")}</div>
+     <div><b>Trial start</b><br>${esc(trialStart||"Not set")}</div>
+     <div><b>Trial expiry</b><br>${esc(trialEnd||"Not set")}</div>
+     <div><b>Payment date</b><br>${esc(paidStart||"Not set")}</div>
+     <div><b>Annual expiry</b><br>${esc(paidEnd||"Not set")}</div>
+    </div>
+    <div class="admin-user-actions">
+     <button class="btn-blue" onclick="editAuthorizedUser('${esc(email)}')">Edit</button>
+     <button class="btn-light" onclick="copyAuthorizedEmail('${esc(email)}')">Copy Email</button>
+     <button class="btn-green" onclick="sendRenewalWhatsApp('${esc(email)}')">WhatsApp Message</button>
+     ${u.is_active?`<button class="btn-red" onclick="disableAuthorizedUser('${esc(email)}')">Disable</button>`:`<button class="btn-green" onclick="enableAuthorizedUser('${esc(email)}')">Enable</button>`}
+     <button class="btn-red" onclick="deleteAuthorizedUser('${esc(email)}')">Delete</button>
+    </div>
+   </div>
+  </div>`;
  }).join("")||'<div class="card empty">No users match this filter.</div>';
 }
 function editAuthorizedUser(email){
@@ -2797,6 +2853,14 @@ async function disableAuthorizedUser(email){
  const {error}=await sb.from("authorized_users").update({is_active:false}).eq("email",email);
  if(error){$("adminMessage").textContent="Could not disable user: "+error.message;return;}
  $("adminMessage").textContent="Access disabled for "+email;await loadAuthorizedUsers();
+}
+async function enableAuthorizedUser(email){
+ if(!adminOnly())return alert("Administrator access required.");
+ if(!sb)return alert("Supabase connection is not ready.");
+ if(!(await digiConfirm("Enable sign-in access for "+email+"?")))return;
+ const {error}=await sb.from("authorized_users").update({is_active:true}).eq("email",email);
+ if(error){$("adminMessage").textContent="Could not enable user: "+error.message;return;}
+ $("adminMessage").textContent="Access enabled for "+email;await loadAuthorizedUsers();
 }
 async function deleteAuthorizedUser(email){
  if(!adminOnly())return alert("Administrator access required.");
