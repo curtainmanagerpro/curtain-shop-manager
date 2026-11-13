@@ -287,6 +287,11 @@ td input,td select{min-width:80px;padding:8px}
 .saved-record-summary{display:flex;align-items:center;justify-content:space-between;gap:12px}.saved-record-summary-main{min-width:0;flex:1}.saved-record-summary h3{margin:0 0 5px;overflow-wrap:anywhere}.saved-record-details{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}.saved-record-details[hidden]{display:none!important}.saved-details-btn{margin:0;flex:0 0 auto;white-space:nowrap}
 .unit-converter-modal{position:fixed;inset:0;z-index:100002;background:#071522b8;display:flex;align-items:center;justify-content:center;padding:14px}.unit-converter-modal.hidden{display:none!important}.unit-converter-dialog{width:min(460px,100%);background:#fff;border-radius:16px;padding:16px;color:#203040;box-shadow:0 12px 40px #0004}.unit-converter-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.unit-converter-head h2{font-size:20px;margin:0}.unit-converter-row{display:grid;grid-template-columns:105px minmax(0,1fr);gap:0;margin:10px 0;border:1px solid #d4dce4;border-radius:9px;overflow:hidden}.unit-converter-label{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;min-height:54px}.unit-converter-label.cm{background:#244f83}.unit-converter-label.inch{background:#168b83}.unit-converter-label.feet{background:#7650a8}.unit-converter-row input{border:0!important;border-radius:0!important;min-width:0;height:54px;padding:10px 13px;font-size:18px!important}.unit-converter-clear{width:100%;margin:10px 0 0;min-height:46px}@media(max-width:420px){.unit-converter-row{grid-template-columns:88px minmax(0,1fr)}}
 
+
+/* Consistent tactile feedback for every app button; normal size, layout and colors remain unchanged. */
+button{ -webkit-tap-highlight-color:transparent; transition:filter .08s ease, outline-color .08s ease, transform .08s ease; }
+button:active{ outline:3px solid rgba(255,255,255,.98); outline-offset:-4px; box-shadow:0 0 0 2px rgba(32,48,64,.28), inset 0 0 0 1px rgba(255,255,255,.55); filter:brightness(.94); transform:scale(.985); }
+button:focus-visible{ outline:2px solid rgba(255,255,255,.98); outline-offset:2px; box-shadow:0 0 0 4px rgba(36,68,92,.35); }
 </style>
  <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#24445c">
@@ -382,22 +387,22 @@ td input,td select{min-width:80px;padding:8px}
  <div id="romanCalculator" class="card hidden"><h3>Roman Cloth Calculation</h3>
  <div class="field"><label>Measurement Unit</label><select id="rcUnit"><option value="cm">Centimeter</option><option value="inch">Inch</option></select></div>
  <div id="rcRows"></div><div class="calc-action-row">
- <button class="btn-red" onclick="removeCalculatorRow('roman')">Remove Row</button><button class="btn-light" onclick="clearCalculator('roman')">Clear</button><button class="btn-green" onclick="calculateRomanFabric()">Calculate</button></div>
+ <button class="btn-green" onclick="calculateRomanFabric()">Calculate</button><button class="btn-light" onclick="clearCalculator('roman')">Clear</button><button class="btn-red" onclick="removeCalculatorRow('roman')">Remove Row</button></div>
  <button class="btn-blue calc-add-row" onclick="addCalculatorRow('roman')">＋ Add Row</button>
  <div id="romanCalcResult" class="notice hidden"></div><div class="calc-output-actions"><button class="btn-blue" onclick="previewCalculator('roman')">Preview</button><button class="btn-green" onclick="saveCalculatorJPG('roman')">Save as JPG</button></div></div>
  <div id="clothCalculator" class="card hidden"><h3>Cloth Curtain Calculation</h3>
  <div class="field"><label>Measurement Unit</label><select id="ccUnit"><option value="cm">Centimeter</option><option value="inch">Inch</option></select></div>
  <div id="ccRows"></div><div class="calc-action-row">
- <button class="btn-red" onclick="removeCalculatorRow('cloth')">Remove Row</button><button class="btn-light" onclick="clearCalculator('cloth')">Clear</button><button class="btn-green" onclick="calculateClothCurtain()">Calculate</button></div>
+ <button class="btn-green" onclick="calculateClothCurtain()">Calculate</button><button class="btn-light" onclick="clearCalculator('cloth')">Clear</button><button class="btn-red" onclick="removeCalculatorRow('cloth')">Remove Row</button></div>
  <button class="btn-blue calc-add-row" onclick="addCalculatorRow('cloth')">＋ Add Row</button>
  <div id="clothCalcResult" class="notice hidden"></div><div class="calc-output-actions"><button class="btn-blue" onclick="previewCalculator('cloth')">Preview</button><button class="btn-green" onclick="saveCalculatorJPG('cloth')">Save as JPG</button></div></div>
  <div id="blindCalculator" class="card hidden"><h3>Blind Square Feet Calculation</h3>
  <div class="field"><label>Measurement Unit</label><select id="bcUnit"><option value="cm">Centimeter</option><option value="inch">Inch</option></select></div>
  <div id="bcRows"></div><div class="calc-action-row">
- <button class="btn-red" onclick="removeCalculatorRow('blind')">Remove Row</button><button class="btn-light" onclick="clearCalculator('blind')">Clear</button><button class="btn-green" onclick="calculateBlindSqFt()">Calculate</button></div>
+ <button class="btn-green" onclick="calculateBlindSqFt()">Calculate</button><button class="btn-light" onclick="clearCalculator('blind')">Clear</button><button class="btn-red" onclick="removeCalculatorRow('blind')">Remove Row</button></div>
  <button class="btn-blue calc-add-row" onclick="addCalculatorRow('blind')">＋ Add Row</button>
  <div id="blindCalcResult" class="notice hidden"></div><div class="calc-output-actions"><button class="btn-blue" onclick="previewCalculator('blind')">Preview</button><button class="btn-green" onclick="saveCalculatorJPG('blind')">Save as JPG</button></div></div>
- <button class="btn-light" onclick="showPage('home')">← Back to Home</button></section>
+ <button class="btn-light" onclick="goBackPage()">← Back to Home</button></section>
  <div id="calculatorPreviewModal" class="calc-preview-modal hidden"><div class="calc-preview-dialog"><div class="calc-preview-head"><b>DigiCurt · Preview</b><button class="btn-red" onclick="closeCalculatorPreview()">✕ Close</button></div><div id="calculatorPreviewContent"></div><button class="btn-green" onclick="saveCalculatorJPG(window.activeCalculatorPreviewMode)">Save as JPG</button></div></div>
 <section id="measurement" class="page">
  <div class="card">
@@ -570,7 +575,7 @@ td input,td select{min-width:80px;padding:8px}
 <section id="savedQuotes" class="page"><div class="card"><h2>Saved Quotations</h2><input id="quoteSearch" placeholder="Search customer name or phone..." oninput="renderSavedQuotes()"></div><div id="savedQuoteList"></div></section>
 
 <section id="quotePreview" class="page">
- <div class="no-print"><button class="btn-light" onclick="showPage('savedQuotes')">← Back</button><button class="btn-blue" onclick="window.print()">Print / Save PDF</button></div>
+ <div class="no-print"><button class="btn-light" onclick="goBackPage()">← Back</button><button class="btn-blue" onclick="window.print()">Print / Save PDF</button></div>
  <div id="previewContent"></div>
 </section>
 
@@ -641,33 +646,33 @@ td input,td select{min-width:80px;padding:8px}
    <button class="btn-dark" onclick="showPage('accessoryPriceList')">🧰 Curtain Accessories</button>
    <button class="btn-dark" onclick="previewPriceList('accessory')">Accessories Preview</button>
  </div>
- <button class="btn-light" onclick="showPage('home')">← Back to Home</button>
+ <button class="btn-light" onclick="goBackPage()">← Back to Home</button>
 </div></section>
 <section id="blindsPriceList" class="page"><div class="card">
  <h2>Blinds Price List</h2><p class="small">Rate: Sq.Ft. Item Name അടിസ്ഥാനമാക്കി വില കണ്ടെത്തും. Shade Number വിലയെ ബാധിക്കില്ല.</p>
  <div id="blindsPriceRows"></div>
  <div class="price-list-actions"><button class="btn-green" onclick="saveBlindsPriceList()">Save</button><button class="btn-light" onclick="clearPriceEntry('blind')">Clear</button></div>
  <div id="blindsPriceSaved" class="price-saved-list"></div>
- <button class="btn-light" onclick="showPage('priceLists')">← Back</button>
+ <button class="btn-light" onclick="goBackPage()">← Back</button>
 </div></section>
 <section id="clothPriceList" class="page"><div class="card">
  <h2>Cloth Price List</h2><p class="small">Collection Name അടിസ്ഥാനമാക്കി Meter Rate. Shade Number വിലയെ ബാധിക്കില്ല.</p>
  <div id="clothPriceRows"></div>
  <div class="price-list-actions"><button class="btn-green" onclick="saveClothPriceList()">Save</button><button class="btn-light" onclick="clearPriceEntry('cloth')">Clear</button></div>
  <div id="clothPriceSaved" class="price-saved-list"></div>
- <button class="btn-light" onclick="showPage('priceLists')">← Back</button>
+ <button class="btn-light" onclick="goBackPage()">← Back</button>
 </div></section>
 <section id="rftPriceList" class="page"><div class="card">
  <h2>Curtain & Blinds Price List</h2><p class="small">Curtain, Blind Type-കളുടെ പേര്, Unit, Rate എന്നിവ ഇവിടെ ചേർക്കുക. Zebra Blind-ന്റെ വില പഴയ Catalog Name Price List-ൽ നിന്നായിരിക്കും.</p>
  <div id="rftPriceRows"></div>
  <div class="price-list-actions"><button class="btn-green" type="button" onclick="saveExtraPriceList('rft')">Save</button><button class="btn-light" type="button" onclick="clearExtraPriceEntry('rft')">Clear</button></div>
- <div id="rftPriceSaved" class="price-saved-list"></div><button class="btn-light" onclick="showPage('priceLists')">← Back</button>
+ <div id="rftPriceSaved" class="price-saved-list"></div><button class="btn-light" onclick="goBackPage()">← Back</button>
 </div></section>
 <section id="accessoryPriceList" class="page"><div class="card">
  <h2>Curtain Accessories Price List</h2><p class="small">Accessories-ന്റെ പേര്, ഓരോ Nos / Piece-നുള്ള Rate എന്നിവ ചേർക്കുക.</p>
  <div id="accessoryPriceRows"></div>
  <div class="price-list-actions"><button class="btn-green" type="button" onclick="saveExtraPriceList('accessory')">Save</button><button class="btn-light" type="button" onclick="clearExtraPriceEntry('accessory')">Clear</button></div>
- <div id="accessoryPriceSaved" class="price-saved-list"></div><button class="btn-light" onclick="showPage('priceLists')">← Back</button>
+ <div id="accessoryPriceSaved" class="price-saved-list"></div><button class="btn-light" onclick="goBackPage()">← Back</button>
 </div></section>
 <section id="admin" class="page">
  <div class="card">
@@ -690,7 +695,7 @@ td input,td select{min-width:80px;padding:8px}
    <button id="adminSaveButton" class="btn-green" type="button" onclick="saveAuthorizedUser()">Add User</button>
    <button id="adminCancelEdit" class="btn-light hidden" type="button" onclick="resetAdminForm()">Cancel Edit</button>
    <button class="btn-blue" type="button" onclick="loadAuthorizedUsers()">Refresh User List</button>
-   <button class="btn-light" type="button" onclick="showPage('home')">Back to Home</button>
+   <button class="btn-light" type="button" onclick="goBackPage()">Back</button>
   </div>
   <p id="adminMessage" class="small" role="status" aria-live="polite">Ready.</p>
  </div>
@@ -2188,7 +2193,7 @@ function waitForImages(container) {
 }
 
  async function shareQuotePDF(id) {
-  const q = quotations.find(x => x.id === id);
+  const q = quotations.find(x => String(x.id) === String(id));
   if (!q) return;
 
   try {
@@ -2276,7 +2281,7 @@ function waitForImages(container) {
   }
 }
 function editQuotation(id){
- const q=quotations.find(x=>x.id===id);if(!q)return;
+ const q=quotations.find(x=>String(x.id)===String(id));if(!q)return;
  currentQuotationId=q.id;$("qCustomer").value=q.customer;$("qPhone").value=q.phone||"";$("qAddress").value=q.address||"";
  $("qNumber").value=q.number;$("qDate").value=q.date;$("discountType").value=q.discountType||"percent";$("discountValue").value=q.discountValue||0;$("gstValue").value=q.gstRate||0;$("qTerms").value=q.terms||"";
  quotationItems=JSON.parse(JSON.stringify(q.items||[])).map(x=>({...x,catalogName:x.catalogName||""}));renderQuotationItems();showPage("quotation");
@@ -2305,7 +2310,7 @@ function quoteHTML(q){
  <table class="quote-table"><thead><tr><th>No.</th><th>Item</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${items}</tbody></table>
  <div class="quote-total"><div class="summary-row"><span>Subtotal</span><b>₹${money(q.subtotal)}</b></div><div class="summary-row"><span>Discount</span><b>₹${money(q.discount)}</b></div><div class="summary-row"><span>GST (${money(q.gstRate)}%)</span><b>₹${money(q.gst)}</b></div><div class="summary-row grand"><span>Grand Total</span><b>₹${money(q.grand)}</b></div></div><p style="white-space:pre-wrap;margin-top:25px">${esc(q.terms||"")}</p>${documentSignatureHTML()}<p style="text-align:center;margin-top:20px">Thank you for your business.</p></div>`;
 }
-function openQuote(id){const q=quotations.find(x=>x.id===id);if(!q)return;$("previewContent").innerHTML=quoteHTML(q);showPage("quotePreview");}
+function openQuote(id){const q=quotations.find(x=>String(x.id)===String(id));if(!q)return;$("previewContent").innerHTML=quoteHTML(q);showPage("quotePreview");}
 function previewQuotation(){const q=currentQuote();if(!q.customer)return alert("Please enter Customer Name.");if(!q.items.length)return alert("Please add an item.");$("previewContent").innerHTML=quoteHTML(q);showPage("quotePreview");}
 function downloadBackup(){
  const blob=new Blob([JSON.stringify({measurements,quotations,blindOrders,invoices,receipts,settings},null,2)],{type:"application/json"});
@@ -2970,7 +2975,7 @@ function editBlindOrder(id){
 $("boCustomerPlace").value=d.customerPlace||"";
 $("boCustomerPhone").value=d.customerPhone||"";
  $("blindOrderBody").innerHTML="";(d.rows||[]).forEach(r=>addBlindOrderRow(r));if(!(d.rows||[]).length){addBlindOrderRow();addBlindOrderRow();}
- $("blindOrderPreview").classList.add("hidden");updateBlindBusinessInfoasync ();showPage("blindOrder");window.scrollTo({top:0,behavior:"smooth"});
+ $("blindOrderPreview").classList.add("hidden");updateBlindBusinessInfo();showPage("blindOrder");window.scrollTo({top:0,behavior:"smooth"});
 }
 async function deleteBlindOrder(id){if(!(await digiConfirm("Delete this saved Blinds Order?")))return;addDeletedRecordId("blindOrders",id);blindOrders=blindOrders.filter(x=>String(x.id)!==String(id));if(String(currentBlindOrderId)===String(id))currentBlindOrderId=null;renderBlindOrders();await persistDeleteAndNotify();}
 function renderBlindOrders(){
