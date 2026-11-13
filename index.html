@@ -247,6 +247,18 @@ td input,td select{min-width:80px;padding:8px}
 @media(max-width:480px){
   .home-secondary-buttons button > span:nth-child(2){font-size:19px}
 }
+/* Compact paired Price Lists / Quick Summary controls, matching Saved Settings height. */
+.home-tools-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.home-tool-button{width:100%;min-width:0;min-height:64px;margin:0;padding:9px 10px;display:grid;grid-template-columns:40px minmax(0,1fr) 16px;align-items:center;gap:8px;text-align:left;border:1.5px solid var(--saved-border);border-radius:13px;background:var(--saved-bg);color:#203040;font-size:16px;font-weight:700;box-shadow:0 3px 9px #172b3b0d}
+.home-tool-button .saved-icon{width:40px;height:40px;font-size:22px}
+.home-tool-button .saved-arrow{font-size:26px}
+.saved-price-lists{--saved-border:#28628b;--saved-bg:#edf5fb}
+.saved-quick-summary{--saved-border:#159b8f;--saved-bg:#eef9f7}
+.home-summary-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.home-summary-heading h3{margin:0}
+.home-summary-heading button{margin:0;white-space:nowrap}
+.home-quick-summary.hidden{display:none!important}
+@media(max-width:380px){.home-tool-button{grid-template-columns:34px minmax(0,1fr) 13px;gap:6px;padding:8px;font-size:14px}.home-tool-button .saved-icon{width:34px;height:34px;font-size:20px}.home-summary-heading{align-items:flex-start;flex-direction:column}}
 
 .price-auto-switches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:start}.price-auto-switches label{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;gap:7px;font-size:13px;font-weight:700;min-width:0}.price-auto-switches input[type=checkbox]{width:28px;height:28px;margin:0;flex:0 0 auto}@media(max-width:420px){.price-auto-switches label{font-size:11px}}.price-entry-row{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}
 @media(max-width:600px){.price-entry-row .grid{grid-template-columns:1fr}}
@@ -262,6 +274,7 @@ td input,td select{min-width:80px;padding:8px}
 
 .calc-action-row,.calc-output-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
 .calc-action-row button,.calc-output-actions button{flex:1;min-width:95px;min-height:46px;margin:0;font-weight:800}
+.calc-action-row button:nth-child(1){order:1}.calc-action-row button:nth-child(2){order:2}.calc-action-row button:nth-child(3){order:3}
 .calc-add-row{width:100%;min-height:46px;font-weight:800}
 .calc-row-card{border:1px solid var(--line);border-radius:12px;padding:13px;margin:12px 0;background:#fbfdff}
 .calc-row-card b{display:block;margin-bottom:10px}
@@ -369,10 +382,13 @@ button:focus-visible{ outline:2px solid rgba(255,255,255,.98); outline-offset:2p
    <button class="saved-customers" onclick="showPage('customers')"><span class="saved-icon">👥</span><span>Customers</span><span class="saved-arrow">›</span></button>
    <button class="saved-settings" onclick="showPage('settings')"><span class="saved-icon">⚙️</span><span>Settings</span><span class="saved-arrow">›</span></button>
   </div>
-  <div class="card" style="margin-top:14px"><button type="button" class="btn-dark" style="width:100%;min-height:56px;font-size:18px" onclick="showPage('priceLists')">💰 Price Lists</button></div>
+  <div class="home-tools-row">
+   <button type="button" class="home-tool-button saved-price-lists" onclick="showPage('priceLists')"><span class="saved-icon">💰</span><span>Price Lists</span><span class="saved-arrow">›</span></button>
+   <button type="button" class="home-tool-button saved-quick-summary" onclick="toggleHomeSummary()" aria-expanded="false" aria-controls="homeQuickSummary"><span class="saved-icon">📊</span><span>Quick Summary</span><span class="saved-arrow" id="homeSummaryArrow">›</span></button>
+  </div>
   <div id="homeAdminButton" class="hidden" style="margin-top:10px"><button class="btn-dark" style="width:100%" onclick="showPage('admin')">Admin Panel</button></div>
  </div>
- <div class="card"><h3>Quick Summary</h3><div class="grid"><div class="notice">Saved Measurements: <b id="homeMeasurementCount">0</b></div><div class="notice">Saved Quotations: <b id="homeQuoteCount">0</b></div><div class="notice">Saved Blinds Orders: <b id="homeBlindOrderCount">0</b></div><div class="notice">Saved Invoices: <b id="homeInvoiceCount">0</b></div><div class="notice">Saved Receipts: <b id="homeReceiptCount">0</b></div></div></div>
+ <div id="homeQuickSummary" class="card home-quick-summary hidden" aria-hidden="true"><div class="home-summary-heading"><h3>Quick Summary</h3><button type="button" class="btn-red" onclick="toggleHomeSummary(false)" aria-label="Close Quick Summary">✕ Close</button></div><div class="grid"><div class="notice">Saved Measurements: <b id="homeMeasurementCount">0</b></div><div class="notice">Saved Quotations: <b id="homeQuoteCount">0</b></div><div class="notice">Saved Blinds Orders: <b id="homeBlindOrderCount">0</b></div><div class="notice">Saved Invoices: <b id="homeInvoiceCount">0</b></div><div class="notice">Saved Receipts: <b id="homeReceiptCount">0</b></div></div></div>
 </section>
 
 
@@ -1324,6 +1340,15 @@ async function removeSavedSignature(){
  if(!settings.signature)return alert("സൂക്ഷിച്ച ഒപ്പ് നിലവിലില്ല.");
  if(!(await digiConfirm("സൂക്ഷിച്ച ഒപ്പ് നീക്കണോ?")))return;
  delete settings.signature;saveStorage();updateSignaturePreview();if($("sSignatureFile"))$("sSignatureFile").value="";alert("ഒപ്പ് നീക്കി.");
+}
+function toggleHomeSummary(force){
+ const panel=$("homeQuickSummary"),button=document.querySelector(".saved-quick-summary");
+ if(!panel)return;
+ const open=typeof force==="boolean"?force:panel.classList.contains("hidden");
+ panel.classList.toggle("hidden",!open);panel.setAttribute("aria-hidden",String(!open));
+ if(button)button.setAttribute("aria-expanded",String(open));
+ const arrow=$("homeSummaryArrow");if(arrow)arrow.textContent=open?"⌄":"›";
+ if(open)panel.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 function updateHome(){
  if($("homeMeasurementCount"))$("homeMeasurementCount").textContent=measurements.length;
@@ -2998,7 +3023,9 @@ function blindOrderHTML(d){
   if(!groupMap.has(key)){const g={type,catalogName,shade,rows:[]};groupMap.set(key,g);groups.push(g);}
   groupMap.get(key).rows.push({...r,originalNo:i+1});
  });
- const groupsHTML=groups.map(g=>`<section class="bo-shade-group" style="border:1.5px solid #7b8794;border-radius:8px;overflow:hidden;margin:14px 0;page-break-inside:avoid;break-inside:avoid"><div class="bo-group-heading" style="padding:10px 12px;background:#eef2f7;border-bottom:1px solid #7b8794"><div style="display:flex;justify-content:center"><div style="display:grid;grid-template-columns:max-content 12px max-content;column-gap:5px;align-items:baseline;text-align:left;color:#203040;font-size:18px;font-weight:800"><span>Type</span><span>:</span><span style="font-size:20px;font-weight:900">${esc(g.type)}</span><span>Catalog</span><span>:</span><span style="font-size:20px;font-weight:900">${esc(g.catalogName)}</span><span>Shade No.</span><span>:</span><span style="font-size:20px;font-weight:900">${esc(g.shade)}</span></div></div></div><table class="bo-print-table" style="margin:0;border:0"><thead><tr>${d.showNumbers?"<th>No.</th>":""}<th>Width</th><th>Height</th></tr></thead><tbody>${g.rows.map(r=>`<tr>${d.showNumbers?`<td>${r.originalNo}</td>`:""}<td>${esc(r.width)} ${esc(r.unit)}</td><td>${esc(r.height)} ${esc(r.unit)}</td></tr>`).join("")}</tbody></table></section>`).join("");
+ const blindTypeRank=value=>{const t=String(value||"").toLowerCase();if(t.includes("zebra"))return 0;if(t.includes("roman"))return 1;if(t.includes("roller"))return 2;return 3;};
+ groups.sort((a,b)=>blindTypeRank(a.type)-blindTypeRank(b.type));
+ const groupsHTML=groups.map(g=>`<section class="bo-shade-group" style="border:1.5px solid #7b8794;border-radius:8px;overflow:hidden;margin:14px 0;page-break-inside:avoid;break-inside:avoid"><div class="bo-group-heading" style="padding:10px 12px;background:#eef2f7;border-bottom:1px solid #7b8794"><div style="display:flex;justify-content:center"><div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;color:#203040;font-size:20px;font-weight:900;line-height:1.2"><span>${esc(g.type)}</span><span>${esc(g.catalogName)}</span><span>${esc(g.shade)}</span></div></div></div><table class="bo-print-table" style="margin:0;border:0"><thead><tr>${d.showNumbers?"<th>No.</th>":""}<th>Width</th><th>Height</th></tr></thead><tbody>${g.rows.map(r=>`<tr>${d.showNumbers?`<td>${r.originalNo}</td>`:""}<td>${esc(r.width)} ${esc(r.unit)}</td><td>${esc(r.height)} ${esc(r.unit)}</td></tr>`).join("")}</tbody></table></section>`).join("");
  return `<div class="preview"><div class="bo-preview-header">${logo}<h2 style="margin:8px 0">${esc(d.shopName||"Curtain Shop")}</h2><div>${esc(d.address||"")}</div><div>${esc(d.phone||"")}</div></div><h3 style="text-align:center">BLINDS ORDER</h3><div style="text-align:right;margin-bottom:12px"><b>Order Date:</b> ${esc(formatDateDMY(d.date))}</div>${groupsHTML||`<p>No measurements entered</p>`}<div style="margin-top:18px"><b>Description / Special Instructions</b><div style="margin-top:6px;border:1.5px solid #8b969f;border-radius:5px;padding:10px 12px;min-height:38px;font-size:20px;font-weight:700;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;color:#203040">${esc(d.description||"")}</div></div></div>`;
 }
 function previewBlindOrder(){const d=getBlindOrderData();if(!d.rows.length)return alert("Enter at least one measurement row.");const el=$("blindOrderPreview");el.innerHTML=blindOrderHTML(d);el.classList.remove("hidden");el.scrollIntoView({behavior:"smooth",block:"start"});}
@@ -3006,8 +3033,59 @@ function previewSavedBlindOrder(id){const d=blindOrders.find(x=>String(x.id)===S
 async function createBlindOrderPDF(d){
  if(!d.rows||!d.rows.length)return alert("Enter at least one measurement row.");
  if(!window.jspdf||!window.html2canvas)return alert("PDF libraries did not load. Check your internet connection and try again.");
- const host=$("pdfSheet");host.innerHTML=blindOrderHTML(d);host.style.width="794px";host.style.left="-10000px";
- try{const preview=host.querySelector(".preview");await waitForImages(preview);const canvas=await html2canvas(preview,{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false});const {jsPDF}=window.jspdf;const pdf=new jsPDF("p","mm","a4");const pageWidth=pdf.internal.pageSize.getWidth(),pageHeight=pdf.internal.pageSize.getHeight(),margin=8,imgWidth=pageWidth-2*margin,imgHeight=canvas.height*imgWidth/canvas.width,imgData=canvas.toDataURL("image/jpeg",0.95);let remaining=imgHeight,position=margin;pdf.addImage(imgData,"JPEG",margin,position,imgWidth,imgHeight);remaining-=pageHeight-2*margin;while(remaining>0){position=margin-(imgHeight-remaining);pdf.addPage();pdf.addImage(imgData,"JPEG",margin,position,imgWidth,imgHeight);remaining-=pageHeight-2*margin;}const blob=pdf.output("blob"),filename="Blinds-Order-"+(d.date||"Sheet")+".pdf",file=new File([blob],filename,{type:"application/pdf"});if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({title:"Blinds Order",text:"Blinds order from "+(d.shopName||"Curtain Shop"),files:[file]});return;}catch(e){if(e&&e.name==="AbortError")return;}}const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);alert("PDF downloaded. Open WhatsApp and attach the downloaded PDF.");}catch(e){alert("PDF Error: "+(e.message||e.name||"Unknown error"));}finally{host.innerHTML="";}
+ const host=$("pdfSheet");
+ const {jsPDF}=window.jspdf;
+ const pdf=new jsPDF("p","mm","a4");
+ const pageWidth=pdf.internal.pageSize.getWidth(),pageHeight=pdf.internal.pageSize.getHeight();
+ const margin=8,contentWidth=794,maxContentHeight=Math.round((pageHeight-2*margin)*96/25.4);
+ host.innerHTML="";host.style.width=contentWidth+"px";host.style.left="-10000px";host.style.position="absolute";host.style.top="0";
+ try{
+  const full=document.createElement("div");full.innerHTML=blindOrderHTML(d);
+  const source=full.querySelector(".preview");
+  await waitForImages(source);
+  const groups=[...source.querySelectorAll(".bo-shade-group")];
+  const intro=document.createElement("div");
+  [...source.children].forEach(el=>{if(!el.classList.contains("bo-shade-group")&&!el.matches('div[style*="margin-top:18px"]'))intro.appendChild(el.cloneNode(true));});
+  const description=[...source.children].find(el=>el.matches('div[style*="margin-top:18px"]'));
+  const pages=[];let page=null,groupCount=0;
+  const makePage=()=>{
+   const el=document.createElement("div");el.className="preview bo-pdf-page";
+   el.style.cssText=`box-sizing:border-box;width:${contentWidth}px;height:${maxContentHeight}px;overflow:hidden;background:#fff;color:#203040;padding:24px;font-family:Arial,sans-serif;`;
+   const introCopy=intro.cloneNode(true);el.appendChild(introCopy);
+   host.appendChild(el);pages.push(el);page=el;groupCount=0;
+  };
+  makePage();
+  for(const group of groups){
+   const copy=group.cloneNode(true);page.appendChild(copy);
+   if(page.scrollHeight>maxContentHeight && groupCount>0){
+    page.removeChild(copy);makePage();page.appendChild(group.cloneNode(true));
+   }
+   groupCount++;
+   if(page.scrollHeight>maxContentHeight){
+    // A single unusually long shade group is scaled as one complete block rather than cut between pages.
+    const available=maxContentHeight-page.querySelector(".bo-preview-header").offsetHeight-90;
+    const groupEl=page.lastElementChild;const natural=groupEl.scrollHeight;
+    if(natural>available && natural>0)groupEl.style.zoom=String(Math.max(.55,available/natural));
+   }
+  }
+  if(description){
+   const desc=description.cloneNode(true);page.appendChild(desc);
+   if(page.scrollHeight>maxContentHeight && groupCount>0){page.removeChild(desc);makePage();page.appendChild(desc);}
+  }
+  for(let i=0;i<pages.length;i++){
+   const canvas=await html2canvas(pages[i],{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,width:contentWidth,height:maxContentHeight,windowWidth:contentWidth,windowHeight:maxContentHeight});
+   const img=canvas.toDataURL("image/jpeg",0.96);
+   if(i>0)pdf.addPage();
+   pdf.addImage(img,"JPEG",margin,margin,pageWidth-2*margin,pageHeight-2*margin,undefined,"FAST");
+  }
+  const blob=pdf.output("blob"),filename="Blinds-Order-"+(d.date||"Sheet")+".pdf",file=new File([blob],filename,{type:"application/pdf"});
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+   try{await navigator.share({title:"Blinds Order",text:"Blinds order from "+(d.shopName||"Curtain Shop"),files:[file]});return;}
+   catch(e){if(e&&e.name==="AbortError")return;}
+  }
+  const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);alert("PDF downloaded. Open WhatsApp and attach the downloaded PDF.");
+ }catch(e){alert("PDF Error: "+(e.message||e.name||"Unknown error"));}
+ finally{host.innerHTML="";host.style.height="";}
 }
 async function downloadBlindOrderPDF(){await createBlindOrderPDF(getBlindOrderData());}
 async function downloadSavedBlindOrderPDF(id){const d=blindOrders.find(x=>String(x.id)===String(id));if(d)await createBlindOrderPDF(d);}
