@@ -222,7 +222,13 @@ td input,td select{min-width:80px;padding:8px}
 .saved-customers{--saved-border:#2385d5;--saved-bg:#eef7ff}
 .saved-settings{--saved-border:#687b90;--saved-bg:#f0f3f6}
 @media(min-width:701px){.home-secondary-buttons{grid-template-columns:1fr 1fr}}
-@media(max-width:480px){.home-primary-buttons button{min-height:76px;font-size:17px;grid-template-columns:44px minmax(0,1fr);gap:10px;padding:10px 14px}.home-action-icon{width:44px;height:44px;flex-basis:44px;font-size:25px}.home-secondary-buttons button{min-height:64px;font-size:16px;gap:10px;padding:9px 11px}.home-business-heading h2{font-size:24px}}
+@media(max-width:480px){.home-primary-buttons button{min-height:76px;font-size:17px;grid-template-columns:44px minmax(0,1fr);gap:10px;padding:10px 14px}.home-action-icon{width:44px;height:44px;flex-basis:44px;font-size:25px}.home-secondary-buttons button{min-height:64px;font-size:16px;gap:10px;padding:9px 11px}.home-business-heading h2{font-size:24px}} 
+.unit-converter-home-icon svg{display:block;width:38px;height:38px;filter:drop-shadow(0 1px 1px #0005)}
+.unit-converter-home-label{display:flex;flex-direction:column;gap:3px;min-width:0;line-height:1.15}
+.unit-converter-home-label strong{font-size:20px}
+.unit-converter-home-label small{font-size:12px;font-weight:700;letter-spacing:.1px;white-space:normal;opacity:.96}
+@media(max-width:480px){.unit-converter-home-label strong{font-size:17px}.unit-converter-home-label small{font-size:11px}}
+
 
 /* Saved Records: clearer labels and premium wooden Settings button only. */
 .home-secondary-buttons button > span:nth-child(2){font-size:20px;font-weight:700}
@@ -370,7 +376,7 @@ button:focus-visible{ outline:2px solid rgba(255,255,255,.98); outline-offset:2p
    <button class="home-blue" onclick="newBlindOrder()"><span class="home-action-icon">🪟</span><span>New Blinds Order</span></button>
    <button class="home-purple" onclick="newReceipt()"><span class="home-action-icon">💳</span><span>New Receipt</span></button>
    <button class="home-blue" onclick="openMeasurementCalculator()"><span class="home-action-icon">🧮</span><span>Measurement Calculator</span></button>
-   <button class="home-blue" type="button" onclick="toggleUnitConverter()"><span class="home-action-icon">📏</span><span>Unit Converter</span></button>
+   <button class="home-blue unit-converter-home-button" type="button" onclick="toggleUnitConverter()"><span class="home-action-icon unit-converter-home-icon" aria-hidden="true"><svg viewBox="0 0 64 64" role="img" aria-label="Conversion arrows"><path d="M12 24A22 22 0 0 1 49 14" fill="none" stroke="#ffd329" stroke-width="7" stroke-linecap="round"/><path d="M43 5L54 14L41 20" fill="none" stroke="#ffd329" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M52 40A22 22 0 0 1 15 50" fill="none" stroke="#ffd329" stroke-width="7" stroke-linecap="round"/><path d="M21 59L10 50L23 44" fill="none" stroke="#ffd329" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="unit-converter-home-label"><strong>Unit Converter</strong><small>CM ↔ INCH ↔ FEET</small></span></button>
   </div>
   <h3 class="home-section-title">📁 Saved Records</h3>
   <div class="home-secondary-buttons">
@@ -1181,16 +1187,16 @@ function saveClothPriceList(){
 function addExtraPriceRow(kind,item={}){
  const rft=kind==="rft",host=$(rft?"rftPriceRows":"accessoryPriceRows");if(!host)return;host.innerHTML="";
  const d=document.createElement("div");d.className="price-entry-row";d.dataset.id=String(item.id||"");
- const unitOptions=rft?'<option value="Sq.Ft">Sq.Ft</option><option value="RFT">Running Feet</option>':'<option value="Nos">Nos / Piece</option>';
- d.innerHTML=`<div class="grid"><div class="field"><label>${rft?"Item Name":"Accessory Name"}</label><input class="xpName" value="${esc(item.name||item.type||"")}" placeholder="${rft?"Example: Ripple Curtain":"Example: Bracket"}"></div>${rft?`<div class="field"><label>Unit</label><select class="xpUnit">${unitOptions}</select></div>`:""}<div class="field"><label>Rate (₹)</label><input class="xpRate" type="number" min="0" step="0.01" value="${esc(item.rate??"")}"></div></div>`;
+ const unitOptions=rft?'<option value="Sq.Ft">Sq.Ft</option><option value="RFT">Running Feet</option>':'';
+ d.innerHTML=`<div class="grid"><div class="field"><label>${rft?"Item Name":"Accessory Name"}</label><input class="xpName" value="${esc(item.name||item.type||"")}" placeholder="${rft?"Example: Ripple Curtain":"Example: Bracket"}"></div><div class="field"><label>Unit</label>${rft?`<select class="xpUnit">${unitOptions}</select>`:`<input class="xpUnit" type="text" list="accessoryUnitSuggestions" value="${esc(item.unit||"Nos")}" placeholder="e.g. Nos, Piece, Set">`}</div><div class="field"><label>Rate (₹)</label><input class="xpRate" type="number" min="0" step="0.01" value="${esc(item.rate??"")}"></div></div>${rft?"":`<datalist id="accessoryUnitSuggestions"><option value="Nos"><option value="Piece"><option value="Set"><option value="Pair"><option value="Meter"><option value="Feet"><option value="Roll"></datalist>`}`;
  host.appendChild(d);if(rft)d.querySelector(".xpUnit").value=item.unit|| (rftTypes.includes(item.name||item.type)?"RFT":"Sq.Ft");
 }
 function clearExtraPriceEntry(kind){addExtraPriceRow(kind);}
 function saveExtraPriceList(kind){
  ensureNewPriceLists();const rft=kind==="rft",key=rft?"rftPriceList":"accessoryPriceList",host=$(rft?"rftPriceRows":"accessoryPriceRows"),row=host?.querySelector(".price-entry-row");if(!row)return;
- const name=row.querySelector(".xpName").value.trim(),rate=row.querySelector(".xpRate").value,unit=rft?(row.querySelector(".xpUnit")?.value||"Sq.Ft"):"Nos";if(!name||(rate!==""&&(!Number.isFinite(Number(rate))||Number(rate)<0)))return alert("പേരും ശരിയായ Rate-ഉം നൽകുക.");
+ const name=row.querySelector(".xpName").value.trim(),rate=row.querySelector(".xpRate").value,unit=String(row.querySelector(".xpUnit")?.value||(rft?"Sq.Ft":"Nos")).trim();if(!name||!unit||(rate!==""&&(!Number.isFinite(Number(rate))||Number(rate)<0)))return alert("പേരും Unit-ഉം ശരിയായ Rate-ഉം നൽകുക.");
  const id=row.dataset.editId,existing=id?settings[key].find(x=>String(x.id)===id):settings[key].find(x=>priceKey(x.name)===priceKey(name));
- if(existing){existing.name=name;existing.rate=rate===""?"":Number(rate);if(rft)existing.unit=unit;}else settings[key].push({id:String(newId()),name,rate:rate===""?"":Number(rate),...(rft?{unit}:{})});
+ if(existing){existing.name=name;existing.rate=rate===""?"":Number(rate);existing.unit=unit;}else settings[key].push({id:String(newId()),name,unit,rate:rate===""?"":Number(rate)});
  saveStorage();renderNewPriceLists();addExtraPriceRow(kind);refreshMeasurementPricePickers();alert(rft?"Curtain & Blinds Price List സേവ് ചെയ്തു.":"Accessories Price List സേവ് ചെയ്തു.");
 }
 function editPriceItem(kind,id){
@@ -1228,14 +1234,14 @@ async function exportPriceListImage(mode){
 }
 const priceListEditMode={blind:false,cloth:false,rft:false,accessory:false};
 function priceListConfig(kind){
- const map={blind:{key:"blindsPriceList",host:"blindsPriceSaved",title:"Item / Collection Name",unit:"Sq.Ft",nameKey:"type",unitEditable:false},cloth:{key:"clothPriceList",host:"clothPriceSaved",title:"Item / Collection Name",unit:"Meter",nameKey:"name",unitEditable:false},rft:{key:"rftPriceList",host:"rftPriceSaved",title:"Item / Collection Name",unit:"Sq.Ft",nameKey:"name",unitEditable:true},accessory:{key:"accessoryPriceList",host:"accessoryPriceSaved",title:"Item / Collection Name",unit:"Nos",nameKey:"name",unitEditable:false}};
+ const map={blind:{key:"blindsPriceList",host:"blindsPriceSaved",title:"Item / Collection Name",unit:"Sq.Ft",nameKey:"type",unitEditable:false},cloth:{key:"clothPriceList",host:"clothPriceSaved",title:"Item / Collection Name",unit:"Meter",nameKey:"name",unitEditable:false},rft:{key:"rftPriceList",host:"rftPriceSaved",title:"Item / Collection Name",unit:"Sq.Ft",nameKey:"name",unitEditable:true},accessory:{key:"accessoryPriceList",host:"accessoryPriceSaved",title:"Item / Collection Name",unit:"Nos",nameKey:"name",unitEditable:true}};
  return map[kind];
 }
 function renderPriceListTable(kind){
  const cfg=priceListConfig(kind);if(!cfg)return;const host=$(cfg.host);if(!host)return;
  const items=settings[cfg.key]||[],editing=!!priceListEditMode[kind];
- const unitFor=x=>kind==="rft"?(x.unit||"Sq.Ft"):cfg.unit;
- const rows=items.map((x,i)=>`<tr data-id="${esc(x.id||"")}"><td>${i+1}</td><td>${editing?`<input class="plt-name" value="${esc(x[cfg.nameKey]||x.name||x.type||"")}" placeholder="Item name">`: `<b>${esc(x[cfg.nameKey]||x.name||x.type||"")}</b>`}</td><td>${editing&&cfg.unitEditable?`<select class="plt-unit"><option value="Sq.Ft" ${unitFor(x)==="Sq.Ft"?"selected":""}>Sq.Ft</option><option value="RFT" ${unitFor(x)==="RFT"?"selected":""}>RFT</option></select>`:`${esc(unitFor(x))}`}</td><td>${editing?`<input class="plt-rate" type="number" min="0" step="0.01" value="${esc(x.rate??"")}" placeholder="Rate">`:`${x.rate===""||x.rate==null?"—":money(x.rate)}`}</td><td><button type="button" class="delete-small" onclick="${editing?`this.closest('tr').remove()`:`deletePriceItem('${kind}','${String(x.id)}')`}">Delete</button></td></tr>`).join("");
+ const unitFor=x=>(kind==="rft"||kind==="accessory")?(x.unit||cfg.unit):cfg.unit;
+ const rows=items.map((x,i)=>`<tr data-id="${esc(x.id||"")}"><td>${i+1}</td><td>${editing?`<input class="plt-name" value="${esc(x[cfg.nameKey]||x.name||x.type||"")}" placeholder="Item name">`: `<b>${esc(x[cfg.nameKey]||x.name||x.type||"")}</b>`}</td><td>${editing&&cfg.unitEditable?`${kind==="rft"?`<select class="plt-unit"><option value="Sq.Ft" ${unitFor(x)==="Sq.Ft"?"selected":""}>Sq.Ft</option><option value="RFT" ${unitFor(x)==="RFT"?"selected":""}>RFT</option></select>`:`<input class="plt-unit" type="text" list="accessoryUnitSuggestions" value="${esc(unitFor(x))}" placeholder="Unit">`}`:`${esc(unitFor(x))}`}</td><td>${editing?`<input class="plt-rate" type="number" min="0" step="0.01" value="${esc(x.rate??"")}" placeholder="Rate">`:`${x.rate===""||x.rate==null?"—":money(x.rate)}`}</td><td><button type="button" class="delete-small" onclick="${editing?`this.closest('tr').remove()`:`deletePriceItem('${kind}','${String(x.id)}')`}">Delete</button></td></tr>`).join("");
  host.innerHTML=`<div class="price-list-toolbar">${editing?`<button type="button" class="btn-green" onclick="savePriceListTable('${kind}')">Save</button><button type="button" class="btn-light" onclick="cancelPriceListEdit('${kind}')">Cancel</button>`:`<button type="button" class="btn-blue" onclick="togglePriceListEdit('${kind}')">Edit</button>`}</div><div class="price-list-table-wrap"><table class="price-list-table"><thead><tr><th style="width:9%">No.</th><th>${cfg.title}</th><th style="width:19%">Unit</th><th style="width:22%">Rate (₹)</th><th style="width:17%">Action</th></tr></thead><tbody>${rows||`<tr><td colspan="5" class="empty">No items added.</td></tr>`}</tbody></table></div>${editing?`<div class="price-list-toolbar"><button type="button" class="btn-blue" onclick="addPriceListTableRow('${kind}')">＋ Add Item</button></div>`:""}`;
 }
 function renderNewPriceLists(){
@@ -1246,7 +1252,7 @@ function cancelPriceListEdit(kind){priceListEditMode[kind]=false;renderPriceList
 function addPriceListTableRow(kind){
  const cfg=priceListConfig(kind),host=$(cfg.host);if(!cfg||!host)return;const body=host.querySelector("tbody");if(!body)return;
  const i=body.querySelectorAll("tr[data-id]").length+1;
- const unitOptions=kind==="rft"?'<select class="plt-unit"><option value="Sq.Ft">Sq.Ft</option><option value="RFT">RFT</option></select>':`<span>${cfg.unit}</span>`;
+ const unitOptions=kind==="rft"?'<select class="plt-unit"><option value="Sq.Ft">Sq.Ft</option><option value="RFT">RFT</option></select>':kind==="accessory"?'<input class="plt-unit" type="text" list="accessoryUnitSuggestions" value="Nos" placeholder="Unit">':`<span>${cfg.unit}</span>`;
  const tr=document.createElement("tr");tr.dataset.id="";tr.innerHTML=`<td>${i}</td><td><input class="plt-name" placeholder="New item name"></td><td>${unitOptions}</td><td><input class="plt-rate" type="number" min="0" step="0.01" placeholder="Rate"></td><td><button type="button" class="delete-small" onclick="this.closest('tr').remove()">Delete</button></td>`;body.appendChild(tr);
 }
 function savePriceListTable(kind){
@@ -1255,12 +1261,12 @@ function savePriceListTable(kind){
   const name=String(tr.querySelector(".plt-name")?.value||"").trim();if(!name)continue;
   const rateText=String(tr.querySelector(".plt-rate")?.value??"").trim();if(rateText!==""&&(!Number.isFinite(Number(rateText))||Number(rateText)<0))return alert("ശരിയായ Rate നൽകുക.");
   const id=tr.dataset.id||String(newId()),rate=rateText===""?"":Number(rateText);
-  const unit=kind==="rft"?(tr.querySelector(".plt-unit")?.value||"Sq.Ft"):cfg.unit;
+  const unit=(kind==="rft"||kind==="accessory")?String(tr.querySelector(".plt-unit")?.value||(kind==="rft"?"Sq.Ft":"Nos")).trim():cfg.unit;
+  if(!unit)return alert("Unit നൽകുക.");
   const old=(settings[cfg.key]||[]).find(x=>String(x.id)===String(id));
   if(kind==="blind")next.push({...(old||{}),id,type:name,shade:"",rate});
   else if(kind==="cloth")next.push({...(old||{}),id,name,serial:"",rate});
-  else if(kind==="rft")next.push({...(old||{}),id,name,unit,rate});
-  else next.push({...(old||{}),id,name,rate});
+  else if(kind==="rft"||kind==="accessory")next.push({...(old||{}),id,name,unit,rate});
  }
  settings[cfg.key]=next;saveStorage();priceListEditMode[kind]=false;renderNewPriceLists();refreshMeasurementPricePickers();alert("Price List സേവ് ചെയ്തു.");
 }
@@ -1277,7 +1283,7 @@ function findDocumentPriceEntry(name){
   ...(settings.blindsPriceList||[]).map(x=>({item:x,unit:"Sq.Ft",kind:"blind",label:x.type||x.name})),
   ...(settings.clothPriceList||[]).map(x=>({item:x,unit:"Meter",kind:"cloth",label:x.name||x.type})),
   ...(settings.rftPriceList||[]).map(x=>({item:x,unit:x.unit||"Sq.Ft",kind:"rft",label:x.name||x.type})),
-  ...(settings.accessoryPriceList||[]).map(x=>({item:x,unit:"Nos",kind:"accessory",label:x.name||x.type}))
+  ...(settings.accessoryPriceList||[]).map(x=>({item:x,unit:x.unit||"Nos",kind:"accessory",label:x.name||x.type}))
  ];return sources.find(x=>priceKey(x.label)===key)||null;
 }
 function documentPriceOptions(){
