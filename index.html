@@ -3031,61 +3031,77 @@ function blindOrderHTML(d){
 function previewBlindOrder(){const d=getBlindOrderData();if(!d.rows.length)return alert("Enter at least one measurement row.");const el=$("blindOrderPreview");el.innerHTML=blindOrderHTML(d);el.classList.remove("hidden");el.scrollIntoView({behavior:"smooth",block:"start"});}
 function previewSavedBlindOrder(id){const d=blindOrders.find(x=>String(x.id)===String(id));if(!d)return;showSavedDocumentPreview("Blinds Order · "+formatDateDMY(d.date),blindOrderHTML(d));}
 async function createBlindOrderPDF(d){
- if(!d.rows||!d.rows.length)return alert("Enter at least one measurement row.");
- if(!window.jspdf||!window.html2canvas)return alert("PDF libraries did not load. Check your internet connection and try again.");
- const host=$("pdfSheet");
- const {jsPDF}=window.jspdf;
- const pdf=new jsPDF("p","mm","a4");
- const pageWidth=pdf.internal.pageSize.getWidth(),pageHeight=pdf.internal.pageSize.getHeight();
- const margin=8,contentWidth=794,maxContentHeight=Math.round((pageHeight-2*margin)*96/25.4);
- host.innerHTML="";host.style.width=contentWidth+"px";host.style.left="-10000px";host.style.position="absolute";host.style.top="0";
- try{
-  const full=document.createElement("div");full.innerHTML=blindOrderHTML(d);
-  const source=full.querySelector(".preview");
-  await waitForImages(source);
-  const groups=[...source.querySelectorAll(".bo-shade-group")];
-  const intro=document.createElement("div");
-  [...source.children].forEach(el=>{if(!el.classList.contains("bo-shade-group")&&!el.matches('div[style*="margin-top:18px"]'))intro.appendChild(el.cloneNode(true));});
-  const description=[...source.children].find(el=>el.matches('div[style*="margin-top:18px"]'));
-  const pages=[];let page=null,groupCount=0;
-  const makePage=()=>{
-   const el=document.createElement("div");el.className="preview bo-pdf-page";
-   el.style.cssText=`box-sizing:border-box;width:${contentWidth}px;height:${maxContentHeight}px;overflow:hidden;background:#fff;color:#203040;padding:24px;font-family:Arial,sans-serif;`;
-   const introCopy=intro.cloneNode(true);el.appendChild(introCopy);
-   host.appendChild(el);pages.push(el);page=el;groupCount=0;
-  };
-  makePage();
-  for(const group of groups){
-   const copy=group.cloneNode(true);page.appendChild(copy);
-   if(page.scrollHeight>maxContentHeight && groupCount>0){
-    page.removeChild(copy);makePage();page.appendChild(group.cloneNode(true));
+  if(!d.rows||!d.rows.length)return alert("Enter at least one measurement row.");
+  if(!window.jspdf||!window.html2canvas)return alert("PDF libraries did not load. Check your internet connection and try again.");
+  const host=$("pdfSheet");
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF("p","mm","a4");
+  const pageWidth=pdf.internal.pageSize.getWidth(),pageHeight=pdf.internal.pageSize.getHeight();
+  const margin=8,contentWidth=794,maxContentHeight=Math.round((pageHeight-2*margin)*96/25.4);
+  host.innerHTML="";host.style.width=contentWidth+"px";host.style.left="-10000px";host.style.position="absolute";host.style.top="0";
+  try{
+   const full=document.createElement("div");full.innerHTML=blindOrderHTML(d);
+   const source=full.querySelector(".preview");
+   await waitForImages(source);
+   const groups=[...source.querySelectorAll(".bo-shade-group")];
+   const intro=document.createElement("div");
+   [...source.children].forEach(el=>{
+    if(!el.classList.contains("bo-shade-group")&&!el.matches('div[style*="margin-top:18px"]'))intro.appendChild(el.cloneNode(true));
+   });
+   const description=[...source.children].find(el=>el.matches('div[style*="margin-top:18px"]'));
+   const pages=[];
+   let page=null,groupCount=0;
+   const makePage=(withIntro=false)=>{
+    const el=document.createElement("div");
+    el.className="preview bo-pdf-page";
+    el.style.cssText=`box-sizing:border-box;width:${contentWidth}px;height:${maxContentHeight}px;overflow:hidden;background:#fff;color:#203040;padding:24px;font-family:Arial,sans-serif;`;
+    if(withIntro)el.appendChild(intro.cloneNode(true));
+    host.appendChild(el);pages.push(el);page=el;groupCount=0;
+    return el;
+   };
+   // Shop logo/details and BLINDS ORDER heading are included on page one only.
+   makePage(true);
+   for(const group of groups){
+    const copy=group.cloneNode(true);
+    page.appendChild(copy);
+    if(page.scrollHeight>maxContentHeight && groupCount>0){
+     page.removeChild(copy);
+     makePage(false);
+     page.appendChild(group.cloneNode(true));
+    }
+    groupCount++;
+    if(page.scrollHeight>maxContentHeight){
+     // Keep a complete shade group together; scale the whole group only if it cannot fit on a fresh page.
+     const groupEl=page.lastElementChild;
+     const pageUsed=page.scrollHeight-groupEl.scrollHeight;
+     const available=Math.max(80,maxContentHeight-pageUsed-2);
+     const natural=groupEl.scrollHeight;
+     if(natural>available && natural>0)groupEl.style.zoom=String(Math.min(1,available/natural));
+    }
    }
-   groupCount++;
-   if(page.scrollHeight>maxContentHeight){
-    // A single unusually long shade group is scaled as one complete block rather than cut between pages.
-    const available=maxContentHeight-page.querySelector(".bo-preview-header").offsetHeight-90;
-    const groupEl=page.lastElementChild;const natural=groupEl.scrollHeight;
-    if(natural>available && natural>0)groupEl.style.zoom=String(Math.max(.55,available/natural));
+   if(description){
+    const desc=description.cloneNode(true);
+    page.appendChild(desc);
+    if(page.scrollHeight>maxContentHeight && groupCount>0){
+     page.removeChild(desc);
+     makePage(false);
+     page.appendChild(desc);
+    }
    }
-  }
-  if(description){
-   const desc=description.cloneNode(true);page.appendChild(desc);
-   if(page.scrollHeight>maxContentHeight && groupCount>0){page.removeChild(desc);makePage();page.appendChild(desc);}
-  }
-  for(let i=0;i<pages.length;i++){
-   const canvas=await html2canvas(pages[i],{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,width:contentWidth,height:maxContentHeight,windowWidth:contentWidth,windowHeight:maxContentHeight});
-   const img=canvas.toDataURL("image/jpeg",0.96);
-   if(i>0)pdf.addPage();
-   pdf.addImage(img,"JPEG",margin,margin,pageWidth-2*margin,pageHeight-2*margin,undefined,"FAST");
-  }
-  const blob=pdf.output("blob"),filename="Blinds-Order-"+(d.date||"Sheet")+".pdf",file=new File([blob],filename,{type:"application/pdf"});
-  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-   try{await navigator.share({title:"Blinds Order",text:"Blinds order from "+(d.shopName||"Curtain Shop"),files:[file]});return;}
-   catch(e){if(e&&e.name==="AbortError")return;}
-  }
-  const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);alert("PDF downloaded. Open WhatsApp and attach the downloaded PDF.");
- }catch(e){alert("PDF Error: "+(e.message||e.name||"Unknown error"));}
- finally{host.innerHTML="";host.style.height="";}
+   for(let i=0;i<pages.length;i++){
+    const canvas=await html2canvas(pages[i],{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,width:contentWidth,height:maxContentHeight,windowWidth:contentWidth,windowHeight:maxContentHeight});
+    const img=canvas.toDataURL("image/jpeg",0.96);
+    if(i>0)pdf.addPage();
+    pdf.addImage(img,"JPEG",margin,margin,pageWidth-2*margin,pageHeight-2*margin,undefined,"FAST");
+   }
+   const blob=pdf.output("blob"),filename="Blinds-Order-"+(d.date||"Sheet")+".pdf",file=new File([blob],filename,{type:"application/pdf"});
+   if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({title:"Blinds Order",text:"Blinds order from "+(d.shopName||"Curtain Shop"),files:[file]});return;}
+    catch(e){if(e&&e.name==="AbortError")return;}
+   }
+   const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);alert("PDF downloaded. Open WhatsApp and attach the downloaded PDF.");
+  }catch(e){alert("PDF Error: "+(e.message||e.name||"Unknown error"));}
+  finally{host.innerHTML="";host.style.height="";}
 }
 async function downloadBlindOrderPDF(){await createBlindOrderPDF(getBlindOrderData());}
 async function downloadSavedBlindOrderPDF(id){const d=blindOrders.find(x=>String(x.id)===String(id));if(d)await createBlindOrderPDF(d);}
