@@ -282,6 +282,19 @@ td input,td select{min-width:80px;padding:8px}
 .digicurt-dialog-actions button{min-width:88px;margin:0}
 .quote-table td:nth-child(2),.invoice-table td:nth-child(2){text-align:left!important}
 
+
+.unit-converter-row{display:grid;grid-template-columns:92px minmax(0,1fr);gap:10px;align-items:stretch;margin:10px 0}
+.unit-converter-row label{display:flex;align-items:center;justify-content:center;background:#245b89;color:#fff;border-radius:9px;font-weight:800;font-size:16px;min-height:54px}
+.unit-converter-row input{min-height:54px;border:1.5px solid #aebdca;border-radius:9px;padding:10px 14px;font-size:19px;font-weight:700}
+.saved-record-summary{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.saved-record-summary-main{min-width:0;flex:1}
+.saved-record-summary h3{margin:0 0 5px;overflow-wrap:anywhere}
+.saved-record-summary .small{overflow-wrap:anywhere}
+.saved-record-details{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
+.saved-record-details[hidden]{display:none!important}
+.saved-record-summary button{flex:0 0 auto;margin:0;min-width:105px}
+.saved-record-view{margin:8px 0 0;width:100%}
+@media(max-width:420px){.unit-converter-row{grid-template-columns:96px minmax(0,1fr)}.saved-record-summary button{min-width:90px;padding:10px 9px}}
 </style>
  <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#24445c">
@@ -342,7 +355,8 @@ td input,td select{min-width:80px;padding:8px}
    <button class="home-green" onclick="newInvoice()"><span class="home-action-icon">🧾</span><span>New Invoice</span></button>
    <button class="home-purple" onclick="newReceipt()"><span class="home-action-icon">💳</span><span>New Payment Receipt</span></button>
   </div>
-  <h3 class="home-section-title">📁 Saved Records</h3>
+  <button type="button" class="btn-dark" style="width:100%;min-height:56px;font-size:18px;margin:0 0 14px" onclick="openUnitConverter()">📏 Unit Converter</button>
+   <h3 class="home-section-title">📁 Saved Records</h3>
   <div class="home-secondary-buttons">
    <button class="saved-measurements" onclick="showPage('savedMeasurements')"><span class="saved-icon">📐</span><span>Saved Measurements</span><span class="saved-arrow">›</span></button>
    <button class="saved-quotations" onclick="showPage('savedQuotes')"><span class="saved-icon">📋</span><span>Saved Quotations</span><span class="saved-arrow">›</span></button>
@@ -555,7 +569,7 @@ td input,td select{min-width:80px;padding:8px}
  </div>
 </section>
 
-<section id="savedQuotes" class="page"><div class="card"><h2>Saved Quotations</h2><div id="savedQuoteList"></div></div></section>
+<section id="savedQuotes" class="page"><div class="card"><h2>Saved Quotations</h2><input id="quoteSearch" placeholder="Search customer..." oninput="renderSavedQuotes()"><div id="savedQuoteList"></div></div></section>
 
 <section id="quotePreview" class="page">
  <div class="no-print"><button class="btn-light" onclick="showPage('savedQuotes')">← Back</button><button class="btn-blue" onclick="window.print()">Print / Save PDF</button></div>
@@ -1184,7 +1198,8 @@ function previewPriceList(kind){
 function printPriceListPreview(){
  const el=$("priceListPrint");if(!el)return;
  const w=window.open("","_blank");if(!w)return alert("Print window തുറക്കാൻ കഴിഞ്ഞില്ല. Pop-up അനുവദിക്കുക.");
- w.document.write(`<!doctype html><html><head><title>Price List</title><style>@page{size:A4 portrait;margin:12mm}body{font-family:Arial,sans-serif;margin:0}table{width:100%;border:1px solid #dce5eb;border-collapse:collapse}th,td{border:1px solid #dce5eb;padding:10px;text-align:center}th:nth-child(2),td:nth-child(2){text-align:left}h2,h3{text-align:center}</style></head><body>${el.outerHTML}<script>window.onload=()=>window.print()<\/script></body></html>`);w.document.close();
+ w.document.write(`<!doctype html><html><head><title>Price List</title><style>@page{size:A4 portrait;margin:12mm}body{font-family:Arial,sans-serif;margin:0}table{width:100%;border:1px solid #dce5eb;border-collapse:collapse}th,td{border:1px solid #dce5eb;padding:10px;text-align:center}th:nth-child(2),td:nth-child(2){text-align:left}h2,h3{text-align:center}</style></head><body>${el.outerHTML}<script>window.onload=()=>window.print()<\/script> 
+</body></html>`);w.document.close();
 }
 async function exportPriceListImage(mode){
  const el=$("priceListPrint");if(!el)return;if(!window.html2canvas)return alert("Image export library load ചെയ്തിട്ടില്ല.");
@@ -1733,12 +1748,13 @@ function renderCustomers(){
 }
 
 function renderMeasurements(){
- const s=($("measurementSearch")?.value||"").toLowerCase();
- const list=measurements.filter(m=>(m.customer+" "+m.phone+" "+m.date).toLowerCase().includes(s));
+ const q=($("measurementSearch")?.value||"").toLowerCase();
+ const list=measurements.filter(m=>(m.customer+" "+m.phone+" "+m.date+" "+(m.address||m.place||"")).toLowerCase().includes(q));
  $("measurementList").innerHTML=list.slice().reverse().map(m=>{
-  const sqft=m.rows.reduce((a,r)=>a+Number(r.sqft||0),0);
-  const rft=m.rows.reduce((a,r)=>a+Number(r.rft||0),0);
-  return `<div class="customer-card"><h3>${esc(m.customer)}</h3><div class="small">${esc(m.phone||"")} · ${esc(formatDateDMY(m.date))}</div><p>Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></p><div class="measurement-action-grid"><button type="button" class="btn-blue" onclick="safeRunMeasurementAction('view','${String(m.id)}')">View</button><button type="button" class="btn-green" onclick="safeRunMeasurementAction('edit','${String(m.id)}')">Edit</button><button type="button" class="btn-dark" onclick="safeRunMeasurementAction('share','${String(m.id)}')">Share PDF</button><button type="button" class="btn-green" onclick="safeRunMeasurementAction('jpg','${String(m.id)}')">Save as JPG</button><button type="button" class="btn-blue" onclick="safeRunMeasurementAction('quotation','${String(m.id)}')">Create Quotation</button><button type="button" class="btn-green" onclick="safeRunMeasurementAction('invoice','${String(m.id)}')">Create Invoice</button><button type="button" class="btn-blue" onclick="safeRunMeasurementAction('blind','${String(m.id)}')">Create Blind Order</button><button type="button" class="btn-dark" onclick="safeRunMeasurementAction('receipt','${String(m.id)}')">Create Receipt</button><button type="button" class="btn-red" onclick="safeRunMeasurementAction('delete','${String(m.id)}')">Delete</button><button type="button" class="btn-dark" onclick="safeRunMeasurementAction('print','${String(m.id)}')">🖨️ Print A4</button></div></div>`;
+  const sqft=(m.rows||[]).reduce((a,r)=>a+Number(r.sqft||0),0),rft=(m.rows||[]).reduce((a,r)=>a+Number(r.rft||0),0),id=String(m.id);
+  return `<div class="customer-card"><div class="saved-record-summary"><div class="saved-record-summary-main"><h3>${esc(m.customer||"Customer")}</h3><div class="small">${esc(m.address||m.place||"")} ${m.phone?" · "+esc(m.phone):""}</div><div class="small">${esc(formatDateDMY(m.date))} · Sq.Ft: <b>${money(sqft)}</b> · RFT: <b>${money(rft)}</b></div></div><button type="button" class="btn-dark" onclick="toggleSavedRecordDetails('measurement','${id}')">Details ▾</button></div>
+  <button type="button" class="btn-blue saved-record-view" onclick="safeRunMeasurementAction('view','${id}')">View Measurement</button><div class="saved-record-details" id="measurementDetails-${esc(id)}" hidden><div class="measurement-action-grid">
+  <button class="btn-green" onclick="safeRunMeasurementAction('edit','${id}')">Edit</button><button class="btn-dark" onclick="safeRunMeasurementAction('share','${id}')">Share PDF</button><button class="btn-green" onclick="safeRunMeasurementAction('jpg','${id}')">Save as JPG</button><button class="btn-blue" onclick="safeRunMeasurementAction('quotation','${id}')">Create Quotation</button><button class="btn-green" onclick="safeRunMeasurementAction('invoice','${id}')">Create Invoice</button><button class="btn-blue" onclick="safeRunMeasurementAction('blind','${id}')">Create Blind Order</button><button class="btn-dark" onclick="safeRunMeasurementAction('receipt','${id}')">Create Receipt</button><button class="btn-red" onclick="safeRunMeasurementAction('delete','${id}')">Delete</button><button class="btn-dark" onclick="safeRunMeasurementAction('print','${id}')">🖨️ Print A4</button></div></div></div>`;
  }).join("")||'<div class="card empty">No saved measurements found.</div>';
 }
 function measurementSheetHTML(m){
@@ -1860,7 +1876,8 @@ function printMeasurementData(m){
   const go=()=>setTimeout(()=>{try{window.focus();window.print();}catch(e){}},350);
   if(document.fonts&&document.fonts.ready){document.fonts.ready.then(go).catch(go);}else go();
  });
- <\/script></body></html>`);
+ <\/script> 
+</body></html>`);
  printWindow.document.close();
 }
 
@@ -2139,155 +2156,20 @@ function saveQuotation(){
  currentQuotationId=q.id;saveStorage();renderSavedQuotes();alert("Quotation saved.");showPage("savedQuotes");
 }
 
+function toggleSavedRecordDetails(kind,id){const el=document.getElementById(kind+"Details-"+String(id));if(!el)return;el.hidden=!el.hidden;const btn=el.parentElement.querySelector(".saved-record-summary button");if(btn)btn.textContent=el.hidden?"Details ▾":"Hide Details ▴";}
+function openUnitConverter(){$("unitConverterModal")?.classList.remove("hidden");}
+function closeUnitConverter(){$("unitConverterModal")?.classList.add("hidden");}
+function clearUnitConverter(){["unitCm","unitInch","unitFeet"].forEach(id=>{if($(id))$(id).value="";});}
+function convertUnitFrom(unit){const ids={cm:"unitCm",inch:"unitInch",feet:"unitFeet"},raw=$(ids[unit])?.value;if(raw===""||raw===null||raw===undefined){Object.keys(ids).filter(k=>k!==unit).forEach(k=>$(ids[k]).value="");return;}const v=Number(raw);if(!Number.isFinite(v))return;const cm=unit==="cm"?v:unit==="inch"?v*2.54:v*30.48;const out={cm:cm,inch:cm/2.54,feet:cm/30.48};Object.keys(ids).filter(k=>k!==unit).forEach(k=>$(ids[k]).value=out[k].toFixed(2));}
 function renderSavedQuotes(){
- if(!$("savedQuoteList"))return;
- $("savedQuoteList").innerHTML=quotations.slice().reverse().map(q=>`
- <div class="quote-card">
- <h3>${esc(q.number)}</h3>
- <b>${esc(q.customer)}</b>
- <p class="small">${esc(formatDateDMY(q.date))}</p>
- <p>Grand Total: <b>₹${money(q.grand)}</b></p>
- <button class="btn-blue" onclick="editQuotation(${q.id})">Edit</button>
- <button class="btn-green" onclick="openQuote(${q.id})">View / Print</button>
- <button class="btn-dark" onclick="shareQuotePDF(${q.id})">📤 Share PDF</button>
- <button class="btn-green" onclick="createInvoiceFromSavedQuotation('${String(q.id)}')">Create Invoice</button>
- <button class="btn-purple" onclick="createReceiptFromSavedDocument('quotation','${String(q.id)}')">Create Receipt</button>
- <button class="btn-red" onclick="deleteQuote(${q.id})">Delete</button>
- </div>`).join("")||'<div class="empty">No saved quotations.</div>';
-}
-
-
-function waitForImages(container) {
-  const images = container.querySelectorAll("img");
-
-  if (!images.length) {
-    return Promise.resolve();
-  }
-
-  return Promise.all(
-    Array.from(images).map(function(img) {
-      if (img.complete) {
-        return Promise.resolve();
-      }
-
-      return new Promise(function(resolve) {
-        img.onload = resolve;
-        img.onerror = resolve;
-      });
-    })
-  );
-}
-
- async function shareQuotePDF(id) {
-  const q = quotations.find(x => x.id === id);
-  if (!q) return;
-
-  try {
-    const sheet = document.getElementById("pdfSheet");
-    sheet.innerHTML = quoteHTML(q);
-
-    const preview = sheet.querySelector(".preview");
-    await waitForImages(preview);
-
-    const canvas = await html2canvas(preview, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-      logging: false
-    });
-
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF("p", "mm", "a4");
-
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 8;
-    const imgWidth = pageWidth - margin * 2;
-    const imgHeight = canvas.height * imgWidth / canvas.width;
-    const imgData = canvas.toDataURL("image/jpeg", 0.95);
-
-    let heightLeft = imgHeight;
-    let position = margin;
-
-    pdf.addImage(imgData, "JPEG", margin, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight - margin * 2;
-
-    while (heightLeft > 0) {
-      position = margin - (imgHeight - heightLeft);
-      pdf.addPage();
-      pdf.addImage(imgData, "JPEG", margin, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight - margin * 2;
-    }
-
-    const blob = pdf.output("blob");
-    const filename = "Quotation-" + q.number + ".pdf";
-    const file = new File([blob], filename, {
-      type: "application/pdf"
-    });
-
-    if (
-      navigator.share &&
-      navigator.canShare &&
-      navigator.canShare({ files: [file] })
-    ) {
-      try {
-        await navigator.share({
-          title: "Quotation " + q.number,
-          text: "Quotation from " + (settings.name || "Curtain Shop") + (q.phone ? "\nCustomer WhatsApp: " + q.phone : ""),
-          files: [file]
-        });
-        return;
-      } catch (error) {
-        if (error && error.name === "AbortError") return;
-        console.error("Share error:", error);
-      }
-    }
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-
-    a.href = url;
-    a.download = filename;
-
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
-
-    alert(
-      "PDF downloaded. Open WhatsApp and attach the downloaded PDF."
-    );
-
-  } catch (error) {
-    console.error("PDF creation error:", error);
-    alert("PDF Error: " + (error.message || error.name || "Unknown error"));
-  } finally {
-    document.getElementById("pdfSheet").innerHTML = "";
-  }
-}
-function editQuotation(id){
- const q=quotations.find(x=>x.id===id);if(!q)return;
- currentQuotationId=q.id;$("qCustomer").value=q.customer;$("qPhone").value=q.phone||"";$("qAddress").value=q.address||"";
- $("qNumber").value=q.number;$("qDate").value=q.date;$("discountType").value=q.discountType||"percent";$("discountValue").value=q.discountValue||0;$("gstValue").value=q.gstRate||0;$("qTerms").value=q.terms||"";
- quotationItems=JSON.parse(JSON.stringify(q.items||[])).map(x=>({...x,catalogName:x.catalogName||""}));renderQuotationItems();showPage("quotation");
-}
-async function deleteQuote(id){if(!(await digiConfirm("Delete this quotation?")))return;addDeletedRecordId("quotations",id);quotations=quotations.filter(q=>String(q.id)!==String(id));renderSavedQuotes();await persistDeleteAndNotify();}
-function documentSignatureHTML(){
- const signature=settings.signature?`<img src="${settings.signature}" alt="Authorized signature" style="display:block;max-width:170px;width:100%;height:48px;object-fit:contain;margin:0 auto 3px">`:"";
- return `<div style="display:flex;justify-content:flex-end;margin-top:28px;break-inside:avoid"><div style="width:210px;text-align:center;padding:8px 10px 0">${signature}<div style="height:${settings.signature?'0':'42px'}"></div><div style="border-bottom:1px solid #6f2948"></div><div style="font-size:12px;font-weight:bold;margin-top:6px">Authorized Signature</div></div></div>`;
-}
-function groupDocumentItems(items){
- const grouped=new Map();
- (Array.isArray(items)?items:[]).forEach(it=>{
-  const name=String(it.name||"").trim(),unit=String(it.unit||"").trim(),qty=Math.max(0,Number(it.qty)||0),rate=Math.max(0,Number(it.rate)||0);
-  if(!name)return;
-  const key=[priceKey(name),priceKey(it.catalogName||""),priceKey(unit),priceKey(it.shade||""),rate.toFixed(4)].join("|");
-  if(!grouped.has(key))grouped.set(key,{...it,name,unit,qty:0,rate});
-  grouped.get(key).qty+=qty;
- });
- return [...grouped.values()];
-}
+  if(!$("savedQuoteList"))return;
+  const qtext=($("quoteSearch")?.value||"").trim().toLowerCase();
+  const list=quotations.filter(q=>[q.number,q.customer,q.phone,q.address,q.date].join(" ").toLowerCase().includes(qtext)).slice().reverse();
+  $("savedQuoteList").innerHTML=list.map(q=>{const id=String(q.id);return `
+  <div class="quote-card"><div class="saved-record-summary"><div class="saved-record-summary-main"><h3>${esc(q.customer||"Customer")}</h3><div class="small">${esc(q.address||"")} ${q.address&&q.phone?" · ":""}${esc(q.phone||"")}</div><div class="small">${esc(q.number)} · ${esc(formatDateDMY(q.date))} · ₹${money(q.grand)}</div></div><button type="button" class="btn-dark" onclick="toggleSavedRecordDetails('quote','${id}')">Details ▾</button></div>
+  <button type="button" class="btn-blue saved-record-view" onclick="openQuote('${id}')">View Quotation</button>
+  <div class="saved-record-details" id="quoteDetails-${esc(id)}" hidden><p>Grand Total: <b>₹${money(q.grand)}</b></p><div class="doc-actions">
+  <button class="btn-blue" onclick="editQuotation('${id}')">Edit</button><button class="btn-green" onclick="openQuote('${id}')">View / Print</button><button class="btn-dark" onclick="shareQuotePDF('${id}')">📤 Share PDF</button><button class="btn-green" onclick="createInvoiceFromSavedQuotation('${id}')">Create Invoice</button><button class="btn-purple" onclick="createReceiptFromSavedDocument('quotation','${id}')">Create Receipt</button><button class="btn-red" onclick="deleteQuote('${id}')">Delete</button></div></div></div>`;}).join("")||'<div class="empty">No saved quotations.</div>';
 function quoteHTML(q){
  const displayItems=groupDocumentItems(q.items);
  const items=displayItems.map((it,i)=>`<tr><td>${i+1}</td><td>${esc(digicurtDocItemLabel(it))}</td><td>${money(it.qty)}</td><td>${esc(it.unit)}</td><td>₹${money(it.rate)}</td><td>₹${money(Math.max(0,Number(it.qty)||0)*Math.max(0,Number(it.rate)||0))}</td></tr>`).join("");
@@ -2455,140 +2337,10 @@ function invoiceHTML(d){
 function previewInvoice(){const d=currentInvoice();if(!d.customer)return alert("Please enter Customer Name.");if(!d.items.some(x=>x.name.trim()))return alert("Add an item description.");const el=$("invoicePreview");el.innerHTML=invoiceHTML(d);el.classList.remove("hidden");el.scrollIntoView({behavior:"smooth",block:"start"});}
 function renderInvoices(){
  const q=($("invoiceSearch")?.value||"").toLowerCase();
- $("invoiceList").innerHTML=invoices.filter(d=>[d.number,d.customer,d.phone,d.date].join(" ").toLowerCase().includes(q)).slice().reverse().map(d=>`<div class="customer-card"><h3>${esc(d.number)}</h3><b>${esc(d.customer)}</b><p class="small">${esc(formatDateDMY(d.date))}</p><p>Grand Total: <b>₹${money(d.grand)}</b> · Balance: <b>₹${money(d.balance)}</b></p><div class="doc-actions"><button class="btn-blue" onclick="editInvoice('${String(d.id)}')">Edit / Open</button><button class="btn-green" onclick="previewSavedInvoice('${String(d.id)}')">Preview</button><button class="btn-dark" onclick="shareSavedInvoicePDF('${String(d.id)}')">Share PDF</button><button class="btn-purple" onclick="createReceiptFromSavedDocument('invoice','${String(d.id)}')">Create Receipt</button><button class="btn-red" onclick="deleteInvoice('${String(d.id)}')">Delete</button></div></div>`).join("")||'<div class="empty">No saved invoices.</div>';
+ $("invoiceList").innerHTML=invoices.filter(d=>[d.number,d.customer,d.phone,d.address,d.date].join(" ").toLowerCase().includes(q)).slice().reverse().map(d=>{const id=String(d.id);return `
+ <div class="customer-card"><div class="saved-record-summary"><div class="saved-record-summary-main"><h3>${esc(d.customer||"Customer")}</h3><div class="small">${esc(d.address||"")} ${d.phone?" · "+esc(d.phone):""}</div><div class="small">${esc(d.number)} · ${esc(formatDateDMY(d.date))} · Total ₹${money(d.grand)}</div></div><button type="button" class="btn-dark" onclick="toggleSavedRecordDetails('invoice','${id}')">Details ▾</button></div>
+ <button type="button" class="btn-blue saved-record-view" onclick="previewSavedInvoice('${id}')">View Invoice</button><div class="saved-record-details" id="invoiceDetails-${esc(id)}" hidden><p>Grand Total: <b>₹${money(d.grand)}</b> · Balance: <b>₹${money(d.balance)}</b></p><div class="doc-actions"><button class="btn-blue" onclick="editInvoice('${id}')">Edit / Open</button><button class="btn-green" onclick="previewSavedInvoice('${id}')">Preview</button><button class="btn-dark" onclick="shareSavedInvoicePDF('${id}')">Share PDF</button><button class="btn-purple" onclick="createReceiptFromSavedDocument('invoice','${id}')">Create Receipt</button><button class="btn-red" onclick="deleteInvoice('${id}')">Delete</button></div></div></div>`;}).join("")||'<div class="empty">No saved invoices.</div>';
 }
-function previewSavedInvoice(id){const d=invoices.find(x=>String(x.id)===String(id));if(!d)return;showSavedDocumentPreview("Invoice · "+(d.number||""),invoiceHTML(d));}
-async function deleteInvoice(id){if(!(await digiConfirm("Delete this invoice?")))return;addDeletedRecordId("invoices",id);invoices=invoices.filter(x=>String(x.id)!==String(id));renderInvoices();await persistDeleteAndNotify();}
-function inferReceiptReference(doc){
- const names=(doc.items||[]).map(x=>String(x.name||"").toLowerCase()).join(" ");
- const notes=String(doc.notes||doc.terms||"").toLowerCase();
- const all=names+" "+notes;
- const refs=[];
- if(/zebra|roman|roller|venetian|wooden|bamboo|honeycomb|blind/.test(all))refs.push("Blinds Work");
- if(/curtain|sheer|blackout|cloth|eyelet|ripple|pleat|കട്ടൻ/.test(all))refs.push("Curtain Work");
- if(/fitting|installation|install/.test(all))refs.push("Fitting Work");
- return refs.length? [...new Set(refs)].join(" + "):"Work";
-}
-function createReceiptFromSavedDocument(kind,id){
- const doc=kind==="quotation"?quotations.find(x=>String(x.id)===String(id)):invoices.find(x=>String(x.id)===String(id));
- if(!doc)return;
- newReceipt();
- $("rCustomer").value=doc.customer||"";
- $("rPhone").value=doc.phone||"";
- $("rAddress").value=doc.address||"";
- $("rTotal").value=Number(doc.grand)||0;
- $("rReference").value=inferReceiptReference(doc);
- $("rReceived").value="";
- calculateReceipt();
- showPage("receipt");
- window.scrollTo({top:0,behavior:"smooth"});
-}
-function newReceipt(){
- currentReceiptId=null;$("rCustomer").value="";$("rPhone").value="";$("rAddress").value="";$("rNumber").value=nextReceiptNumber();$("rDate").value=today();$("rReference").value="";$("rTotal").value="";$("rReceived").value="";$("rMethod").value="Cash";$("rNote").value="";
- calculateReceipt();$("receiptPreview").classList.add("hidden");$("receiptPreview").innerHTML="";showPage("receipt");
-}
-function measurementToReceipt(id){
- const m=measurements.find(x=>String(x.id)===String(id));if(!m)return;
- newReceipt();
- $("rCustomer").value=m.customer||"";$("rPhone").value=m.phone||"";$("rAddress").value=m.address||"";
-}
-function calculateReceipt(){
- const total=Math.max(0,Number($("rTotal").value)||0),received=Math.max(0,Number($("rReceived").value)||0),balance=Math.max(0,total-received);
- $("rTotalShow").textContent=money(total);$("rReceivedShow").textContent=money(received);$("rBalance").textContent=money(balance);return {total,received,balance};
-}
-function currentReceipt(){const c=calculateReceipt();return {id:currentReceiptId||newId(),number:$("rNumber").value||nextReceiptNumber(),date:$("rDate").value||today(),customer:$("rCustomer").value.trim(),phone:$("rPhone").value.trim(),address:$("rAddress").value.trim(),reference:$("rReference").value.trim(),total:c.total,received:c.received,balance:c.balance,method:$("rMethod").value||"Cash",note:$("rNote").value.trim()};}
-async function saveReceipt(){
- const d=currentReceipt();if(!d.customer)return alert("Please enter Customer Name.");if(d.total<=0)return alert("Enter the total job amount.");if(d.received<=0)return alert("Enter the amount received.");
- if(d.received>d.total&&!(await digiConfirm("The received amount is greater than the total job amount. Save anyway?")))return;
- const i=receipts.findIndex(x=>String(x.id)===String(d.id));if(i>=0)receipts[i]=d;else receipts.push(d);
- currentReceiptId=d.id;saveStorage();renderReceipts();alert("Payment receipt saved.");showPage("savedReceipts");
-}
-function editReceipt(id){
- const d=receipts.find(x=>String(x.id)===String(id));if(!d)return;currentReceiptId=d.id;
- $("rCustomer").value=d.customer||"";$("rPhone").value=d.phone||"";$("rAddress").value=d.address||"";$("rNumber").value=d.number||nextReceiptNumber();$("rDate").value=d.date||today();$("rReference").value=d.reference||"";$("rTotal").value=d.total||0;$("rReceived").value=d.received||0;$("rMethod").value=d.method||(["Cash","UPI","Bank Transfer","Other"].includes(d.note)?d.note:"Cash");$("rNote").value=(d.method?"":(["Cash","UPI","Bank Transfer","Other"].includes(d.note)?"":d.note))||"";
- calculateReceipt();showPage("receipt");
-}
-function receiptHTML(d){
- const method=d.method||(["Cash","UPI","Bank Transfer","Other"].includes(d.note)?d.note:"Cash");
- const check=(value)=>method===value?"✓":"";
- const logo=settings.logo?`<img src="${settings.logo}" style="width:118px;height:96px;object-fit:contain;display:block;margin:auto">`:`<div style="width:118px;height:96px;border:2px dashed #d9a0b4;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#986477;font-weight:bold;margin:auto">YOUR LOGO</div>`;
- const business=settings.name||"Your Business Name";
- return `<div class="preview" style="width:100%;max-width:100%;margin:0 auto;padding:18px;background:#fff7fa;color:#302a30;border:5px double #a85d7c;border-radius:4px;font-family:Arial,sans-serif;box-shadow:none">
- <div style="display:grid;grid-template-columns:125px minmax(0,1fr) 220px;gap:12px;align-items:center;padding-bottom:12px;border-bottom:2px solid #a85d7c">
-  <div>${logo}</div>
-  <div style="text-align:center;overflow-wrap:anywhere">
-   <h1 style="font-size:28px;line-height:1.12;margin:0;color:#6f2948;letter-spacing:.5px">${esc(business)}</h1>
-   ${settings.address?`<div style="font-size:12px;margin-top:7px">${esc(settings.address)}</div>`:""}
-   <div style="font-size:12px;margin-top:5px">${settings.phone?`Phone: ${esc(settings.phone)}`:""}${settings.whatsapp?` &nbsp; WhatsApp: ${esc(settings.whatsapp)}`:""}</div>
-   ${settings.email?`<div style="font-size:12px;margin-top:3px">${esc(settings.email)}</div>`:""}
-   ${settings.gst?`<div style="font-size:11px;margin-top:3px">GST: ${esc(settings.gst)}</div>`:""}
-  </div>
-  <div style="text-align:center">
-   <div style="background:#702b4b;color:#fff;border:2px solid #d6a4b8;border-radius:8px;padding:12px 8px;font-size:18px;font-weight:bold;letter-spacing:.4px">PAYMENT<br>RECEIPT</div>
-   <div style="margin-top:9px;font-size:12px;font-weight:bold">Receipt No.</div>
-   <div style="background:#f2dce5;border-radius:5px;padding:7px;font-size:16px;font-weight:bold;color:#6f2948;overflow-wrap:anywhere">${esc(d.number)}</div>
-  </div>
- </div>
- <div style="display:grid;grid-template-columns:minmax(0,1fr) 205px;margin-top:14px;border:1px solid #c58ba2">
-  <div style="display:grid;grid-template-columns:130px minmax(0,1fr);border-right:1px solid #c58ba2">
-   <div style="background:#f0dce5;padding:10px;font-weight:bold;border-bottom:1px solid #c58ba2">RECEIVED FROM</div>
-   <div style="padding:10px;border-bottom:1px solid #c58ba2;font-size:16px;font-weight:bold;overflow-wrap:anywhere">${esc(d.customer)}</div>
-   <div style="background:#f0dce5;padding:10px;font-weight:bold;border-bottom:1px solid #c58ba2">PHONE</div>
-   <div style="padding:10px;border-bottom:1px solid #c58ba2;overflow-wrap:anywhere">${esc(d.phone||"—")}</div>
-   <div style="background:#f0dce5;padding:10px;font-weight:bold">FOR</div>
-   <div style="padding:10px;overflow-wrap:anywhere">${esc(d.reference||d.address||"Curtain / Blinds Work")}</div>
-  </div>
-  <div style="display:flex;flex-direction:column;justify-content:center;padding:12px;background:#fffafd">
-   <div style="font-weight:bold;color:#702b4b;font-size:13px">DATE</div>
-   <div style="font-size:17px;margin:6px 0 15px">${esc(formatDateDMY(d.date))}</div>
-   <div style="font-weight:bold;color:#702b4b;font-size:13px">AMOUNT RECEIVED</div>
-   <div style="font-size:23px;font-weight:bold;color:#702b4b;margin-top:5px">₹ ${money(d.received)}</div>
-  </div>
- </div>
- <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(150px,.9fr);margin-top:12px;border:1px solid #b77791">
-  <div style="border-right:1px solid #b77791"><div style="background:#702b4b;color:white;text-align:center;padding:9px 4px;font-size:12px;font-weight:bold">TOTAL BILL AMOUNT</div><div style="padding:16px 5px;text-align:center;font-size:20px;font-weight:bold">₹ ${money(d.total)}</div></div>
-  <div style="border-right:1px solid #b77791"><div style="background:#702b4b;color:white;text-align:center;padding:9px 4px;font-size:12px;font-weight:bold">PAYMENT RECEIVED</div><div style="padding:16px 5px;text-align:center;font-size:20px;font-weight:bold;color:#26765f">₹ ${money(d.received)}</div></div>
-  <div style="border-right:1px solid #b77791"><div style="background:#702b4b;color:white;text-align:center;padding:9px 4px;font-size:12px;font-weight:bold">BALANCE DUE</div><div style="padding:16px 5px;text-align:center;font-size:20px;font-weight:bold;color:#9b3155">₹ ${money(d.balance)}</div></div>
-  <div><div style="background:#f0dce5;text-align:center;padding:9px 4px;font-size:12px;font-weight:bold">PAYMENT METHOD</div><div style="padding:9px 10px;font-size:13px;line-height:1.8"><div>${check("Cash")?"☑":"☐"} Cash</div><div>${check("UPI")?"☑":"☐"} UPI</div><div>${check("Bank Transfer")?"☑":"☐"} Bank Transfer</div><div>${check("Other")?"☑":"☐"} Other</div></div></div>
- </div>
- <div style="display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:15px;margin-top:12px;border:1px solid #c58ba2;border-radius:4px;padding:12px;min-height:72px">
-  <div><b style="color:#702b4b">NOTES</b><div style="margin-top:8px;white-space:pre-wrap;overflow-wrap:anywhere">${esc(d.note||"")}</div></div>
-  <div style="border-left:1px solid #c58ba2;padding-left:14px;display:flex;flex-direction:column;justify-content:flex-end;text-align:center;min-height:65px"><div style="margin-bottom:4px;font-size:12px">Received by</div>${settings.signature?`<img src="${settings.signature}" alt="Authorized signature" style="display:block;max-width:170px;width:100%;height:42px;object-fit:contain;margin:0 auto 2px">`:`<div style="height:42px"></div>`}<div style="border-bottom:1px solid #6f2948"></div><div style="font-size:11px;margin-top:5px">Authorized Signature</div></div>
- </div>
- <div style="display:flex;align-items:center;gap:12px;margin-top:14px;color:#702b4b"><div style="height:1px;background:#b77791;flex:1"></div><div style="font-size:17px;font-weight:bold;font-style:italic;text-align:center">Thank you for your business!</div><div style="height:1px;background:#b77791;flex:1"></div></div>
- <div style="text-align:center;font-size:10px;letter-spacing:2px;color:#806574;margin-top:7px">${esc(business.toUpperCase())}${settings.address?" | "+esc(settings.address):""}</div>
- </div>`;
-}
-function showSavedDocumentPreview(title,html){
- let modal=$("savedDocumentPreviewModal");
- if(!modal){modal=document.createElement("div");modal.id="savedDocumentPreviewModal";
- modal.style.cssText="position:fixed;inset:0;z-index:100000;background:#eaf0f5;overflow:auto;padding:12px;display:none";
- modal.innerHTML=`<div style="max-width:900px;margin:0 auto;background:#fff;border-radius:12px;padding:12px;box-shadow:0 4px 22px #0002">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;background:#fff;padding:5px 0 12px;z-index:2"><b id="savedPreviewTitle"></b><button type="button" class="btn-red" onclick="closeSavedDocumentPreview()">✕ Close</button></div>
-  <div id="savedDocumentPreviewContent"></div>
- </div>`;document.body.appendChild(modal);}
- $("savedPreviewTitle").textContent=title;
- $("savedDocumentPreviewContent").innerHTML=html;
- modal.style.display="block";document.body.style.overflow="hidden";
-}
-function closeSavedDocumentPreview(){const modal=$("savedDocumentPreviewModal");if(modal)modal.style.display="none";document.body.style.overflow="";}
-function applyReceiptPreviewResponsive(){
- const content=$("savedDocumentPreviewContent");
- if(!content||!content.querySelector(".preview"))return;
- content.classList.add("receipt-preview-responsive");
- let st=$("receiptPreviewResponsiveStyle");
- if(!st){
-  st=document.createElement("style");st.id="receiptPreviewResponsiveStyle";
-  st.textContent=`@media(max-width:700px){
-   #savedDocumentPreviewModal{padding:5px!important;overflow-x:hidden!important}
-   #savedDocumentPreviewModal>div{padding:6px!important;width:100%!important;max-width:100vw!important;overflow-x:hidden!important}
-   #savedDocumentPreviewContent.receipt-preview-responsive{width:100%!important;max-width:100%!important;overflow:visible!important}
-   #savedDocumentPreviewContent.receipt-preview-responsive .preview{width:720px!important;min-width:720px!important;max-width:none!important;transform:scale(var(--receipt-preview-scale, .48));transform-origin:top left;margin:0!important;font-size:14px!important}
-   #savedDocumentPreviewContent.receipt-preview-responsive .preview *{box-sizing:border-box!important;overflow-wrap:anywhere!important}
-   #savedDocumentPreviewContent.receipt-preview-responsive .preview img{max-width:100%!important}
-  }`;
-  document.head.appendChild(st);
- }
  const scale=Math.max(.30,Math.min(1,(window.innerWidth-28)/720));
  content.style.setProperty("--receipt-preview-scale",String(scale));
 }
@@ -2960,42 +2712,10 @@ $("boCustomerPhone").value=d.customerPhone||"";
 async function deleteBlindOrder(id){if(!(await digiConfirm("Delete this saved Blinds Order?")))return;addDeletedRecordId("blindOrders",id);blindOrders=blindOrders.filter(x=>String(x.id)!==String(id));if(String(currentBlindOrderId)===String(id))currentBlindOrderId=null;renderBlindOrders();await persistDeleteAndNotify();}
 function renderBlindOrders(){
  const q=($("blindOrderSearch")?.value||"").toLowerCase();
-
- const list=blindOrders.filter(d=>[
-  d.date,d.description,d.shopName,
-  d.customerName,d.customerPlace,d.customerPhone
- ].join(" ").toLowerCase().includes(q));
-
- $("blindOrderList").innerHTML=list.slice().reverse().map(d=>`
-  <div class="customer-card">
-   <h3>Blinds Order · ${esc(formatDateDMY(d.date))}</h3>
-   <div class="small">
-    ${esc(d.shopName||settings.name||"Curtain Shop")} ·
-    ${esc(d.rows?.length||0)} measurement row(s)
-   </div>
-   <p><b>Customer:</b> ${esc(d.customerName||"-")}</p>
-   <p><b>Place:</b> ${esc(d.customerPlace||"-")}</p>
-   <p><b>Phone:</b> ${esc(d.customerPhone||"-")}</p>
-   <p>${esc(d.description||"")}</p>
-   <button class="btn-blue" onclick="editBlindOrder('${String(d.id)}')">Edit / Open</button>
-   <button class="btn-green" onclick="previewSavedBlindOrder('${String(d.id)}')">Preview PDF</button>
-   <button class="btn-dark" onclick="downloadSavedBlindOrderPDF('${String(d.id)}')">Download / Share PDF</button>
-   <button class="btn-red" onclick="deleteBlindOrder('${String(d.id)}')">Delete</button>
-  </div>
- `).join("")||'<div class="empty">No saved Blinds Orders.</div>';
-}
-function blindOrderHTML(d){
- const logo=d.logo?`<img src="${d.logo}" alt="Shop logo">`:"";
- // Group items by Blind Type + Catalog Name + Shade Number, preserving the first-seen order.
- const groups=[];const groupMap=new Map();
- (d.rows||[]).forEach((r,i)=>{
-  const type=String(r.type||"Other").trim()||"Other";
-  const catalogName=String(r.catalogName||"").trim()||"—";
-  const shade=String(r.shade||"").trim()||"—";
-  const key=[type,catalogName,shade].map(x=>x.toLowerCase()).join("\u0000");
-  if(!groupMap.has(key)){const g={type,catalogName,shade,rows:[]};groupMap.set(key,g);groups.push(g);}
-  groupMap.get(key).rows.push({...r,originalNo:i+1});
- });
+ const list=blindOrders.filter(d=>[d.date,d.description,d.shopName,d.customerName,d.customerPlace,d.customerPhone].join(" ").toLowerCase().includes(q));
+ $("blindOrderList").innerHTML=list.slice().reverse().map(d=>{const id=String(d.id);return `
+ <div class="customer-card"><div class="saved-record-summary"><div class="saved-record-summary-main"><h3>${esc(d.customerName||"Customer")}</h3><div class="small">${esc(d.customerPlace||"")} ${d.customerPhone?" · "+esc(d.customerPhone):""}</div><div class="small">Blinds Order · ${esc(formatDateDMY(d.date))} · ${esc(d.rows?.length||0)} row(s)</div></div><button type="button" class="btn-dark" onclick="toggleSavedRecordDetails('blind','${id}')">Details ▾</button></div>
+ <button type="button" class="btn-blue saved-record-view" onclick="previewSavedBlindOrder('${id}')">View Blind Order</button><div class="saved-record-details" id="blindDetails-${esc(id)}" hidden><p>${esc(d.description||"")}</p><div class="doc-actions"><button class="btn-blue" onclick="editBlindOrder('${id}')">Edit / Open</button><button class="btn-green" onclick="previewSavedBlindOrder('${id}')">Preview PDF</button><button class="btn-dark" onclick="downloadSavedBlindOrderPDF('${id}')">Download / Share PDF</button><button class="btn-red" onclick="deleteBlindOrder('${id}')">Delete</button></div></div></div>`;}).join("")||'<div class="empty">No saved Blinds Orders.</div>';
  const groupsHTML=groups.map(g=>`<section class="bo-shade-group" style="border:1.5px solid #7b8794;border-radius:8px;overflow:hidden;margin:14px 0;page-break-inside:avoid;break-inside:avoid"><div class="bo-group-heading" style="padding:10px 12px;background:#eef2f7;border-bottom:1px solid #7b8794"><div style="display:flex;justify-content:center"><div style="display:grid;grid-template-columns:max-content 12px max-content;column-gap:5px;align-items:baseline;text-align:left;color:#203040;font-size:18px;font-weight:800"><span>Type</span><span>:</span><span style="font-size:20px;font-weight:900">${esc(g.type)}</span><span>Catalog</span><span>:</span><span style="font-size:20px;font-weight:900">${esc(g.catalogName)}</span><span>Shade No.</span><span>:</span><span style="font-size:20px;font-weight:900">${esc(g.shade)}</span></div></div></div><table class="bo-print-table" style="margin:0;border:0"><thead><tr>${d.showNumbers?"<th>No.</th>":""}<th>Width</th><th>Height</th></tr></thead><tbody>${g.rows.map(r=>`<tr>${d.showNumbers?`<td>${r.originalNo}</td>`:""}<td>${esc(r.width)} ${esc(r.unit)}</td><td>${esc(r.height)} ${esc(r.unit)}</td></tr>`).join("")}</tbody></table></section>`).join("");
  return `<div class="preview"><div class="bo-preview-header">${logo}<h2 style="margin:8px 0">${esc(d.shopName||"Curtain Shop")}</h2><div>${esc(d.address||"")}</div><div>${esc(d.phone||"")}</div></div><h3 style="text-align:center">BLINDS ORDER</h3><div style="text-align:right;margin-bottom:12px"><b>Order Date:</b> ${esc(formatDateDMY(d.date))}</div>${groupsHTML||`<p>No measurements entered</p>`}<div style="margin-top:18px"><b>Description / Special Instructions</b><div style="margin-top:6px;border:1.5px solid #8b969f;border-radius:5px;padding:10px 12px;min-height:38px;font-size:20px;font-weight:700;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;color:#203040">${esc(d.description||"")}</div></div></div>`;
 }
@@ -3067,5 +2787,16 @@ document.addEventListener("wheel",function(e){
 
 </script>
 <div id="pdfSheet" style="position:fixed;left:-10000px;top:0;width:794px;background:#fff;"></div>
+ 
+<div id="unitConverterModal" class="calc-preview-modal hidden" role="dialog" aria-modal="true" aria-label="Measurement Unit Converter">
+ <div class="calc-preview-dialog" style="max-width:480px">
+  <div class="calc-preview-head"><h2 style="margin:0">📏 Measurement Unit Converter</h2><button class="btn-red" onclick="closeUnitConverter()">✕</button></div>
+  <p class="small">CM, Inch, Feet — ഏതെങ്കിലും ബോക്സിൽ അളവ് നൽകാം. ബാക്കി രണ്ടും തനിയെ മാറും.</p>
+  <div class="unit-converter-row"><label>CM</label><input id="unitCm" type="number" inputmode="decimal" placeholder="Centimeter" oninput="convertUnitFrom('cm')"></div>
+  <div class="unit-converter-row"><label>INCH</label><input id="unitInch" type="number" inputmode="decimal" placeholder="Inch" oninput="convertUnitFrom('inch')"></div>
+  <div class="unit-converter-row"><label>FEET</label><input id="unitFeet" type="number" inputmode="decimal" placeholder="Feet" oninput="convertUnitFrom('feet')"></div>
+  <button type="button" class="btn-light" style="width:100%;margin:12px 0 0" onclick="clearUnitConverter()">Clear</button>
+ </div>
+</div>
 </body>
 </html>
